@@ -58,7 +58,7 @@ function AuthenticatedApp({ user, onSignOut }) {
   const {
     participants, setParticipants,
     addParticipant, updateParticipant, deleteParticipant,
-    toggleAccess, renewAccess, importParticipants,
+    toggleAccess, renewAccess, importParticipants, bulkUpdate,
   } = useParticipants()
 
   const { tags, addTag, editTag, deleteTag }         = useTags()
@@ -81,9 +81,14 @@ function AuthenticatedApp({ user, onSignOut }) {
     toast(p?.access ? 'Acceso revocado' : 'Acceso activado ✓')
   }
   const handleRenew  = id     => { renewAccess(id);               toast('Acceso renovado ✓')         }
-  const handleImport = list   => {
-    importParticipants(list)
+  const handleImport = async list => {
+    const ids = await importParticipants(list)
     toast(`${list.length} participante${list.length!==1?'s':''} importado${list.length!==1?'s':''} ✓`)
+    return ids
+  }
+  const handleBulkUpdate = async (ids, patch, addCourses) => {
+    await bulkUpdate(ids, patch, addCourses)
+    toast(`${ids.length} participante${ids.length!==1?'s':''} actualizado${ids.length!==1?'s':''} ✓`)
   }
 
   // ── Wrappers cursos ───────────────────────────────────────
@@ -141,7 +146,8 @@ function AuthenticatedApp({ user, onSignOut }) {
         onAdd={handleAddTag} onEdit={handleEditTag} onDelete={handleDeleteTag}/>
 
     if (view === 'import')
-      return <ImportView participants={participants} onImport={handleImport}/>
+      return <ImportView participants={participants} courses={courses}
+        onImport={handleImport} onBulkUpdate={handleBulkUpdate}/>
 
     if (view === 'export')
       return <ExportView participants={participants} courses={courses} tags={tags}/>

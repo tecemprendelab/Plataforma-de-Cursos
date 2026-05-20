@@ -89,13 +89,21 @@ function matchExisting(rows, participants) {
 }
 
 // ---------- Vista ----------
-export default function ImportView({ participants, onImport }) {
-  const [csvText,    setCsvText]    = useState('')
-  const [parseRes,   setParseRes]   = useState(null)
-  const [matchRes,   setMatchRes]   = useState(null)
-  const [selected,   setSelected]   = useState(new Set())
-  const [drag,       setDrag]       = useState(false)
-  const [done,       setDone]       = useState(false)
+export default function ImportView({ participants, courses = [], onImport, onBulkUpdate }) {
+  const [csvText,     setCsvText]     = useState('')
+  const [parseRes,    setParseRes]    = useState(null)
+  const [matchRes,    setMatchRes]    = useState(null)
+  const [selected,    setSelected]    = useState(new Set())
+  const [drag,        setDrag]        = useState(false)
+  const [done,        setDone]        = useState(false)
+  const [importedIds, setImportedIds] = useState([])
+
+  // Panel post-import (bulk-edit)
+  const [bulkCourses,  setBulkCourses]  = useState(new Set())
+  const [bulkPayment,  setBulkPayment]  = useState('none')   // 'pagado' | 'pendiente' | 'none'
+  const [bulkAccess,   setBulkAccess]   = useState('none')   // 'on' | 'off' | 'none'
+  const [bulkApplying, setBulkApplying] = useState(false)
+
   const fileRef = useRef()
 
   const processFile = (file) => {
@@ -117,8 +125,38 @@ export default function ImportView({ participants, onImport }) {
   const reset = () => {
     setCsvText(''); setParseRes(null); setMatchRes(null)
     setSelected(new Set()); setDone(false)
+    setImportedIds([])
+    setBulkCourses(new Set()); setBulkPayment('none'); setBulkAccess('none')
     if (fileRef.current) fileRef.current.value = ''
   }
+
+  const toggleBulkCourse = (cid) => {
+    setBulkCourses(prev => {
+      const next = new Set(prev)
+      if (next.has(cid)) next.delete(cid); else next.add(cid)
+      return next
+    })
+  }
+
+  const applyBulk = async () => {
+    if (!importedIds.length) return
+    const patch = {}
+    if (bulkPayment !== 'none') patch.payment = bulkPayment
+    if (bulkAccess === 'on')    Object.assign(patch, { access: true,  fecha: new Date().toISOString().slice(0, 10) })
+    if (bulkAccess === 'off')   patch.access = false
+    const addCourses = [...bulkCourses]
+
+    if (!Object.keys(patch).length && !addCourses.length) {
+      reset()
+      return
+    }
+    setBulkApplying(true)
+    await onBulkUpdate?.(importedIds, patch, addCourses)
+    setBulkApplying(false)
+    reset()
+  }
+
+  const skipBulk = () => reset()
 
   const toggle = (i) => {
     setSelected(prev => {
@@ -139,7 +177,8 @@ export default function ImportView({ participants, onImport }) {
   const confirm = async () => {
     if (!matchRes || !selected.size) return
     const toImport = [...selected].map(i => matchRes.nuevos[i])
-    await onImport(toImport)
+    const ids = await onImport(toImport)
+    setImportedIds(Array.isArray(ids) ? ids : [])
     setDone(true)
     setMatchRes(null)
     setParseRes(null)
@@ -178,17 +217,110 @@ export default function ImportView({ participants, onImport }) {
       )}
 
       {done && (
-        <div className="alert alert-green" style={{ marginTop: 16, padding: 14, background: '#E4F0E8', border: '1px solid #3D7A5A', borderRadius: 8 }}>
-          <i className="ti ti-check"/> Importación completada. Revisá la pestaña Participantes.
-          <button className="btn btn-ghost btn-sm" style={{ marginLeft: 12 }} onClick={reset}>
-            Importar otro CSV
-          </button>
-        </div>
+        <>
+          <div style={{
+            marginTop: 16, padding: 14, background: '#E4F0E8',
+            border: '1px solid #3D7A5A', borderRadius: 8, fontSize: 13,
+          }}>
+            <i className="ti ti-check"/> Importación completada — {importedIds.length} participante{importedIds.length !== 1 ? 's' : ''} agregado{importedIds.length !== 1 ? 's' : ''}.
+          </div>
+
+          {importedIds.length > 0 && onBulkUpdate && (
+            <div style={{
+              marginTop: 16,
+              background: 'var(--white)',
+              border: '1px solid var(--border)',
+              borderRadius: 12,
+              padding: 20,
+            }}>
+              <h3 className="h3" style={{ marginBottom: 4 }}>Aplicar atributos en lote</h3>
+              <p className="text-sm text-muted" style={{ marginBottom: 16 }}>
+                Configurá los valores para los {importedIds.length} participantes que acabás de importar.
+                Lo que dejes en "Sin cambio" no se modifica.
+              </p>
+
+              {/* Cursos */}
+              <div style={{ marginBottom: 16 }}>
+                <div style={{ fontWeight: 500, fontSize: 13, marginBottom: 8 }}>
+                  Inscribir en cursos
+                </div>
+                {courses.length === 0 && (
+                  <div className="text-sm text-muted">No hay cursos cargados todavía.</div>
+                )}
+                <div style={{
+                  display: 'grid',
+                  gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))',
+                  gap: 8,
+                }}>
+                  {courses.map(c => (
+                    <label key={c.id} style={{
+                      display: 'flex', alignItems: 'center', gap: 8,
+                      padding: '8px 10px',
+                      border: '1px solid var(--border)',
+                      borderRadius: 6,
+                      cursor: 'pointer',
+                      background: bulkCourses.has(c.id) ? '#FEF8F2' : 'transparent',
+                      fontSize: 12,
+                    }}>
+                      <input type="checkbox"
+                        checked={bulkCourses.has(c.id)}
+                        onChange={() => toggleBulkCourse(c.id)}/>
+                      <span style={{ flex: 1, minWidth: 0, overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}>
+                        {c.short || c.name}
+                      </span>
+                    </label>
+                  ))}
+                </div>
+              </div>
+
+              {/* Pago */}
+              <div style={{ marginBottom: 16 }}>
+                <div style={{ fontWeight: 500, fontSize: 13, marginBottom: 8 }}>
+                  Estado de pago
+                </div>
+                <div style={{ display: 'flex', gap: 16, flexWrap: 'wrap', fontSize: 13 }}>
+                  <Radio name="pay" value="pagado"    checked={bulkPayment === 'pagado'}    onChange={setBulkPayment} label="Pagado"/>
+                  <Radio name="pay" value="pendiente" checked={bulkPayment === 'pendiente'} onChange={setBulkPayment} label="Pendiente"/>
+                  <Radio name="pay" value="none"      checked={bulkPayment === 'none'}      onChange={setBulkPayment} label="Sin cambio"/>
+                </div>
+              </div>
+
+              {/* Acceso */}
+              <div style={{ marginBottom: 20 }}>
+                <div style={{ fontWeight: 500, fontSize: 13, marginBottom: 8 }}>
+                  Acceso al contenido
+                </div>
+                <div style={{ display: 'flex', gap: 16, flexWrap: 'wrap', fontSize: 13 }}>
+                  <Radio name="acc" value="on"   checked={bulkAccess === 'on'}   onChange={setBulkAccess} label="Activar (45 días desde hoy)"/>
+                  <Radio name="acc" value="off"  checked={bulkAccess === 'off'}  onChange={setBulkAccess} label="Sin acceso"/>
+                  <Radio name="acc" value="none" checked={bulkAccess === 'none'} onChange={setBulkAccess} label="Sin cambio"/>
+                </div>
+              </div>
+
+              <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+                <button
+                  className="btn btn-orange"
+                  disabled={bulkApplying}
+                  onClick={applyBulk}>
+                  {bulkApplying
+                    ? <><i className="ti ti-loader-2 spinner"/> Aplicando…</>
+                    : <><i className="ti ti-check"/> Aplicar a los {importedIds.length}</>}
+                </button>
+                <button
+                  className="btn btn-ghost"
+                  disabled={bulkApplying}
+                  onClick={skipBulk}>
+                  Saltar este paso
+                </button>
+              </div>
+            </div>
+          )}
+        </>
       )}
 
       {matchRes && (
         <div style={{ marginTop: 20 }}>
-          <div style={{ display: 'flex', gap: 10, marginBottom: 16, flexWrap: 'wrap' }}>
+          <div style={{ display: 'grid', gridTemplateColumns:'repeat(auto-fit, minmax(140px, 1fr))', gap: 10, marginBottom: 16 }}>
             <Stat label="Total en CSV"      value={parseRes.rows.length}    color="var(--black)"  />
             <Stat label="Nuevos a agregar"  value={matchRes.nuevos.length}   color="var(--orange)" />
             <Stat label="Ya existen en DB"  value={matchRes.existentes.length} color="var(--gray)"  />
@@ -199,9 +331,9 @@ export default function ImportView({ participants, onImport }) {
 
           {matchRes.nuevos.length > 0 && (
             <>
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 10 }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 10, flexWrap:'wrap', gap:8 }}>
                 <h3 className="h3">Nuevos participantes ({matchRes.nuevos.length})</h3>
-                <div style={{ display: 'flex', gap: 8 }}>
+                <div style={{ display: 'flex', gap: 8, flexWrap:'wrap' }}>
                   <button className="btn btn-ghost btn-sm" onClick={toggleAll}>
                     {selected.size === matchRes.nuevos.length ? 'Deseleccionar todo' : 'Seleccionar todo'}
                   </button>
@@ -263,7 +395,7 @@ export default function ImportView({ participants, onImport }) {
 
 function Stat({ label, value, color }) {
   return (
-    <div style={{ background: 'var(--white)', border: '1px solid var(--border)', borderRadius: 8, padding: '10px 14px', minWidth: 130 }}>
+    <div style={{ background: 'var(--white)', border: '1px solid var(--border)', borderRadius: 8, padding: '10px 14px', minWidth: 0 }}>
       <div style={{ fontSize: 22, fontWeight: 600, color }}>{value}</div>
       <div className="text-xs text-muted" style={{ marginTop: 2 }}>{label}</div>
     </div>
@@ -288,6 +420,16 @@ function RowItem({ selected, onToggle, row }) {
           {row.phone && <> · {row.phone}</>}
         </div>
       </div>
+    </label>
+  )
+}
+
+function Radio({ name, value, checked, onChange, label }) {
+  return (
+    <label style={{ display: 'flex', alignItems: 'center', gap: 6, cursor: 'pointer' }}>
+      <input type="radio" name={name} value={value} checked={checked}
+        onChange={() => onChange(value)}/>
+      {label}
     </label>
   )
 }

@@ -102,7 +102,7 @@ export default function CoursesView({ courses, participants, setView, onAdd, onU
       </div>
 
       {/* Filtros */}
-      <div style={{ display:'flex', gap:8, marginBottom:16, flexWrap:'wrap', alignItems:'center' }}>
+      <div className="filters-row" style={{ display:'flex', gap:8, marginBottom:16, flexWrap:'wrap', alignItems:'center' }}>
         <input className="finput" placeholder="Buscar por nombre o código..."
           value={search} onChange={e => setSearch(e.target.value)} style={{ flex:1, minWidth:180 }}/>
         <select className="finput" style={{ width:'auto' }}
@@ -139,7 +139,7 @@ export default function CoursesView({ courses, participants, setView, onAdd, onU
               opacity: c.active ? 1 : .55, transition:'opacity .2s' }}>
 
             {/* Header de la card */}
-            <div style={{ display:'flex', justifyContent:'space-between', alignItems:'flex-start', marginBottom:12 }}>
+            <div className="course-card-head" style={{ display:'flex', justifyContent:'space-between', alignItems:'flex-start', marginBottom:12, gap:12 }}>
               <div style={{ flex:1, minWidth:0 }}>
                 <div style={{ display:'flex', alignItems:'center', gap:8, marginBottom:5 }}>
                   <TypeBadge type={c.type}/>

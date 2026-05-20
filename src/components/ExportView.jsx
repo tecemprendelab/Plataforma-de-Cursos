@@ -38,7 +38,7 @@ export default function ExportView({ participants, courses, tags = [] }) {
         </div>
       </div>
 
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 16, marginBottom: 24 }}>
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: 16, marginBottom: 24 }}>
         {/* Excel */}
         <div className="card card-padded">
           <i className="ti ti-file-spreadsheet" style={{ fontSize: 32, color: 'var(--green)', marginBottom: 12, display: 'block' }}/>
@@ -91,8 +91,8 @@ export default function ExportView({ participants, courses, tags = [] }) {
       </div>
 
       <h3 className="h3" style={{ marginBottom: 12 }}>Vista previa</h3>
-      <div className="card">
-        <table className="ttable">
+      <div className="card" style={{ overflowX:'auto' }}>
+        <table className="ttable" style={{ minWidth:520 }}>
           <thead>
             <tr><th>Nombre</th><th>Correo</th><th>Cursos</th><th>Acceso</th><th>Días restantes</th></tr>
           </thead>

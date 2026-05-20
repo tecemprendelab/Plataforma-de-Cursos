@@ -460,7 +460,13 @@ input, select, button, textarea { font-family: var(--font-body) }
   to   { opacity:1 }
 }
 
-/* ── ≤767px (móvil): tabla → cards, filtros stack ────────── */
+/* ── ≤1023px: tabla → cards (tablet también, por espacio) ── */
+@media (max-width: 1023px) {
+  .ttable-responsive { display:none }
+  .card-stack { display:flex }
+}
+
+/* ── ≤767px (móvil): filtros stack, tipografía compacta ──── */
 @media (max-width: 767px) {
   .main-content { padding:16px 14px }
 
@@ -570,6 +576,13 @@ input, select, button, textarea { font-family: var(--font-body) }
 
   /* Toast: full width */
   .toast { left:16px; right:16px; bottom:16px; text-align:center }
+}
+
+/* Modal grid-4 a 2 cols en pantallas medianas */
+@media (min-width: 600px) and (max-width: 900px) {
+  .modal-grid-4 {
+    grid-template-columns:1fr 1fr !important;
+  }
 }
 
 /* ── ≤420px (extra-small): stats 1 col ───────────────────── */

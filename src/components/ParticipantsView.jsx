@@ -78,7 +78,7 @@ export default function ParticipantsView({
       </div>
 
       {/* Filtros */}
-      <div style={{ display:'flex', gap:8, marginBottom:14, flexWrap:'wrap' }}>
+      <div className="filters-row" style={{ display:'flex', gap:8, marginBottom:14, flexWrap:'wrap' }}>
         <input className="finput" placeholder="Buscar nombre, correo, teléfono..."
           value={search} onChange={e => setSearch(e.target.value)} style={{ flex:1, minWidth:200 }}/>
         <select className="finput" style={{ width:'auto' }}
@@ -133,8 +133,8 @@ export default function ParticipantsView({
         )
       })()}
 
-      {/* Tabla */}
-      <div className="card">
+      {/* Tabla — desktop */}
+      <div className="card ttable-responsive">
         <table className="ttable">
           <thead>
             <tr>
@@ -207,6 +207,73 @@ export default function ParticipantsView({
             )}
           </tbody>
         </table>
+      </div>
+
+      {/* Cards — móvil */}
+      <div className="card-stack">
+        {filtered.length ? filtered.map(p => {
+          const exp   = p.access && isExpired(p.fecha)
+          const warn  = p.access && isWarning(p.fecha)
+          const ptags = tags.filter(t => (p.tags||[]).includes(t.id))
+          return (
+            <div key={p.id} className={`pcard ${exp ? 'row-exp' : warn ? 'row-warn' : ''}`}>
+              <div className="pcard-head">
+                <Avatar name={p.name} variant={exp ? 'red' : warn ? 'warn' : 'cream'}/>
+                <div className="pcard-id">
+                  <div className="pname">{p.name}</div>
+                  <div className="pemail">{p.email}</div>
+                </div>
+                <TimerBadge fecha={p.fecha} access={p.access}/>
+              </div>
+
+              {p.access && (
+                <div className="pcard-section">
+                  <span className="pcard-label">Tiempo de acceso</span>
+                  <AccessBar fecha={p.fecha}/>
+                </div>
+              )}
+
+              {p.courses.length > 0 && (
+                <div className="pcard-section">
+                  <span className="pcard-label">Cursos</span>
+                  <div style={{ fontSize:12, color:'var(--gray)' }}>
+                    {p.courses.map(shortName).join(', ')}
+                  </div>
+                </div>
+              )}
+
+              {ptags.length > 0 && (
+                <div className="pcard-section">
+                  <span className="pcard-label">Etiquetas</span>
+                  <div style={{ display:'flex', flexWrap:'wrap' }}>
+                    {ptags.map(t => <TagPill key={t.id} tag={t} small/>)}
+                  </div>
+                </div>
+              )}
+
+              <div className="pcard-actions">
+                <button className="btn-icon" onClick={() => openEdit(p)}>
+                  <i className="ti ti-edit"/> Editar
+                </button>
+                <button className="btn-icon" onClick={() => setView(`profile_${p.id}`)}>
+                  <i className="ti ti-user"/> Perfil
+                </button>
+                <button className={`btn-icon${p.access ? ' orange' : ''}`}
+                  onClick={() => onToggleAccess(p.id)}>
+                  <i className="ti ti-key"/> {p.access ? 'Revocar' : 'Acceso'}
+                </button>
+                <button className="btn-icon danger"
+                  onClick={() => { if (confirm('¿Eliminar?')) onDelete(p.id) }}>
+                  <i className="ti ti-trash"/>
+                </button>
+              </div>
+            </div>
+          )
+        }) : (
+          <div className="card" style={{ padding:32, textAlign:'center', color:'var(--gray)' }}>
+            No se encontraron participantes
+          </div>
+        )}
       </div>
     </div>
   )

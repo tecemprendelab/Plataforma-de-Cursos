@@ -199,6 +199,8 @@ export function useParticipants() {
     setParticipants(prev => prev.map(p => p.id === id ? { ...p, ...patch } : p))
   }, [])
 
+  /** Importa una lista. Retorna los IDs nuevos para que el caller
+   *  pueda aplicarles ajustes en lote (curso, pago, acceso). */
   const importParticipants = useCallback(async (list) => {
     if (!isSupabaseConfigured) {
       const newPs = list.map((imp, i) => ({
@@ -212,12 +214,11 @@ export function useParticipants() {
         payment: 'pendiente',
         access:  false,
         fecha:   todayISO(),
-        notes:   imp.notes   || 'Importado con IA',
+        notes:   imp.notes   || 'Importado desde CSV',
       }))
       setParticipants(prev => [...prev, ...newPs])
-      return
+      return newPs.map(p => p.id)
     }
-    // Inserción uno por uno para preservar relaciones N:N.
     const added = []
     for (const imp of list) {
       const base = {
@@ -239,6 +240,48 @@ export function useParticipants() {
       if (fresh) added.push(fresh)
     }
     if (added.length) setParticipants(prev => [...prev, ...added])
+    return added.map(p => p.id)
+  }, [])
+
+  /** Aplica cambios en lote a una lista de participantes.
+   *  patch: { payment?, access?, fecha?, status? }
+   *  addCourses: array de course IDs a agregar (no reemplaza, solo agrega). */
+  const bulkUpdate = useCallback(async (ids, patch = {}, addCourses = []) => {
+    if (!ids?.length) return
+    if (!isSupabaseConfigured) {
+      setParticipants(prev => prev.map(p => {
+        if (!ids.includes(p.id)) return p
+        const newCourses = [...new Set([...(p.courses || []), ...addCourses])]
+        return { ...p, ...patch, courses: newCourses }
+      }))
+      return
+    }
+    // 1) Update plano si hay patch
+    if (Object.keys(patch).length) {
+      const { error } = await supabase.from('participants')
+        .update(patch).in('id', ids)
+      if (error) { console.error('[useParticipants] bulkUpdate patch', error); return }
+    }
+    // 2) Agregar inscripciones a cursos (idempotente: upsert con onConflict)
+    if (addCourses.length) {
+      const rows = ids.flatMap(pid => addCourses.map(cid => ({
+        participant_id: pid, course_id: cid,
+      })))
+      const { error } = await supabase
+        .from('participant_courses')
+        .upsert(rows, { onConflict: 'participant_id,course_id' })
+      if (error) console.error('[useParticipants] bulkUpdate courses', error)
+    }
+    // 3) Refrescar las filas afectadas
+    const refreshed = []
+    for (const id of ids) {
+      const f = await fetchOne(id)
+      if (f) refreshed.push(f)
+    }
+    setParticipants(prev => prev.map(p => {
+      const f = refreshed.find(r => r.id === p.id)
+      return f || p
+    }))
   }, [])
 
   return {
@@ -250,5 +293,6 @@ export function useParticipants() {
     toggleAccess,
     renewAccess,
     importParticipants,
+    bulkUpdate,
   }
 }

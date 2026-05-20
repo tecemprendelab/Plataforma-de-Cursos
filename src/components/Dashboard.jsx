@@ -25,7 +25,7 @@ export default function Dashboard({ participants, courses, setView }) {
       {expired>0&&<div className="alert alert-red"><div className="alert-title"><i className="ti ti-lock"/> {expired} acceso{expired!==1?'s':''} expirado{expired!==1?'s':''} — revocados automáticamente</div><p className="text-sm text-muted">Podés renovarlos desde Control de Accesos.</p></div>}
       {warning>0&&<div className="alert alert-orange"><div className="alert-title"><i className="ti ti-clock"/> {warning} participante{warning!==1?'s':''} con acceso por vencer</div><p className="text-sm text-muted">Enviá el recordatorio de prueba desde Recordatorios.</p></div>}
       <h3 className="h3" style={{marginBottom:14}}>Cursos y talleres activos</h3>
-      <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:12,marginBottom:24}}>
+      <div className="grid-2col" style={{display:'grid',gridTemplateColumns:'repeat(auto-fit, minmax(260px, 1fr))',gap:12,marginBottom:24}}>
         {activeCourses.map(c=>{
           const enr=participants.filter(p=>p.courses.includes(c.id)).length
           const pct=Math.round(enr/c.capacity*100)
@@ -44,13 +44,14 @@ export default function Dashboard({ participants, courses, setView }) {
       <div className="card">
         {recent.map((p,i)=>(
           <div key={p.id} onClick={()=>setView(`profile_${p.id}`)}
-            style={{display:'flex',alignItems:'center',padding:'10px 16px',borderTop:i>0?'1px solid var(--cream-2)':'none',gap:12,cursor:'pointer'}}>
+            className="recent-row"
+            style={{display:'flex',alignItems:'center',padding:'10px 16px',borderTop:i>0?'1px solid var(--cream-2)':'none',gap:12,cursor:'pointer',flexWrap:'wrap'}}>
             <Avatar name={p.name} variant={isExpired(p.fecha)?'red':isWarning(p.fecha)?'warn':'cream'}/>
             <div style={{flex:1,minWidth:0}}>
               <div style={{fontWeight:500,fontSize:13}}>{p.name}</div>
               <div className="text-xs text-muted" style={{overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap'}}>{p.email}</div>
             </div>
-            <div style={{width:160}}><AccessBar fecha={p.fecha} compact/></div>
+            <div style={{flex:'0 1 160px',minWidth:120}}><AccessBar fecha={p.fecha} compact/></div>
             <TimerBadge fecha={p.fecha} access={p.access}/>
           </div>
         ))}

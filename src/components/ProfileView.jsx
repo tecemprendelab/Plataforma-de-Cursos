@@ -80,7 +80,7 @@ export default function ProfileView({ id, participants, courses, tags, onToggleA
       </div>
 
       {/* Grid: acceso + cursos */}
-      <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:16, marginBottom:16 }}>
+      <div className="grid-2col" style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:16, marginBottom:16 }}>
         {/* Acceso */}
         <div className="card card-padded">
           <div className="text-xs text-muted"

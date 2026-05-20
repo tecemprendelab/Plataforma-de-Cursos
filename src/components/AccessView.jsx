@@ -27,13 +27,13 @@ export default function AccessView({ participants, onToggleAccess, onRenew }) {
         <div className="alert alert-red">
           <div className="alert-title"><i className="ti ti-lock"/> {expired.length} acceso{expired.length!==1?'s':''} expirado{expired.length!==1?'s':''}</div>
           {expired.map(p => (
-            <div key={p.id} style={{display:'flex',alignItems:'center',justifyContent:'space-between',padding:'8px 0',borderBottom:'1px solid var(--cream-2)'}}>
+            <div key={p.id} style={{display:'flex',alignItems:'center',justifyContent:'space-between',padding:'8px 0',borderBottom:'1px solid var(--cream-2)',flexWrap:'wrap',gap:8}}>
               <div style={{flex:1,minWidth:0}}>
                 <div style={{fontWeight:500,fontSize:13}}>{p.name}</div>
                 <div className="text-xs text-muted" style={{marginBottom:6}}>{p.email}</div>
                 <div style={{maxWidth:280}}><AccessBar fecha={p.fecha}/></div>
               </div>
-              <button className="btn btn-ghost btn-sm" style={{marginLeft:12}} onClick={() => onRenew(p.id)}><i className="ti ti-refresh"/> Renovar</button>
+              <button className="btn btn-ghost btn-sm" style={{marginLeft:'auto'}} onClick={() => onRenew(p.id)}><i className="ti ti-refresh"/> Renovar</button>
             </div>
           ))}
         </div>
@@ -43,12 +43,12 @@ export default function AccessView({ participants, onToggleAccess, onRenew }) {
         <div className="alert alert-orange">
           <div className="alert-title"><i className="ti ti-clock"/> {warning.length} por vencer esta semana</div>
           {warning.map(p => (
-            <div key={p.id} style={{display:'flex',alignItems:'center',justifyContent:'space-between',padding:'8px 0',borderBottom:'1px solid var(--cream-2)'}}>
+            <div key={p.id} style={{display:'flex',alignItems:'center',justifyContent:'space-between',padding:'8px 0',borderBottom:'1px solid var(--cream-2)',flexWrap:'wrap',gap:8}}>
               <div style={{flex:1,minWidth:0}}>
                 <div style={{fontWeight:500,fontSize:13}}>{p.name} <span style={{fontSize:11,color:'var(--orange)'}}>· {daysLeft(p.fecha)}d</span></div>
                 <div style={{maxWidth:280,marginTop:4}}><AccessBar fecha={p.fecha}/></div>
               </div>
-              <button className="btn btn-orange btn-sm" style={{marginLeft:12}} onClick={() => openEmailClient(p)}><i className="ti ti-mail"/> Recordatorio</button>
+              <button className="btn btn-orange btn-sm" style={{marginLeft:'auto'}} onClick={() => openEmailClient(p)}><i className="ti ti-mail"/> Recordatorio</button>
             </div>
           ))}
         </div>
@@ -58,7 +58,7 @@ export default function AccessView({ participants, onToggleAccess, onRenew }) {
         <div className="alert alert-orange">
           <div className="alert-title"><i className="ti ti-alert-triangle"/> Sin acceso (pago confirmado)</div>
           {sinAcceso.map(p => (
-            <div key={p.id} style={{display:'flex',alignItems:'center',justifyContent:'space-between',padding:'8px 0',borderBottom:'1px solid var(--cream-2)'}}>
+            <div key={p.id} style={{display:'flex',alignItems:'center',justifyContent:'space-between',padding:'8px 0',borderBottom:'1px solid var(--cream-2)',flexWrap:'wrap',gap:8}}>
               <div><div style={{fontWeight:500,fontSize:13}}>{p.name}</div><div className="text-xs text-muted">{p.email}</div></div>
               <button className="btn btn-orange btn-sm" onClick={() => onToggleAccess(p.id)}><i className="ti ti-key"/> Dar acceso</button>
             </div>
@@ -71,7 +71,7 @@ export default function AccessView({ participants, onToggleAccess, onRenew }) {
       )}
 
       <h3 className="h3" style={{marginBottom:12}}>Todos los participantes</h3>
-      <div className="card">
+      <div className="card ttable-responsive">
         <table className="ttable">
           <thead><tr><th style={{width:'26%'}}>Participante</th><th style={{width:'22%'}}>Cursos</th><th style={{width:'34%'}}>Tiempo de acceso</th><th style={{width:'18%'}}>Acción</th></tr></thead>
           <tbody>
@@ -90,6 +90,33 @@ export default function AccessView({ participants, onToggleAccess, onRenew }) {
             ))}
           </tbody>
         </table>
+      </div>
+
+      {/* Cards — móvil */}
+      <div className="card-stack">
+        {participants.map(p => {
+          const exp  = isExpired(p.fecha)
+          const warn = isWarning(p.fecha) && p.access
+          return (
+            <div key={p.id} className={`pcard ${exp ? 'row-exp' : warn ? 'row-warn' : ''}`}>
+              <div className="pcard-head">
+                <div className="pcard-id">
+                  <div className="pname">{p.name}</div>
+                  <div className="pemail">{p.courses.map(shortName).join(', ') || 'Sin cursos'}</div>
+                </div>
+              </div>
+              {p.access
+                ? <AccessBar fecha={p.fecha}/>
+                : <span className="text-sm text-muted">Sin acceso</span>}
+              <button onClick={() => onToggleAccess(p.id)}
+                className="btn btn-sm"
+                style={{background:'none',border:`1px solid ${p.access?'var(--orange)':'var(--border)'}`,color:p.access?'var(--orange)':'var(--gray)',justifyContent:'center'}}>
+                <i className={`ti ti-${p.access ? 'key-off' : 'key'}`}/>
+                {p.access ? 'Revocar acceso' : 'Activar acceso'}
+              </button>
+            </div>
+          )
+        })}
       </div>
     </div>
   )

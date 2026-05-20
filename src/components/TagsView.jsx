@@ -59,7 +59,7 @@ export default function TagsView({ tags, participants, onAdd, onEdit, onDelete }
         <div style={{ fontWeight:500, fontSize:13, marginBottom:14, display:'flex', alignItems:'center', gap:6 }}>
           <i className="ti ti-tag" style={{ fontSize:14, color:'var(--orange)' }}/> Nueva etiqueta
         </div>
-        <div style={{ display:'flex', gap:12, alignItems:'flex-end', flexWrap:'wrap' }}>
+        <div className="filters-row" style={{ display:'flex', gap:12, alignItems:'flex-end', flexWrap:'wrap' }}>
           <div style={{ flex:1, minWidth:180 }}>
             <label className="text-sm text-muted" style={{ display:'block', marginBottom:4 }}>Nombre</label>
             <input className="finput" value={newName} onChange={e => setNewName(e.target.value)}

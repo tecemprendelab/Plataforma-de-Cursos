@@ -60,7 +60,7 @@ export default function ParticipantModal({ participant, courses, tags, onSave, o
       </div>
 
       {/* Datos personales */}
-      <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:12, marginBottom:12 }}>
+      <div className="modal-grid-2" style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:12, marginBottom:12 }}>
         <div>
           <label className="text-sm text-muted" style={{ display:'block', marginBottom:4 }}>Nombre completo *</label>
           <input className="finput" value={form.name} onChange={e => f('name', e.target.value)}/>
@@ -78,7 +78,7 @@ export default function ParticipantModal({ participant, courses, tags, onSave, o
       </div>
 
       {/* Estado / Pago / Acceso */}
-      <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr 1fr', gap:12, marginBottom:14 }}>
+      <div className="modal-grid-3" style={{ display:'grid', gridTemplateColumns:'1fr 1fr 1fr', gap:12, marginBottom:14 }}>
         {[
           ['status',  'Estado',  [['activo','Activo'],['inactivo','Inactivo']]],
           ['payment', 'Pago',    [['pagado','Pagado'],['pendiente','Pendiente']]],

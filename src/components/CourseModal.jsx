@@ -80,7 +80,7 @@ export default function CourseModal({ course, onSave, onClose }) {
       </div>
 
       {/* Nombre + nombre corto */}
-      <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:12, marginBottom:12 }}>
+      <div className="modal-grid-2" style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:12, marginBottom:12 }}>
         <div style={{ gridColumn:'1/-1' }}>
           <label className="text-sm text-muted" style={{ display:'block', marginBottom:4 }}>
             Nombre completo *
@@ -113,7 +113,7 @@ export default function CourseModal({ course, onSave, onClose }) {
       </div>
 
       {/* Fechas + capacidad + precio */}
-      <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr 1fr 1fr', gap:12, marginBottom:12 }}>
+      <div className="modal-grid-4" style={{ display:'grid', gridTemplateColumns:'1fr 1fr 1fr 1fr', gap:12, marginBottom:12 }}>
         <div>
           <label className="text-sm text-muted" style={{ display:'block', marginBottom:4 }}>Inicio *</label>
           <input className="finput" type="date" value={form.start} onChange={e => f('start', e.target.value)}/>
@@ -145,7 +145,7 @@ export default function CourseModal({ course, onSave, onClose }) {
       </div>
 
       {/* Plataforma + modalidad */}
-      <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:12, marginBottom:12 }}>
+      <div className="modal-grid-2" style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:12, marginBottom:12 }}>
         <div>
           <label className="text-sm text-muted" style={{ display:'block', marginBottom:4 }}>Plataforma</label>
           <select className="finput" value={form.platform} onChange={e => f('platform', e.target.value)}>
