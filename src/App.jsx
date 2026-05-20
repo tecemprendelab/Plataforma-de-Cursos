@@ -130,7 +130,7 @@ function AuthenticatedApp({ user, onSignOut }) {
       return <ImportView participants={participants} onImport={handleImport}/>
 
     if (view === 'export')
-      return <ExportView participants={participants} courses={courses}/>
+      return <ExportView participants={participants} courses={courses} tags={tags}/>
 
     return <Dashboard {...shared}/>
   }
