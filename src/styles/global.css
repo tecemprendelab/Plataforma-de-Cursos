@@ -1,0 +1,289 @@
+/* ============================================================
+   global.css — CSS
+   Paleta crema / naranja / negro · Tipografía Poppins Latin
+   ============================================================ */
+
+/* ── Poppins utility classes ─────────────────────────────── */
+.poppins-thin           { font-family:"Poppins",sans-serif; font-weight:100; font-style:normal  }
+.poppins-extralight     { font-family:"Poppins",sans-serif; font-weight:200; font-style:normal  }
+.poppins-light          { font-family:"Poppins",sans-serif; font-weight:300; font-style:normal  }
+.poppins-regular        { font-family:"Poppins",sans-serif; font-weight:400; font-style:normal  }
+.poppins-medium         { font-family:"Poppins",sans-serif; font-weight:500; font-style:normal  }
+.poppins-semibold       { font-family:"Poppins",sans-serif; font-weight:600; font-style:normal  }
+.poppins-bold           { font-family:"Poppins",sans-serif; font-weight:700; font-style:normal  }
+.poppins-extrabold      { font-family:"Poppins",sans-serif; font-weight:800; font-style:normal  }
+.poppins-black          { font-family:"Poppins",sans-serif; font-weight:900; font-style:normal  }
+.poppins-thin-italic    { font-family:"Poppins",sans-serif; font-weight:100; font-style:italic  }
+.poppins-extralight-italic { font-family:"Poppins",sans-serif; font-weight:200; font-style:italic }
+.poppins-light-italic   { font-family:"Poppins",sans-serif; font-weight:300; font-style:italic  }
+.poppins-regular-italic { font-family:"Poppins",sans-serif; font-weight:400; font-style:italic  }
+.poppins-medium-italic  { font-family:"Poppins",sans-serif; font-weight:500; font-style:italic  }
+.poppins-semibold-italic{ font-family:"Poppins",sans-serif; font-weight:600; font-style:italic  }
+.poppins-bold-italic    { font-family:"Poppins",sans-serif; font-weight:700; font-style:italic  }
+.poppins-extrabold-italic{ font-family:"Poppins",sans-serif; font-weight:800; font-style:italic }
+.poppins-black-italic   { font-family:"Poppins",sans-serif; font-weight:900; font-style:italic  }
+
+/* ── Design tokens ───────────────────────────────────────── */
+:root {
+  /* Colores */
+  --cream:       #FAF6EE;
+  --cream-2:     #F2EBD9;
+  --cream-3:     #E8DCC8;
+  --orange:      #E8651A;
+  --orange-l:    #F4894A;
+  --orange-d:    #C04E0E;
+  --black:       #1A1612;
+  --black-2:     #2E2820;
+  --white:       #FFFFFF;
+  --gray:        #8A8070;
+  --border:      #D4C8B0;
+  --green:       #3D7A5A;
+  --green-l:     #E4F0E8;
+
+  /* Tipografía — Poppins en todos los niveles */
+  --font-display: "Poppins", sans-serif;   /* títulos: semibold */
+  --font-body:    "Poppins", sans-serif;   /* cuerpo:  regular/medium */
+  --font-mono:    "Courier New", monospace;
+
+  /* Espaciado / radios */
+  --radius-sm:   6px;
+  --radius-md:   8px;
+  --radius-lg:   12px;
+  --radius-xl:   16px;
+}
+
+/* ── Reset ───────────────────────────────────────────────── */
+*, *::before, *::after { box-sizing:border-box; margin:0; padding:0 }
+
+body {
+  font-family: var(--font-body);
+  background:  var(--cream);
+  color:       var(--black);
+  font-size:   14px;
+  line-height: 1.6;
+  font-weight: 400;
+  min-height:  100vh;
+  -webkit-font-smoothing: antialiased;
+}
+
+input, select, button, textarea { font-family: var(--font-body) }
+
+/* ── Scrollbar ───────────────────────────────────────────── */
+::-webkit-scrollbar           { width:6px }
+::-webkit-scrollbar-track     { background:transparent }
+::-webkit-scrollbar-thumb     { background:var(--cream-3); border-radius:3px }
+::-webkit-scrollbar-thumb:hover { background:var(--border) }
+
+/* ── Layout ──────────────────────────────────────────────── */
+.app-shell    { display:flex; min-height:100vh }
+.main-content { flex:1; padding:28px 32px; overflow-y:auto; min-width:0 }
+
+/* ── Tipografía con Poppins ──────────────────────────────── */
+/* Títulos: semibold */
+.h1  { font-family:var(--font-display); font-size:24px; font-weight:600; letter-spacing:-.3px }
+.h2  { font-family:var(--font-display); font-size:20px; font-weight:600; letter-spacing:-.2px }
+.h3  { font-family:var(--font-display); font-size:16px; font-weight:600 }
+/* Utilidades */
+.text-muted  { color:var(--gray) }
+.text-sm     { font-size:12px }
+.text-xs     { font-size:11px }
+.font-medium { font-weight:500 }
+.font-semi   { font-weight:600 }
+
+/* ── Formularios ─────────────────────────────────────────── */
+.finput {
+  width: 100%;
+  padding: 8px 12px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  background: var(--cream);
+  color: var(--black);
+  font-size: 13px;
+  font-weight: 400;
+  outline: none;
+  transition: border-color .15s;
+}
+.finput:focus { border-color:var(--orange) }
+.finput::placeholder { color:var(--gray); opacity:.7 }
+
+/* ── Botones ─────────────────────────────────────────────── */
+.btn {
+  display:inline-flex; align-items:center; gap:6px;
+  padding:8px 18px; border-radius:var(--radius-md);
+  font-size:13px; font-weight:500; cursor:pointer;
+  border:none; transition:all .15s;
+  font-family:var(--font-body);
+  letter-spacing:.1px;
+}
+.btn-sm     { padding:6px 12px; font-size:12px }
+.btn-orange { background:var(--orange); color:#fff }
+.btn-orange:hover { background:var(--orange-d) }
+.btn-black  { background:var(--black); color:var(--cream) }
+.btn-black:hover { background:var(--black-2) }
+.btn-ghost  { background:transparent; color:var(--black); border:1px solid var(--border) }
+.btn-ghost:hover { background:var(--cream-2) }
+.btn-icon {
+  background:none; border:1px solid var(--border);
+  border-radius:var(--radius-sm); padding:5px 8px;
+  cursor:pointer; color:var(--black); font-size:13px;
+  display:inline-flex; align-items:center; gap:4px;
+  transition:all .15s; font-family:var(--font-body);
+  font-weight:400;
+}
+.btn-icon:hover { background:var(--cream-2) }
+.btn-icon.orange { border-color:var(--orange-l); color:var(--orange) }
+.btn-icon.danger { border-color:var(--orange-l); color:var(--orange-d) }
+
+/* ── Cards ───────────────────────────────────────────────── */
+.card       { background:#fff; border:1px solid var(--border); border-radius:var(--radius-lg); overflow:hidden }
+.card-padded { padding:20px }
+
+/* ── Badges ──────────────────────────────────────────────── */
+.badge {
+  display:inline-flex; padding:3px 10px; border-radius:20px;
+  font-size:11px; font-weight:500; letter-spacing:.1px;
+}
+.badge-black  { background:var(--black);    color:var(--cream) }
+.badge-orange { background:var(--orange);   color:#fff }
+.badge-gray   { background:var(--cream-3);  color:var(--gray) }
+.badge-red    { background:var(--orange-d); color:#fff }
+.badge-green  { background:#D1FAE5;         color:#065F46 }
+
+/* ── Tabla ───────────────────────────────────────────────── */
+.ttable { width:100%; border-collapse:collapse; table-layout:fixed }
+.ttable th {
+  background:var(--cream-2); padding:10px 14px;
+  text-align:left; font-size:11px; font-weight:600;
+  color:var(--gray); letter-spacing:.6px; text-transform:uppercase;
+}
+.ttable td {
+  padding:10px 14px; border-top:1px solid var(--cream-2);
+  font-size:13px; font-weight:400; vertical-align:middle;
+}
+.ttable tr:hover td { background:#FDFAF5 }
+.ttable tr.row-exp  td { background:#FFF5F3 }
+.ttable tr.row-warn td { background:#FFFAF5 }
+
+/* ── Progress bar ────────────────────────────────────────── */
+.pbar-wrap  { background:var(--cream-3); border-radius:20px; height:6px; overflow:hidden }
+.pbar       { height:6px; border-radius:20px; transition:width .4s }
+.pbar-green { background:var(--green) }
+.pbar-warn  { background:var(--orange) }
+.pbar-exp   { background:var(--orange-d) }
+
+/* ── Alertas ─────────────────────────────────────────────── */
+.alert { border-radius:var(--radius-lg); padding:14px 18px; margin-bottom:16px }
+.alert-red    { background:#fff;    border:2px solid var(--orange-d) }
+.alert-orange { background:#FFF8F3; border:2px solid var(--orange) }
+.alert-green  { background:#F0FDF4; border:1px solid #86EFAC; color:#065F46 }
+.alert-title  { font-weight:600; font-size:13px; margin-bottom:8px; display:flex; align-items:center; gap:6px }
+.alert-red    .alert-title { color:var(--orange-d) }
+.alert-orange .alert-title { color:var(--orange-d) }
+
+/* ── Modal ───────────────────────────────────────────────── */
+.overlay {
+  position:fixed; inset:0; background:rgba(26,22,18,.55);
+  display:flex; align-items:center; justify-content:center; z-index:100;
+}
+.modal-box {
+  background:var(--cream); border-radius:var(--radius-xl);
+  border:1px solid var(--border); padding:24px;
+  width:560px; max-width:96%; max-height:92vh; overflow-y:auto;
+}
+.modal-foot {
+  display:flex; gap:8px; justify-content:flex-end;
+  border-top:1px solid var(--cream-3); padding-top:14px; margin-top:8px;
+}
+
+/* ── Stats grid ──────────────────────────────────────────── */
+.stats-grid { display:flex; gap:12px; margin-bottom:24px; flex-wrap:wrap }
+.stat-card  {
+  background:#fff; border:1px solid var(--border);
+  border-radius:var(--radius-lg); padding:16px 18px; flex:1; min-width:110px;
+}
+.stat-num   { font-size:26px; font-weight:600; font-family:var(--font-display) }
+.stat-label { font-size:12px; color:var(--gray); margin-top:2px; font-weight:400 }
+
+/* ── Page header ─────────────────────────────────────────── */
+.page-header {
+  display:flex; justify-content:space-between;
+  align-items:flex-start; margin-bottom:20px;
+}
+
+/* ── Course / tag pills ──────────────────────────────────── */
+.pill {
+  display:inline-flex; align-items:center; gap:5px; cursor:pointer;
+  font-size:12px; padding:6px 12px; border-radius:20px;
+  border:1px solid var(--border); color:var(--gray);
+  transition:all .15s; margin:3px; font-weight:400;
+}
+.pill.sel { border-color:var(--orange); background:var(--orange); color:#fff; font-weight:500 }
+
+/* ── Drop area (import) ──────────────────────────────────── */
+.drop-area {
+  border:2px dashed var(--border); border-radius:var(--radius-lg);
+  padding:40px; text-align:center; cursor:pointer;
+  transition:all .2s; background:var(--cream-2);
+}
+.drop-area:hover, .drop-area.drag { border-color:var(--orange); background:#FFF5EF }
+
+/* ── Avatar ──────────────────────────────────────────────── */
+.avatar {
+  width:32px; height:32px; border-radius:50%;
+  display:flex; align-items:center; justify-content:center;
+  font-size:11px; font-weight:600; flex-shrink:0;
+  font-family:var(--font-display);
+}
+.av-cream { background:var(--cream-3); color:var(--gray) }
+.av-warn  { background:#FDE8D3;        color:var(--orange) }
+.av-red   { background:#F4C4B5;        color:var(--orange-d) }
+
+/* ── Toast ───────────────────────────────────────────────── */
+.toast {
+  position:fixed; bottom:24px; right:24px;
+  background:var(--black); color:var(--cream);
+  padding:10px 18px; border-radius:10px;
+  font-size:13px; font-weight:500; z-index:999;
+  animation:fadeUp .2s ease;
+}
+@keyframes fadeUp {
+  from { opacity:0; transform:translateY(8px) }
+  to   { opacity:1; transform:translateY(0)   }
+}
+
+/* ── Spinner ─────────────────────────────────────────────── */
+@keyframes spin { from { transform:rotate(0deg) } to { transform:rotate(360deg) } }
+.spinner { animation:spin 1s linear infinite }
+
+/* ── Profile header ──────────────────────────────────────── */
+.profile-header {
+  background:var(--black); border-radius:var(--radius-xl);
+  padding:24px; margin-bottom:16px; color:var(--cream);
+  display:flex; gap:20px; align-items:center;
+}
+.profile-av {
+  width:60px; height:60px; border-radius:50%;
+  background:var(--orange); display:flex;
+  align-items:center; justify-content:center;
+  font-size:20px; font-weight:600; color:#fff;
+  font-family:var(--font-display); flex-shrink:0;
+}
+
+/* ── Email preview ───────────────────────────────────────── */
+.email-preview {
+  background:#fff; border:1px solid var(--border);
+  border-radius:var(--radius-lg); padding:20px;
+  font-size:13px; line-height:1.8;
+}
+.email-subject {
+  font-weight:600; font-size:14px;
+  margin-bottom:12px; padding-bottom:12px;
+  border-bottom:1px solid var(--cream-2);
+}
+
+/* ── Sidebar notif dot ───────────────────────────────────── */
+.notif-dot {
+  background:var(--orange); color:#fff;
+  border-radius:20px; font-size:10px;
+  padding:1px 6px; margin-left:auto; font-weight:600;
+}
