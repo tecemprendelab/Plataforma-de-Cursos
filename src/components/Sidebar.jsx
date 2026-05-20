@@ -16,7 +16,7 @@ const NAV = [
   { section:'Organización' },
   { id:'tags',         icon:'ti-tags',             label:'Etiquetas'           },
   { section:'Herramientas' },
-  { id:'import',       icon:'ti-camera-ai',        label:'Importar con IA'    },
+  { id:'import',       icon:'ti-file-spreadsheet', label:'Importar CSV'        },
   { id:'export',       icon:'ti-download',         label:'Exportar datos'      },
 ]
 

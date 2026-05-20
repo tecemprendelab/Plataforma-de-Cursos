@@ -148,6 +148,7 @@ export type Database = {
       participants: {
         Row: {
           access: boolean
+          cedula: string | null
           created_at: string
           email: string | null
           fecha: string | null
@@ -161,6 +162,7 @@ export type Database = {
         }
         Insert: {
           access?: boolean
+          cedula?: string | null
           created_at?: string
           email?: string | null
           fecha?: string | null
@@ -174,6 +176,7 @@ export type Database = {
         }
         Update: {
           access?: boolean
+          cedula?: string | null
           created_at?: string
           email?: string | null
           fecha?: string | null

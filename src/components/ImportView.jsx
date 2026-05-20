@@ -1,132 +1,293 @@
 // ============================================================
 //  ImportView.jsx — React JSX
-//  Importación con IA. Usa cursos dinámicos para el match.
+//  Importa participantes desde un CSV con columnas
+//    Cédula, Nombre y apellidos, Facturar a nombre de, Teléfono, Correo
+//  Hace match contra los participantes existentes por email
+//  (y cédula como fallback). Muestra un panel de confirmación
+//  con los que se agregarán (nuevos) y los que ya existen.
 // ============================================================
 
 import { useState, useRef } from 'react'
 
-function matchCourseIds(courseNames, courses) {
-  return (courseNames || []).map(name => {
-    const n = name.toLowerCase()
-    return courses.find(c =>
-      c.name.toLowerCase().includes(n) ||
-      c.short.toLowerCase().includes(n) ||
-      n.includes(c.short.toLowerCase())
-    )?.id || null
-  }).filter(Boolean)
+// ---------- CSV parser robusto ----------
+// El CSV puede traer filas malformadas (columnas duplicadas, comas extra
+// dentro de la fila). Detectamos cada campo por su tipo en lugar de
+// confiar en la posición:
+//   - email: contiene '@'
+//   - cédula: solo dígitos, 8-15 chars
+//   - teléfono: 8 dígitos (CR) o con guión (8888-8888)
+//   - nombre: el token restante más largo no numérico
+
+const EMAIL_RE   = /[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}/
+const CEDULA_RE  = /^\d{8,15}$/
+const PHONE_RE   = /^\d{4}-?\d{4}$/
+
+function splitCsvLine(line) {
+  // Sin soporte de comillas porque el formato del TEC no las usa.
+  // Si en el futuro las trae, cambiar a un parser tipo papaparse.
+  return line.split(',').map(s => s.trim()).filter(s => s.length > 0)
 }
 
-export default function ImportView({ courses, onImport }) {
-  const [loading, setLoading] = useState(false)
-  const [results, setResults] = useState(null)
-  const [drag,    setDrag]    = useState(false)
+function parseRow(tokens) {
+  let email = null, cedula = null, phone = null
+  const others = []
+  for (const t of tokens) {
+    if (!email && EMAIL_RE.test(t)) { email = t.match(EMAIL_RE)[0]; continue }
+    if (!cedula && CEDULA_RE.test(t)) { cedula = t; continue }
+    if (!phone && PHONE_RE.test(t.replace(/\s/g,''))) { phone = t.replace(/\s/g,''); continue }
+    others.push(t)
+  }
+  // Nombre = token alfa más largo (suele ser el nombre completo)
+  const name = others
+    .filter(t => /[A-Za-zÁÉÍÓÚÑáéíóúñ]/.test(t))
+    .sort((a, b) => b.length - a.length)[0] || ''
+  return { name, cedula, email, phone }
+}
+
+function parseCsv(text) {
+  const lines = text.split(/\r?\n/).map(l => l.trim()).filter(Boolean)
+  if (!lines.length) return { rows: [], errors: [] }
+
+  // Detectar y descartar header
+  const first = lines[0].toLowerCase()
+  const startIdx = first.includes('cédula') || first.includes('cedula') ||
+                   first.includes('correo')  || first.includes('email')  ? 1 : 0
+
+  const rows = []
+  const errors = []
+  for (let i = startIdx; i < lines.length; i++) {
+    const tokens = splitCsvLine(lines[i])
+    if (!tokens.length) continue
+    const row = parseRow(tokens)
+    if (!row.name && !row.email && !row.cedula) {
+      errors.push({ line: i + 1, raw: lines[i] })
+      continue
+    }
+    rows.push(row)
+  }
+  return { rows, errors }
+}
+
+// ---------- Match contra DB ----------
+function matchExisting(rows, participants) {
+  const byEmail  = new Map()
+  const byCedula = new Map()
+  for (const p of participants) {
+    if (p.email)  byEmail.set(p.email.toLowerCase(), p)
+    if (p.cedula) byCedula.set(p.cedula, p)
+  }
+  const nuevos = []
+  const existentes = []
+  for (const r of rows) {
+    const existing =
+      (r.email  && byEmail.get(r.email.toLowerCase())) ||
+      (r.cedula && byCedula.get(r.cedula))
+    if (existing) existentes.push({ csv: r, db: existing })
+    else          nuevos.push(r)
+  }
+  return { nuevos, existentes }
+}
+
+// ---------- Vista ----------
+export default function ImportView({ participants, onImport }) {
+  const [csvText,    setCsvText]    = useState('')
+  const [parseRes,   setParseRes]   = useState(null)
+  const [matchRes,   setMatchRes]   = useState(null)
+  const [selected,   setSelected]   = useState(new Set())
+  const [drag,       setDrag]       = useState(false)
+  const [done,       setDone]       = useState(false)
   const fileRef = useRef()
 
-  const processFile = async (file) => {
+  const processFile = (file) => {
     if (!file) return
-    setLoading(true); setResults(null)
+    setDone(false); setMatchRes(null); setParseRes(null); setSelected(new Set())
     const reader = new FileReader()
-    reader.onload = async (ev) => {
-      const base64   = ev.target.result.split(',')[1]
-      const mimeType = file.type || 'image/jpeg'
-      try {
-        const resp = await fetch('/api/analyze', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ base64, mimeType }),
-        })
-        const data   = await resp.json()
-        const text   = data.content?.find(b => b.type==='text')?.text || '{}'
-        const parsed = JSON.parse(text.replace(/```json|```/g,'').trim())
-        setResults(parsed.participants || [])
-      } catch { setResults([]) }
-      setLoading(false)
+    reader.onload = (ev) => {
+      const text = ev.target.result
+      setCsvText(text)
+      const parsed = parseCsv(text)
+      setParseRes(parsed)
+      const m = matchExisting(parsed.rows, participants)
+      setMatchRes(m)
+      setSelected(new Set(m.nuevos.map((_, i) => i)))
     }
-    reader.readAsDataURL(file)
+    reader.readAsText(file, 'utf-8')
   }
 
-  const confirmOne = (idx) => {
-    const imp = results[idx]
-    onImport([{ ...imp, courses: matchCourseIds(imp.courses, courses) }])
-    setResults(prev => prev.filter((_,i) => i !== idx))
+  const reset = () => {
+    setCsvText(''); setParseRes(null); setMatchRes(null)
+    setSelected(new Set()); setDone(false)
+    if (fileRef.current) fileRef.current.value = ''
   }
 
-  const confirmAll = () => {
-    onImport(results.map(imp => ({ ...imp, courses: matchCourseIds(imp.courses, courses) })))
-    setResults([])
+  const toggle = (i) => {
+    setSelected(prev => {
+      const next = new Set(prev)
+      if (next.has(i)) next.delete(i); else next.add(i)
+      return next
+    })
+  }
+  const toggleAll = () => {
+    if (!matchRes) return
+    setSelected(prev =>
+      prev.size === matchRes.nuevos.length
+        ? new Set()
+        : new Set(matchRes.nuevos.map((_, i) => i))
+    )
+  }
+
+  const confirm = async () => {
+    if (!matchRes || !selected.size) return
+    const toImport = [...selected].map(i => matchRes.nuevos[i])
+    await onImport(toImport)
+    setDone(true)
+    setMatchRes(null)
+    setParseRes(null)
+    setSelected(new Set())
   }
 
   return (
     <div>
       <div className="page-header">
         <div>
-          <h2 className="h1">Importar con IA</h2>
-          <p className="text-muted" style={{fontSize:13,marginTop:3}}>
-            Subí una captura de pantalla de un formulario de matrícula
+          <h2 className="h1">Importar CSV</h2>
+          <p className="text-muted" style={{ fontSize: 13, marginTop: 3 }}>
+            Subí el CSV de matrícula. El sistema detecta automáticamente quién ya está y quién es nuevo.
           </p>
         </div>
       </div>
 
-      <div className={`drop-area${drag?' drag':''}`}
-        onClick={() => fileRef.current.click()}
-        onDragOver={e=>{e.preventDefault();setDrag(true)}}
-        onDragLeave={()=>setDrag(false)}
-        onDrop={e=>{e.preventDefault();setDrag(false);processFile(e.dataTransfer.files[0])}}>
-        <i className="ti ti-camera-ai" style={{fontSize:36,color:'var(--gray)',display:'block',marginBottom:10}}/>
-        <div style={{fontWeight:500,fontSize:14,marginBottom:6}}>
-          Arrastrá una imagen aquí o hacé clic para seleccionar
-        </div>
-        <div className="text-sm text-muted">
-          Soporta JPG, PNG · La IA extrae nombre, correo, teléfono y curso
-        </div>
-      </div>
-      <input ref={fileRef} type="file" accept="image/*" style={{display:'none'}}
-        onChange={e=>processFile(e.target.files[0])}/>
+      {!matchRes && !done && (
+        <>
+          <div className={`drop-area${drag ? ' drag' : ''}`}
+            onClick={() => fileRef.current.click()}
+            onDragOver={e => { e.preventDefault(); setDrag(true) }}
+            onDragLeave={() => setDrag(false)}
+            onDrop={e => { e.preventDefault(); setDrag(false); processFile(e.dataTransfer.files[0]) }}>
+            <i className="ti ti-file-spreadsheet" style={{ fontSize: 36, color: 'var(--gray)', display: 'block', marginBottom: 10 }}/>
+            <div style={{ fontWeight: 500, fontSize: 14, marginBottom: 6 }}>
+              Arrastrá el archivo CSV aquí o hacé clic para seleccionar
+            </div>
+            <div className="text-sm text-muted">
+              Columnas esperadas: Cédula, Nombre y apellidos, Teléfono, Correo
+            </div>
+          </div>
+          <input ref={fileRef} type="file" accept=".csv,text/csv" style={{ display: 'none' }}
+            onChange={e => processFile(e.target.files[0])}/>
+        </>
+      )}
 
-      {loading && (
-        <div style={{textAlign:'center',padding:40,color:'var(--gray)'}}>
-          <i className="ti ti-loader-2 spinner" style={{fontSize:32,color:'var(--orange)',display:'block',marginBottom:12}}/>
-          <div style={{fontSize:14}}>Analizando imagen con IA...</div>
+      {done && (
+        <div className="alert alert-green" style={{ marginTop: 16, padding: 14, background: '#E4F0E8', border: '1px solid #3D7A5A', borderRadius: 8 }}>
+          <i className="ti ti-check"/> Importación completada. Revisá la pestaña Participantes.
+          <button className="btn btn-ghost btn-sm" style={{ marginLeft: 12 }} onClick={reset}>
+            Importar otro CSV
+          </button>
         </div>
       )}
 
-      {results && results.length > 0 && (
-        <div style={{marginTop:20}}>
-          <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:12}}>
-            <h3 className="h3">{results.length} participante{results.length!==1?'s':''} detectado{results.length!==1?'s':''}</h3>
-            <button className="btn btn-orange btn-sm" onClick={confirmAll}>
-              <i className="ti ti-check-all"/> Importar todos
-            </button>
+      {matchRes && (
+        <div style={{ marginTop: 20 }}>
+          <div style={{ display: 'flex', gap: 10, marginBottom: 16, flexWrap: 'wrap' }}>
+            <Stat label="Total en CSV"      value={parseRes.rows.length}    color="var(--black)"  />
+            <Stat label="Nuevos a agregar"  value={matchRes.nuevos.length}   color="var(--orange)" />
+            <Stat label="Ya existen en DB"  value={matchRes.existentes.length} color="var(--gray)"  />
+            {parseRes.errors.length > 0 && (
+              <Stat label="Filas con error" value={parseRes.errors.length} color="#A32D2D"/>
+            )}
           </div>
-          {results.map((r,i) => (
-            <div key={i} className="card" style={{padding:16,marginBottom:10}}>
-              <div style={{display:'flex',justifyContent:'space-between',alignItems:'flex-start'}}>
-                <div>
-                  <div style={{fontWeight:500,fontSize:14,marginBottom:4}}>{r.name||'Sin nombre'}</div>
-                  <div className="text-sm text-muted">{r.email||'—'} · {r.phone||'—'}</div>
-                  {r.courses?.length>0&&<div className="text-xs text-muted" style={{marginTop:2}}>Cursos: {r.courses.join(', ')}</div>}
-                  {r.notes&&<div className="text-xs text-muted" style={{marginTop:4}}>Nota: {r.notes}</div>}
-                </div>
-                <div style={{display:'flex',gap:8,marginLeft:12}}>
-                  <button className="btn btn-orange btn-sm" onClick={()=>confirmOne(i)}>
-                    <i className="ti ti-user-plus"/> Agregar
+
+          {matchRes.nuevos.length > 0 && (
+            <>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 10 }}>
+                <h3 className="h3">Nuevos participantes ({matchRes.nuevos.length})</h3>
+                <div style={{ display: 'flex', gap: 8 }}>
+                  <button className="btn btn-ghost btn-sm" onClick={toggleAll}>
+                    {selected.size === matchRes.nuevos.length ? 'Deseleccionar todo' : 'Seleccionar todo'}
                   </button>
-                  <button className="btn btn-ghost btn-sm"
-                    onClick={()=>setResults(prev=>prev.filter((_,j)=>j!==i))}>
-                    <i className="ti ti-x"/>
+                  <button className="btn btn-orange btn-sm"
+                    disabled={!selected.size}
+                    onClick={confirm}>
+                    <i className="ti ti-check"/> Confirmar e importar ({selected.size})
                   </button>
                 </div>
               </div>
-            </div>
-          ))}
-        </div>
-      )}
+              <div style={{ background: 'var(--white)', border: '1px solid var(--border)', borderRadius: 8, overflow: 'hidden' }}>
+                {matchRes.nuevos.map((r, i) => (
+                  <RowItem key={i}
+                    selected={selected.has(i)}
+                    onToggle={() => toggle(i)}
+                    row={r}/>
+                ))}
+              </div>
+            </>
+          )}
 
-      {results && results.length===0 && !loading && (
-        <div className="alert alert-green" style={{marginTop:16}}>
-          <i className="ti ti-check"/> Todos los participantes han sido importados.
+          {matchRes.existentes.length > 0 && (
+            <details style={{ marginTop: 24 }}>
+              <summary style={{ cursor: 'pointer', fontWeight: 500, marginBottom: 10 }}>
+                Ya existen en la base de datos ({matchRes.existentes.length})
+              </summary>
+              <div style={{ background: 'var(--white)', border: '1px solid var(--border)', borderRadius: 8, overflow: 'hidden', marginTop: 8 }}>
+                {matchRes.existentes.map((m, i) => (
+                  <div key={i} style={{ padding: '10px 14px', borderBottom: i < matchRes.existentes.length - 1 ? '1px solid var(--cream-2)' : 'none', fontSize: 13 }}>
+                    <span style={{ fontWeight: 500 }}>{m.db.name}</span>
+                    <span className="text-muted"> · {m.db.email || m.db.cedula}</span>
+                  </div>
+                ))}
+              </div>
+            </details>
+          )}
+
+          {parseRes.errors.length > 0 && (
+            <details style={{ marginTop: 16 }}>
+              <summary style={{ cursor: 'pointer', fontWeight: 500, color: '#A32D2D', marginBottom: 10 }}>
+                Filas con error ({parseRes.errors.length})
+              </summary>
+              <div style={{ background: '#FCEBEB', border: '1px solid #A32D2D33', borderRadius: 8, padding: 12, marginTop: 8, fontSize: 12, fontFamily: 'monospace' }}>
+                {parseRes.errors.map(e => (
+                  <div key={e.line}>línea {e.line}: {e.raw}</div>
+                ))}
+              </div>
+            </details>
+          )}
+
+          <button className="btn btn-ghost btn-sm" style={{ marginTop: 16 }} onClick={reset}>
+            <i className="ti ti-x"/> Cancelar y subir otro CSV
+          </button>
         </div>
       )}
     </div>
+  )
+}
+
+function Stat({ label, value, color }) {
+  return (
+    <div style={{ background: 'var(--white)', border: '1px solid var(--border)', borderRadius: 8, padding: '10px 14px', minWidth: 130 }}>
+      <div style={{ fontSize: 22, fontWeight: 600, color }}>{value}</div>
+      <div className="text-xs text-muted" style={{ marginTop: 2 }}>{label}</div>
+    </div>
+  )
+}
+
+function RowItem({ selected, onToggle, row }) {
+  return (
+    <label style={{
+      display: 'flex', alignItems: 'center', gap: 12,
+      padding: '10px 14px', borderBottom: '1px solid var(--cream-2)',
+      cursor: 'pointer', background: selected ? '#FEF8F2' : 'transparent',
+    }}>
+      <input type="checkbox" checked={selected} onChange={onToggle}/>
+      <div style={{ flex: 1, minWidth: 0 }}>
+        <div style={{ fontSize: 13, fontWeight: 500 }}>
+          {row.name || <span className="text-muted">(sin nombre)</span>}
+        </div>
+        <div className="text-xs text-muted" style={{ marginTop: 2 }}>
+          {row.cedula && <>Céd. {row.cedula} · </>}
+          {row.email || <em>sin correo</em>}
+          {row.phone && <> · {row.phone}</>}
+        </div>
+      </div>
+    </label>
   )
 }

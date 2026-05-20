@@ -19,7 +19,7 @@ import { isExpired, todayISO } from '../utils/time.js'
 import { supabase, isSupabaseConfigured } from '../lib/supabase.js'
 
 const PARTICIPANT_SELECT =
-  'id,name,email,phone,status,payment,access,fecha,notes,' +
+  'id,name,cedula,email,phone,status,payment,access,fecha,notes,' +
   'participant_courses(course_id),participant_tags(tag_id)'
 
 function fromDb(row) {
@@ -27,6 +27,7 @@ function fromDb(row) {
   return {
     id:      row.id,
     name:    row.name,
+    cedula:  row.cedula ?? '',
     email:   row.email ?? '',
     phone:   row.phone ?? '',
     status:  row.status,
@@ -42,6 +43,7 @@ function fromDb(row) {
 function baseFromForm(form) {
   return {
     name:    form.name ?? null,
+    cedula:  form.cedula || null,
     email:   form.email ?? null,
     phone:   form.phone ?? null,
     status:  form.status  ?? 'activo',
@@ -220,13 +222,14 @@ export function useParticipants() {
     for (const imp of list) {
       const base = {
         name:    imp.name || 'Sin nombre',
+        cedula:  imp.cedula || null,
         email:   imp.email || null,
         phone:   imp.phone || null,
         status:  'activo',
         payment: 'pendiente',
         access:  false,
         fecha:   todayISO(),
-        notes:   imp.notes || 'Importado con IA',
+        notes:   imp.notes || 'Importado desde CSV',
       }
       const { data, error } = await supabase.from('participants')
         .insert(base).select('id').single()

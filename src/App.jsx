@@ -127,7 +127,7 @@ function AuthenticatedApp({ user, onSignOut }) {
         onAdd={handleAddTag} onEdit={handleEditTag} onDelete={handleDeleteTag}/>
 
     if (view === 'import')
-      return <ImportView courses={courses} onImport={handleImport}/>
+      return <ImportView participants={participants} onImport={handleImport}/>
 
     if (view === 'export')
       return <ExportView participants={participants} courses={courses}/>
