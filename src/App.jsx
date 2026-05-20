@@ -1,6 +1,8 @@
 // ============================================================
 //  App.jsx — React JSX  v4.2
 //  Orquesta participantes, cursos, etiquetas y todas las vistas.
+//  El guard de sesión se hace afuera (App) y el contenido vive
+//  en AuthenticatedApp para no romper Rules of Hooks.
 // ============================================================
 
 import { useState, useCallback } from 'react'
@@ -22,19 +24,21 @@ import LoginView            from './components/LoginView.jsx'
 import { Toast }            from './components/UI.jsx'
 
 export default function App() {
-  const { user, loading: authLoading, signIn, signOut, isSupabaseConfigured } = useAuth()
-  const [view,     setView]  = useState('dashboard')
-  const [toastMsg, setToast] = useState('')
-  const toast = useCallback(msg => setToast(msg), [])
+  const { user, loading, signIn, signOut, isSupabaseConfigured } = useAuth()
 
-  // Guard: si Supabase está configurado, exigir sesión.
-  // Si no, modo legacy (localStorage) sin guard.
-  if (isSupabaseConfigured && authLoading) {
+  if (isSupabaseConfigured && loading) {
     return <div className="login-shell"><div className="poppins-medium text-muted">Cargando…</div></div>
   }
   if (isSupabaseConfigured && !user) {
     return <LoginView onSignIn={signIn}/>
   }
+  return <AuthenticatedApp user={user} onSignOut={signOut}/>
+}
+
+function AuthenticatedApp({ user, onSignOut }) {
+  const [view,     setView]  = useState('dashboard')
+  const [toastMsg, setToast] = useState('')
+  const toast = useCallback(msg => setToast(msg), [])
 
   // ── Estado global ─────────────────────────────────────────
   const {
@@ -134,7 +138,7 @@ export default function App() {
   return (
     <div className="app-shell">
       <Sidebar view={view} setView={setView} participants={participants}
-        userEmail={user?.email} onSignOut={signOut}/>
+        userEmail={user?.email} onSignOut={onSignOut}/>
       <main className="main-content">{renderView()}</main>
       <Toast message={toastMsg} onHide={() => setToast('')}/>
     </div>
