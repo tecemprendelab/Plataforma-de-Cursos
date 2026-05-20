@@ -7,6 +7,7 @@ import { useState, useCallback } from 'react'
 import { useParticipants }  from './hooks/useParticipants.js'
 import { useTags }          from './hooks/useTags.js'
 import { useCourses }       from './hooks/useCourses.js'
+import { useAuth }          from './hooks/useAuth.js'
 import Sidebar              from './components/Sidebar.jsx'
 import Dashboard            from './components/Dashboard.jsx'
 import ParticipantsView     from './components/ParticipantsView.jsx'
@@ -17,12 +18,23 @@ import RemindersView        from './components/RemindersView.jsx'
 import TagsView             from './components/TagsView.jsx'
 import ImportView           from './components/ImportView.jsx'
 import ExportView           from './components/ExportView.jsx'
+import LoginView            from './components/LoginView.jsx'
 import { Toast }            from './components/UI.jsx'
 
 export default function App() {
+  const { user, loading: authLoading, signIn, signOut, isSupabaseConfigured } = useAuth()
   const [view,     setView]  = useState('dashboard')
   const [toastMsg, setToast] = useState('')
   const toast = useCallback(msg => setToast(msg), [])
+
+  // Guard: si Supabase está configurado, exigir sesión.
+  // Si no, modo legacy (localStorage) sin guard.
+  if (isSupabaseConfigured && authLoading) {
+    return <div className="login-shell"><div className="poppins-medium text-muted">Cargando…</div></div>
+  }
+  if (isSupabaseConfigured && !user) {
+    return <LoginView onSignIn={signIn}/>
+  }
 
   // ── Estado global ─────────────────────────────────────────
   const {
@@ -121,7 +133,8 @@ export default function App() {
 
   return (
     <div className="app-shell">
-      <Sidebar view={view} setView={setView} participants={participants}/>
+      <Sidebar view={view} setView={setView} participants={participants}
+        userEmail={user?.email} onSignOut={signOut}/>
       <main className="main-content">{renderView()}</main>
       <Toast message={toastMsg} onHide={() => setToast('')}/>
     </div>

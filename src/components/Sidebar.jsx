@@ -20,7 +20,7 @@ const NAV = [
   { id:'export',       icon:'ti-download',         label:'Exportar datos'      },
 ]
 
-export default function Sidebar({ view, setView, participants }) {
+export default function Sidebar({ view, setView, participants, userEmail, onSignOut }) {
   const expCount    = participants.filter(p => isExpired(p.fecha)).length
   const remindCount = participants.filter(p => p.access && needsExamReminder(p.fecha)).length
   const activeBase  = view.startsWith('profile_') ? 'participants' : view
@@ -63,6 +63,20 @@ export default function Sidebar({ view, setView, participants }) {
           )
         })}
       </div>
+      {userEmail && (
+        <div style={{ padding:'12px 20px', borderTop:'1px solid var(--black-2)',
+          display:'flex', alignItems:'center', gap:8 }}>
+          <div style={{ flex:1, minWidth:0, color:'var(--cream)', fontSize:12,
+            overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }} title={userEmail}>
+            {userEmail}
+          </div>
+          <button onClick={onSignOut} title="Cerrar sesión"
+            style={{ background:'transparent', border:'1px solid var(--black-2)', color:'var(--gray)',
+              borderRadius:6, padding:'4px 8px', fontSize:11, cursor:'pointer' }}>
+            Salir
+          </button>
+        </div>
+      )}
       <div style={{ padding:'16px 20px', borderTop:'1px solid var(--black-2)',
         fontSize:11, color:'var(--gray)' }}>
         v4.2 · TEC Emprende Lab
