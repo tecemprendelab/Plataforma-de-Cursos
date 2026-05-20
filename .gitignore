@@ -32,3 +32,4 @@ Thumbs.db
 .claude/
 tasks/
 .agents/
+.playwright-mcp/
