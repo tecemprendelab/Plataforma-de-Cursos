@@ -35,10 +35,24 @@ export default function App() {
   return <AuthenticatedApp user={user} onSignOut={signOut}/>
 }
 
+const VIEW_TITLES = {
+  dashboard:    'Dashboard',
+  participants: 'Participantes',
+  courses:      'Cursos y Talleres',
+  access:       'Control de Accesos',
+  reminders:    'Recordatorios',
+  tags:         'Etiquetas',
+  import:       'Importar CSV',
+  export:       'Exportar datos',
+}
+
 function AuthenticatedApp({ user, onSignOut }) {
-  const [view,     setView]  = useState('dashboard')
-  const [toastMsg, setToast] = useState('')
+  const [view,        setView]        = useState('dashboard')
+  const [toastMsg,    setToast]       = useState('')
+  const [sidebarOpen, setSidebarOpen] = useState(false)
   const toast = useCallback(msg => setToast(msg), [])
+  const closeSidebar = useCallback(() => setSidebarOpen(false), [])
+  const currentTitle = view.startsWith('profile_') ? 'Perfil' : (VIEW_TITLES[view] || 'TEC Emprende Lab')
 
   // ── Estado global ─────────────────────────────────────────
   const {
@@ -138,8 +152,20 @@ function AuthenticatedApp({ user, onSignOut }) {
   return (
     <div className="app-shell">
       <Sidebar view={view} setView={setView} participants={participants}
-        userEmail={user?.email} onSignOut={onSignOut}/>
-      <main className="main-content">{renderView()}</main>
+        userEmail={user?.email} onSignOut={onSignOut}
+        open={sidebarOpen} onClose={closeSidebar}/>
+      <div style={{ flex:1, minWidth:0, display:'flex', flexDirection:'column' }}>
+        <div className="mobile-topbar">
+          <button className="hamburger" onClick={() => setSidebarOpen(true)} aria-label="Abrir menú">
+            <i className="ti ti-menu-2"/>
+          </button>
+          <div className="mt-brand">
+            <div className="mt-logo">T</div>
+            <div className="mt-title">{currentTitle}</div>
+          </div>
+        </div>
+        <main className="main-content">{renderView()}</main>
+      </div>
       <Toast message={toastMsg} onHide={() => setToast('')}/>
     </div>
   )

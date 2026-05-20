@@ -11,17 +11,18 @@ import { exportToExcel, exportToCSV } from '../utils/export.js'
 import { exportReportToPDF }           from '../utils/pdf.js'
 
 const SECTION_LABELS = [
-  { key: 'summary',        label: 'Resumen general'                  },
-  { key: 'courses',        label: 'Desglose por curso'               },
-  { key: 'tagsBreakdown',  label: 'Desglose por etiqueta'            },
-  { key: 'list',           label: 'Lista completa de participantes'  },
+  { key: 'summary',        label: 'Resumen ejecutivo'                },
+  { key: 'courses',        label: 'Cursos y talleres'                },
+  { key: 'tagsBreakdown',  label: 'Etiquetas'                        },
+  { key: 'alerts',         label: 'Alertas y atención requerida'     },
+  { key: 'list',           label: 'Listado detallado de participantes' },
 ]
 
 export default function ExportView({ participants, courses, tags = [] }) {
   const shortName = id => courses.find(c => c.id === id)?.short || id
 
   const [sections, setSections] = useState({
-    summary: true, courses: true, tagsBreakdown: true, list: true,
+    summary: true, courses: true, tagsBreakdown: true, alerts: true, list: true,
   })
   const toggle = (k) => setSections(s => ({ ...s, [k]: !s[k] }))
   const anyChecked = Object.values(sections).some(Boolean)
@@ -62,12 +63,12 @@ export default function ExportView({ participants, courses, tags = [] }) {
           </button>
         </div>
 
-        {/* Reporte PDF */}
+        {/* Informe PDF */}
         <div className="card card-padded">
           <i className="ti ti-report" style={{ fontSize: 32, color: 'var(--black)', marginBottom: 12, display: 'block' }}/>
-          <div style={{ fontWeight: 500, fontSize: 15, marginBottom: 6 }}>Reporte PDF</div>
+          <div style={{ fontWeight: 500, fontSize: 15, marginBottom: 6 }}>Informe ejecutivo (PDF)</div>
           <div className="text-sm text-muted" style={{ marginBottom: 12 }}>
-            Reporte ejecutivo con resumen, cursos, etiquetas y lista detallada.
+            Documento corporativo con portada, índice, resumen ejecutivo y secciones detalladas.
           </div>
 
           <div style={{ display: 'flex', flexDirection: 'column', gap: 6, marginBottom: 12 }}>
@@ -84,7 +85,7 @@ export default function ExportView({ participants, courses, tags = [] }) {
             disabled={!anyChecked}
             style={!anyChecked ? { opacity: 0.5, cursor: 'not-allowed' } : undefined}
             onClick={() => exportReportToPDF({ participants, courses, tags, sections })}>
-            <i className="ti ti-download"/> Generar PDF
+            <i className="ti ti-download"/> Generar informe
           </button>
         </div>
       </div>
