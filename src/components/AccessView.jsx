@@ -6,7 +6,7 @@ import { isExpired, isWarning, daysLeft, expiryDate } from '../utils/time.js'
 import { StatCard, AccessBar } from './UI.jsx'
 import { openEmailClient } from '../utils/email.js'
 
-export default function AccessView({ participants, onToggleAccess, onRenew }) {
+export default function AccessView({ participants, courses = [], onToggleAccess, onRenew }) {
   const expired   = participants.filter(p => isExpired(p.fecha))
   const warning   = participants.filter(p => p.access && isWarning(p.fecha))
   const sinAcceso = participants.filter(p => p.status === 'activo' && p.payment === 'pagado' && !p.access && !isExpired(p.fecha))
