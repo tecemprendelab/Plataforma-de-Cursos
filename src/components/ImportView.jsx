@@ -8,6 +8,7 @@
 // ============================================================
 
 import { useState, useRef } from 'react'
+import { todayISO } from '../utils/time.js'
 
 // ---------- CSV parser robusto ----------
 // El CSV puede traer filas malformadas (columnas duplicadas, comas extra
@@ -97,18 +98,23 @@ export default function ImportView({ participants, courses = [], onImport, onBul
   const [drag,        setDrag]        = useState(false)
   const [done,        setDone]        = useState(false)
   const [importedIds, setImportedIds] = useState([])
+  // fecha de ingreso por fila (índice → 'YYYY-MM-DD'); default = hoy
+  const [rowFechas,   setRowFechas]   = useState({})
+  const [bulkFecha,   setBulkFecha]   = useState(todayISO())
 
   // Panel post-import (bulk-edit)
-  const [bulkCourses,  setBulkCourses]  = useState(new Set())
-  const [bulkPayment,  setBulkPayment]  = useState('none')   // 'pagado' | 'pendiente' | 'none'
-  const [bulkAccess,   setBulkAccess]   = useState('none')   // 'on' | 'off' | 'none'
-  const [bulkApplying, setBulkApplying] = useState(false)
+  const [bulkCourses,     setBulkCourses]     = useState(new Set())
+  const [bulkPayment,     setBulkPayment]     = useState('none')   // 'pagado' | 'pendiente' | 'none'
+  const [bulkAccess,      setBulkAccess]      = useState('none')   // 'on' | 'off' | 'none'
+  const [bulkAccessFecha, setBulkAccessFecha] = useState(todayISO())
+  const [bulkApplying,    setBulkApplying]    = useState(false)
 
   const fileRef = useRef()
 
   const processFile = (file) => {
     if (!file) return
     setDone(false); setMatchRes(null); setParseRes(null); setSelected(new Set())
+    setRowFechas({})
     const reader = new FileReader()
     reader.onload = (ev) => {
       const text = ev.target.result
@@ -118,6 +124,10 @@ export default function ImportView({ participants, courses = [], onImport, onBul
       const m = matchExisting(parsed.rows, participants)
       setMatchRes(m)
       setSelected(new Set(m.nuevos.map((_, i) => i)))
+      // inicializa fechas por fila a hoy
+      const fechas = {}
+      m.nuevos.forEach((_, i) => { fechas[i] = todayISO() })
+      setRowFechas(fechas)
     }
     reader.readAsText(file, 'utf-8')
   }
@@ -127,7 +137,17 @@ export default function ImportView({ participants, courses = [], onImport, onBul
     setSelected(new Set()); setDone(false)
     setImportedIds([])
     setBulkCourses(new Set()); setBulkPayment('none'); setBulkAccess('none')
+    setBulkAccessFecha(todayISO())
+    setRowFechas({}); setBulkFecha(todayISO())
     if (fileRef.current) fileRef.current.value = ''
+  }
+
+  const setRowFecha = (i, val) => setRowFechas(prev => ({ ...prev, [i]: val }))
+  const applyBulkFechaAll = () => {
+    if (!matchRes) return
+    const next = {}
+    matchRes.nuevos.forEach((_, i) => { next[i] = bulkFecha })
+    setRowFechas(next)
   }
 
   const toggleBulkCourse = (cid) => {
@@ -142,7 +162,7 @@ export default function ImportView({ participants, courses = [], onImport, onBul
     if (!importedIds.length) return
     const patch = {}
     if (bulkPayment !== 'none') patch.payment = bulkPayment
-    if (bulkAccess === 'on')    Object.assign(patch, { access: true,  fecha: new Date().toISOString().slice(0, 10) })
+    if (bulkAccess === 'on')    Object.assign(patch, { access: true,  fecha: bulkAccessFecha || todayISO() })
     if (bulkAccess === 'off')   patch.access = false
     const addCourses = [...bulkCourses]
 
@@ -176,7 +196,10 @@ export default function ImportView({ participants, courses = [], onImport, onBul
 
   const confirm = async () => {
     if (!matchRes || !selected.size) return
-    const toImport = [...selected].map(i => matchRes.nuevos[i])
+    const toImport = [...selected].map(i => ({
+      ...matchRes.nuevos[i],
+      fecha: rowFechas[i] || todayISO(),
+    }))
     const ids = await onImport(toImport)
     setImportedIds(Array.isArray(ids) ? ids : [])
     setDone(true)
@@ -291,10 +314,24 @@ export default function ImportView({ participants, courses = [], onImport, onBul
                   Acceso al contenido
                 </div>
                 <div style={{ display: 'flex', gap: 16, flexWrap: 'wrap', fontSize: 13 }}>
-                  <Radio name="acc" value="on"   checked={bulkAccess === 'on'}   onChange={setBulkAccess} label="Activar (45 días desde hoy)"/>
+                  <Radio name="acc" value="on"   checked={bulkAccess === 'on'}   onChange={setBulkAccess} label="Activar (45 días)"/>
                   <Radio name="acc" value="off"  checked={bulkAccess === 'off'}  onChange={setBulkAccess} label="Sin acceso"/>
                   <Radio name="acc" value="none" checked={bulkAccess === 'none'} onChange={setBulkAccess} label="Sin cambio"/>
                 </div>
+                {bulkAccess === 'on' && (
+                  <div style={{ marginTop: 10, display:'flex', alignItems:'center', gap:10, flexWrap:'wrap' }}>
+                    <label className="text-sm text-muted" htmlFor="bulk-fecha">
+                      Fecha de inicio de acceso
+                    </label>
+                    <input id="bulk-fecha" className="finput" type="date"
+                      value={bulkAccessFecha}
+                      onChange={e => setBulkAccessFecha(e.target.value)}
+                      style={{ maxWidth:180 }}/>
+                    <span className="text-xs text-muted">
+                      Se contarán 45 días desde esta fecha.
+                    </span>
+                  </div>
+                )}
               </div>
 
               <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
@@ -344,12 +381,33 @@ export default function ImportView({ participants, courses = [], onImport, onBul
                   </button>
                 </div>
               </div>
-              <div style={{ background: 'var(--white)', border: '1px solid var(--border)', borderRadius: 8, overflow: 'hidden' }}>
+              {/* Aplicar fecha de ingreso en lote */}
+              <div style={{
+                display:'flex', alignItems:'center', gap:8, flexWrap:'wrap',
+                padding:'10px 14px', background:'var(--cream-2)',
+                border:'1px solid var(--border)', borderTopLeftRadius:8, borderTopRightRadius:8,
+                borderBottom:'none', fontSize:12,
+              }}>
+                <i className="ti ti-calendar" style={{ color:'var(--orange)' }}/>
+                <span className="font-medium">Fecha de ingreso</span>
+                <span className="text-muted">— editable por fila o aplicar a todos:</span>
+                <input className="finput" type="date"
+                  value={bulkFecha}
+                  onChange={e => setBulkFecha(e.target.value)}
+                  style={{ maxWidth:160, padding:'5px 8px' }}/>
+                <button className="btn btn-ghost btn-sm"
+                  type="button" onClick={applyBulkFechaAll}>
+                  <i className="ti ti-arrow-down"/> Aplicar a todos
+                </button>
+              </div>
+              <div style={{ background: 'var(--white)', border: '1px solid var(--border)', borderTop:'none', borderRadius: '0 0 8px 8px', overflow: 'hidden' }}>
                 {matchRes.nuevos.map((r, i) => (
                   <RowItem key={i}
                     selected={selected.has(i)}
                     onToggle={() => toggle(i)}
-                    row={r}/>
+                    row={r}
+                    fecha={rowFechas[i] || todayISO()}
+                    onFechaChange={(v) => setRowFecha(i, v)}/>
                 ))}
               </div>
             </>
@@ -402,25 +460,38 @@ function Stat({ label, value, color }) {
   )
 }
 
-function RowItem({ selected, onToggle, row }) {
+function RowItem({ selected, onToggle, row, fecha, onFechaChange }) {
   return (
-    <label style={{
-      display: 'flex', alignItems: 'center', gap: 12,
+    <div style={{
+      display: 'flex', alignItems: 'center', gap: 12, flexWrap:'wrap',
       padding: '10px 14px', borderBottom: '1px solid var(--cream-2)',
-      cursor: 'pointer', background: selected ? '#FEF8F2' : 'transparent',
+      background: selected ? '#FEF8F2' : 'transparent',
     }}>
-      <input type="checkbox" checked={selected} onChange={onToggle}/>
-      <div style={{ flex: 1, minWidth: 0 }}>
-        <div style={{ fontSize: 13, fontWeight: 500 }}>
-          {row.name || <span className="text-muted">(sin nombre)</span>}
+      <label style={{ display:'flex', alignItems:'center', gap:12, flex:1, minWidth:0, cursor:'pointer' }}>
+        <input type="checkbox" checked={selected} onChange={onToggle}/>
+        <div style={{ flex: 1, minWidth: 0 }}>
+          <div style={{ fontSize: 13, fontWeight: 500 }}>
+            {row.name || <span className="text-muted">(sin nombre)</span>}
+          </div>
+          <div className="text-xs text-muted" style={{ marginTop: 2 }}>
+            {row.cedula && <>Céd. {row.cedula} · </>}
+            {row.email || <em>sin correo</em>}
+            {row.phone && <> · {row.phone}</>}
+          </div>
         </div>
-        <div className="text-xs text-muted" style={{ marginTop: 2 }}>
-          {row.cedula && <>Céd. {row.cedula} · </>}
-          {row.email || <em>sin correo</em>}
-          {row.phone && <> · {row.phone}</>}
-        </div>
+      </label>
+      <div style={{ display:'flex', alignItems:'center', gap:6, flexShrink:0 }}>
+        <span className="text-xs text-muted" style={{ whiteSpace:'nowrap' }}>Ingreso:</span>
+        <input
+          type="date"
+          className="finput"
+          value={fecha || ''}
+          onChange={e => onFechaChange?.(e.target.value)}
+          disabled={!selected}
+          style={{ maxWidth:150, padding:'5px 8px', fontSize:12,
+            opacity: selected ? 1 : .5 }}/>
       </div>
-    </label>
+    </div>
   )
 }
 

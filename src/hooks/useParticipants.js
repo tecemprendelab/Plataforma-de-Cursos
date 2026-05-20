@@ -213,7 +213,7 @@ export function useParticipants() {
         status:  'activo',
         payment: 'pendiente',
         access:  false,
-        fecha:   todayISO(),
+        fecha:   imp.fecha   || todayISO(),
         notes:   imp.notes   || 'Importado desde CSV',
       }))
       setParticipants(prev => [...prev, ...newPs])
@@ -229,7 +229,7 @@ export function useParticipants() {
         status:  'activo',
         payment: 'pendiente',
         access:  false,
-        fecha:   todayISO(),
+        fecha:   imp.fecha || todayISO(),
         notes:   imp.notes || 'Importado desde CSV',
       }
       const { data, error } = await supabase.from('participants')
