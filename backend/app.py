@@ -30,10 +30,15 @@ except ImportError:
     CAIRO_OK = False
 
 try:
-    import anthropic
-    AI_CLIENT = anthropic.Anthropic(api_key=os.getenv("ANTHROPIC_API_KEY", ""))
-    AI_OK = bool(os.getenv("ANTHROPIC_API_KEY"))
-except ImportError:
+    import anthropic as _anthropic
+    _api_key = os.getenv("ANTHROPIC_API_KEY", "")
+    if _api_key:
+        AI_CLIENT = _anthropic.Anthropic(api_key=_api_key)
+        AI_OK = True
+    else:
+        AI_CLIENT = None
+        AI_OK = False
+except (ImportError, Exception):
     AI_CLIENT = None
     AI_OK = False
 
