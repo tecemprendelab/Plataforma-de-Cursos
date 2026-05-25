@@ -3,11 +3,11 @@ Flask backend for certificate generation.
 Endpoints:
   GET  /api/health
   GET  /api/ai/status
-  POST /api/preview          — returns SVG with placeholder text
+  POST /api/preview          — returns SVG with fields filled
   POST /api/generate         — returns PDF or PNG
-  POST /api/generate/batch   — ZIP of PDFs/PNGs from CSV data
+  POST /api/generate/batch   — ZIP of PDFs/PNGs from CSV
   POST /api/analyze          — returns detected <text id="..."> elements
-  POST /api/ai/mapeo         — Claude-powered field mapping
+  POST /api/ai/mapeo         — AI-powered field mapping suggestion
   GET  /api/templates/<name> — serve raw SVG file
 """
 
@@ -29,61 +29,72 @@ try:
 except ImportError:
     CAIRO_OK = False
 
+# Anthropic client (preferido sobre OpenAI)
+AI_CLIENT = None
+AI_OK     = False
 try:
-    from openai import OpenAI as _OpenAI
-    _api_key = os.getenv("OPENAI_API_KEY", "")
-    if _api_key:
-        AI_CLIENT = _OpenAI(api_key=_api_key)
-        AI_OK = True
-    else:
-        AI_CLIENT = None
-        AI_OK = False
+    import anthropic as _anthropic
+    _key = os.getenv("ANTHROPIC_API_KEY", "")
+    if _key:
+        AI_CLIENT = _anthropic.Anthropic(api_key=_key)
+        AI_OK     = True
 except (ImportError, Exception):
-    AI_CLIENT = None
-    AI_OK = False
+    pass
+
+# Fallback a OpenAI si no hay Anthropic
+if not AI_OK:
+    try:
+        from openai import OpenAI as _OpenAI
+        _key = os.getenv("OPENAI_API_KEY", "")
+        if _key:
+            AI_CLIENT = _OpenAI(api_key=_key)
+            AI_OK     = True
+    except (ImportError, Exception):
+        pass
 
 app = Flask(__name__)
-CORS(app)
+CORS(app, expose_headers=["X-Generated-Count", "X-Error-Count", "X-Total-Count"])
 
 TEMPLATES_DIR = Path(__file__).parent / "templates"
 
 
-# ── helpers ──────────────────────────────────────────────────────────────────
+# ── helpers ───────────────────────────────────────────────────────────────────
 
 def _fill_svg(svg_text: str, fields: dict) -> str:
-    """Replace text content of SVG elements matching id attributes (regex-based)."""
+    """Replace text content of SVG <text> elements by id."""
     result = svg_text
     for field_id, value in fields.items():
-        safe_id  = re.escape(field_id)
-        safe_val = value.replace('&', '&amp;').replace('<', '&lt;').replace('>', '&gt;')
+        if not field_id or value is None:
+            continue
+        safe_id  = re.escape(str(field_id))
+        safe_val = str(value).replace('&', '&amp;').replace('<', '&lt;').replace('>', '&gt;')
 
-        def make_text_replacer(val):
+        def make_replacer(val):
             def _replacer(m):
-                open_tag = m.group(1)
-                inner    = m.group(2)
+                open_tag  = m.group(1)
+                inner     = m.group(2)
                 close_tag = m.group(3)
-                # If inner has a <tspan>, replace only its text content
                 if re.search(r'<[^/!][^>]*tspan', inner, re.IGNORECASE):
-                    def _tspan_rep(tm):
+                    def _tspan(tm):
                         return tm.group(1) + val + tm.group(2)
                     new_inner = re.sub(
                         r'(<tspan\b[^>]*>)[^<]*(</tspan>)',
-                        _tspan_rep, inner, count=1, flags=re.IGNORECASE
+                        _tspan, inner, count=1, flags=re.IGNORECASE
                     )
                 else:
                     new_inner = val
                 return open_tag + new_inner + close_tag
             return _replacer
 
-        # Match <text id="field_id" ...>...</text>
+        # Match <text id="..." ...>...</text>
         result = re.sub(
             r'(<text\b[^>]*\bid=["\']' + safe_id + r'["\'][^>]*>)'
             r'([\s\S]*?)'
             r'(</text>)',
-            make_text_replacer(safe_val),
+            make_replacer(safe_val),
             result, flags=re.IGNORECASE
         )
-        # Match <tspan id="field_id" ...>...</tspan>
+        # Match <tspan id="..." ...>...</tspan>
         result = re.sub(
             r'(<tspan\b[^>]*\bid=["\']' + safe_id + r'["\'][^>]*>)'
             r'[^<]*'
@@ -91,72 +102,69 @@ def _fill_svg(svg_text: str, fields: dict) -> str:
             lambda m, v=safe_val: m.group(1) + v + m.group(2),
             result, flags=re.IGNORECASE
         )
-
     return result
 
 
-def _load_template(template_name: str) -> str | None:
-    """Load SVG content from templates dir. template_name must not contain path separators."""
-    safe_name = Path(template_name).name
-    path = TEMPLATES_DIR / safe_name
-    if not path.exists():
-        return None
-    return path.read_text(encoding="utf-8")
+def _load_template(template_name: str):
+    safe = Path(template_name).name
+    path = TEMPLATES_DIR / safe
+    return path.read_text(encoding="utf-8") if path.exists() else None
 
 
-def _detect_elements(svg_text: str) -> list[dict]:
-    """Return list of {id, tag, current_text} for all elements with an id attribute."""
+def _detect_elements(svg_text: str) -> list:
+    """Return list of {id, tag, text, x, y, font_size} for <text>/<tspan> elements with id."""
     try:
         root = ET.fromstring(svg_text)
     except ET.ParseError:
         return []
-
+    NS = "http://www.w3.org/2000/svg"
     results = []
     for el in root.iter():
-        el_id = el.get("id") or el.get("{http://www.w3.org/2000/svg}id")
-        if el_id:
-            tag = el.tag.split("}")[-1] if "}" in el.tag else el.tag
-            text = (el.text or "").strip()
-            results.append({"id": el_id, "tag": tag, "current_text": text})
+        tag = el.tag.split("}")[-1] if "}" in el.tag else el.tag
+        if tag not in ("text", "tspan"):
+            continue
+        eid = el.get("id")
+        if not eid:
+            continue
+        results.append({
+            "id":        eid,
+            "tag":       tag,
+            "text":      (el.text or "").strip()[:60],
+            "x":         el.get("x", ""),
+            "y":         el.get("y", ""),
+            "font_size": el.get("font-size", el.get("fontSize", "")),
+        })
     return results
 
 
 def _svg_to_output(svg_text: str, fmt: str) -> bytes:
-    """Convert SVG text to PDF or PNG bytes using cairosvg."""
     if not CAIRO_OK:
-        raise RuntimeError("cairosvg not installed")
-    encoded = svg_text.encode("utf-8")
+        raise RuntimeError("cairosvg no instalado en el servidor")
+    enc = svg_text.encode("utf-8")
     if fmt == "pdf":
-        return cairosvg.svg2pdf(bytestring=encoded)
-    return cairosvg.svg2png(bytestring=encoded, scale=2)
+        return cairosvg.svg2pdf(bytestring=enc)
+    return cairosvg.svg2png(bytestring=enc, scale=2)
+
+
+def _resolve_fields(row: dict, name_id: str, date_id: str) -> dict:
+    """Map CSV row to SVG field ids, trying common column name aliases."""
+    raw    = {k.strip(): v.strip() for k, v in row.items()}
+    fields = dict(raw)  # pass all columns through as-is
+
+    for col in ("nombre", "name", "participante", "recipient_name", "Nombre"):
+        if col in raw and raw[col]:
+            fields[name_id] = raw[col]
+            break
+
+    for col in ("fecha", "date", "issue_date", "Fecha"):
+        if col in raw and raw[col]:
+            fields[date_id] = raw[col]
+            break
+
+    return fields
 
 
 # ── routes ───────────────────────────────────────────────────────────────────
-
-@app.post("/api/debug")
-def debug():
-    """Echo back received form fields and file names for troubleshooting."""
-    return jsonify({
-        "form_fields": dict(request.form),
-        "files": list(request.files.keys()),
-    })
-
-
-@app.get("/api/test-fill")
-def test_fill():
-    """Diagnostic: fill classic template with test data and report results."""
-    svg_text = _load_template("template_classic.svg")
-    if not svg_text:
-        return jsonify({"error": "template not found", "dir": str(TEMPLATES_DIR)})
-    fields  = {"recipient_name": "NOMBRE DE PRUEBA", "issue_date": "25 de mayo de 2026"}
-    filled  = _fill_svg(svg_text, fields)
-    return jsonify({
-        "fill_worked":     "NOMBRE DE PRUEBA" in filled,
-        "original_remains": "Nombre del Participante" in filled,
-        "template_bytes":  len(svg_text),
-        "filled_bytes":    len(filled),
-    })
-
 
 @app.get("/api/health")
 def health():
@@ -170,75 +178,70 @@ def ai_status():
 
 @app.get("/api/templates/<path:filename>")
 def serve_template(filename):
-    safe_name = Path(filename).name
-    path = TEMPLATES_DIR / safe_name
+    safe = Path(filename).name
+    path = TEMPLATES_DIR / safe
     if not path.exists():
         return jsonify({"error": "not found"}), 404
     return Response(path.read_text(encoding="utf-8"), mimetype="image/svg+xml")
 
 
+@app.get("/api/templates")
+def list_templates():
+    files = [f.name for f in TEMPLATES_DIR.glob("*.svg")] if TEMPLATES_DIR.exists() else []
+    return jsonify({"templates": files})
+
+
 @app.post("/api/analyze")
 def analyze():
-    """
-    Accepts: multipart file OR JSON { template_name }
-    Returns: { elements: [{id, tag, current_text}] }
-    """
     svg_text = None
-
     if "file" in request.files:
         svg_text = request.files["file"].read().decode("utf-8", errors="replace")
     else:
-        data = request.get_json(silent=True) or {}
-        tname = request.form.get("template_name") or data.get("template_name")
+        tname = request.form.get("template_name") or (request.get_json(silent=True) or {}).get("template_name")
         if tname:
             svg_text = _load_template(tname)
-
     if not svg_text:
-        return jsonify({"error": "no SVG provided"}), 400
-
-    elements = _detect_elements(svg_text)
-    return jsonify({"elements": elements})
+        return jsonify({"error": "no SVG proporcionado"}), 400
+    return jsonify({"elements": _detect_elements(svg_text)})
 
 
 @app.post("/api/preview")
 def preview():
-    """
-    Accepts: multipart file OR form/json { template_name }
-    Returns: raw SVG text (with original placeholders, no fill).
-    """
     svg_text = None
-
     if "file" in request.files:
         svg_text = request.files["file"].read().decode("utf-8", errors="replace")
     else:
-        data = request.get_json(silent=True) or {}
-        tname = request.form.get("template_name") or data.get("template_name")
+        tname = request.form.get("template_name") or (request.get_json(silent=True) or {}).get("template_name")
         if tname:
             svg_text = _load_template(tname)
-
     if not svg_text:
-        return jsonify({"error": "no SVG provided"}), 400
+        return jsonify({"error": "no SVG proporcionado"}), 400
+
+    # Rellenar con valores de vista previa si se proveen
+    name_id  = request.form.get("name_field_id", "recipient_name")
+    date_id  = request.form.get("date_field_id", "issue_date")
+    name_val = request.form.get("recipient_name", "")
+    date_val = request.form.get("issue_date", "")
+    fields   = {}
+    if name_val: fields[name_id] = name_val
+    if date_val: fields[date_id] = date_val
+    if fields:
+        svg_text = _fill_svg(svg_text, fields)
 
     return Response(svg_text, mimetype="image/svg+xml")
 
 
 @app.post("/api/generate")
 def generate():
-    """
-    Accepts JSON or multipart:
-      { template_name, fields: {id: value}, format: 'pdf'|'png' }
-      OR file upload + fields + format in form data
-    Returns: PDF or PNG binary.
-    """
-    fmt = "pdf"
-    fields = {}
     svg_text = None
+    fmt      = "pdf"
+    fields   = {}
 
     if request.is_json:
-        data = request.get_json()
-        fmt = data.get("format", data.get("output_format", "pdf")).lower()
-        fields = data.get("fields", {})
-        tname = data.get("template_name")
+        data    = request.get_json()
+        fmt     = data.get("format", data.get("output_format", "pdf")).lower()
+        fields  = data.get("fields", {})
+        tname   = data.get("template_name")
         if tname:
             svg_text = _load_template(tname)
     else:
@@ -247,6 +250,7 @@ def generate():
             fields = json.loads(request.form.get("fields", "{}"))
         except (json.JSONDecodeError, ValueError):
             fields = {}
+
         if "file" in request.files:
             svg_text = request.files["file"].read().decode("utf-8", errors="replace")
         else:
@@ -254,26 +258,24 @@ def generate():
             if tname:
                 svg_text = _load_template(tname)
 
-        # Frontend sends individual fields + name_field_id/date_field_id
         if not fields:
             name_id  = request.form.get("name_field_id", "recipient_name")
             date_id  = request.form.get("date_field_id", "issue_date")
             name_val = request.form.get("recipient_name", "")
             date_val = request.form.get("issue_date", "")
-            if name_val:
-                fields[name_id] = name_val
-            if date_val:
-                fields[date_id] = date_val
+            if name_val: fields[name_id] = name_val
+            if date_val: fields[date_id] = date_val
 
     if not svg_text:
-        return jsonify({"error": "no SVG provided"}), 400
+        return jsonify({"error": "no SVG proporcionado"}), 400
 
     filled = _fill_svg(svg_text, fields)
 
     if not CAIRO_OK:
-        # Return filled SVG if cairosvg not available
-        return Response(filled, mimetype="image/svg+xml",
-                        headers={"Content-Disposition": "attachment; filename=certificate.svg"})
+        return Response(
+            filled, mimetype="image/svg+xml",
+            headers={"Content-Disposition": "attachment; filename=certificado.svg"}
+        )
 
     try:
         output = _svg_to_output(filled, fmt)
@@ -283,29 +285,17 @@ def generate():
     mime = "application/pdf" if fmt == "pdf" else "image/png"
     ext  = "pdf" if fmt == "pdf" else "png"
     return send_file(io.BytesIO(output), mimetype=mime,
-                     download_name=f"certificate.{ext}", as_attachment=True)
+                     download_name=f"certificado.{ext}", as_attachment=True)
 
 
 @app.post("/api/generate/batch")
 def generate_batch():
-    """
-    Accepts multipart:
-      file (SVG template or named template_name)
-      csv_data: CSV text with columns matching SVG element ids
-      format: pdf | png
-    Returns: ZIP archive of certificates.
-    """
-    fmt      = (request.form.get("format") or request.form.get("output_format", "pdf")).lower()
-    name_id  = request.form.get("name_field_id", "recipient_name")
-    date_id  = request.form.get("date_field_id", "issue_date")
+    fmt     = (request.form.get("format") or request.form.get("output_format", "pdf")).lower()
+    name_id = request.form.get("name_field_id", "recipient_name")
+    date_id = request.form.get("date_field_id", "issue_date")
+
+    # Cargar SVG
     svg_text = None
-
-    # Accept csv as file or raw text
-    if "csv_file" in request.files:
-        csv_data = request.files["csv_file"].read().decode("utf-8", errors="replace")
-    else:
-        csv_data = request.form.get("csv_data", "")
-
     if "file" in request.files:
         svg_text = request.files["file"].read().decode("utf-8", errors="replace")
     else:
@@ -314,107 +304,128 @@ def generate_batch():
             svg_text = _load_template(tname)
 
     if not svg_text:
-        return jsonify({"error": "no SVG template provided"}), 400
-    if not csv_data.strip():
-        return jsonify({"error": "no CSV data provided"}), 400
+        return jsonify({"error": "No se proporcionó plantilla SVG"}), 400
 
-    reader = csv.DictReader(io.StringIO(csv_data))
-    rows = list(reader)
+    # Cargar CSV
+    csv_text = ""
+    if "csv_file" in request.files:
+        csv_text = request.files["csv_file"].read().decode("utf-8-sig", errors="replace")
+    else:
+        csv_text = request.form.get("csv_data", "")
+
+    if not csv_text.strip():
+        return jsonify({"error": "No se proporcionó archivo CSV"}), 400
+
+    rows = list(csv.DictReader(io.StringIO(csv_text)))
     if not rows:
-        return jsonify({"error": "CSV has no rows"}), 400
+        return jsonify({"error": "El CSV no contiene filas de datos"}), 400
 
-    zip_buf = io.BytesIO()
+    # Verificar columnas mínimas
+    headers = [h.strip() for h in rows[0].keys()]
+    name_aliases = {"nombre", "name", "participante", "recipient_name"}
+    date_aliases = {"fecha", "date", "issue_date"}
+    has_name = any(h.lower() in name_aliases for h in headers)
+    has_date = any(h.lower() in date_aliases for h in headers)
+    if not has_name:
+        return jsonify({"error": f"El CSV debe tener una columna de nombre. Encontradas: {headers}"}), 400
+
+    # Generar ZIP
+    zip_buf     = io.BytesIO()
+    ok_count    = 0
+    error_count = 0
+
     with zipfile.ZipFile(zip_buf, "w", zipfile.ZIP_DEFLATED) as zf:
         for i, row in enumerate(rows):
-            raw = {k.strip(): v.strip() for k, v in row.items()}
-            # Map CSV columns to SVG element IDs using name_id / date_id
-            fields = dict(raw)
-            for csv_key in ("nombre", "name", "participante", "recipient_name"):
-                if csv_key in raw:
-                    fields[name_id] = raw[csv_key]
-                    break
-            for csv_key in ("fecha", "date", "issue_date"):
-                if csv_key in raw:
-                    fields[date_id] = raw[csv_key]
-                    break
-            filled = _fill_svg(svg_text, fields)
-
-            name_hint = (
-                raw.get("recipient_name") or raw.get("nombre")
-                or raw.get("name") or str(i + 1)
-            )
+            fields    = _resolve_fields(row, name_id, date_id)
+            filled    = _fill_svg(svg_text, fields)
+            name_hint = fields.get(name_id) or str(i + 1)
             safe_hint = re.sub(r"[^\w\- ]", "", name_hint).strip()[:60] or str(i + 1)
 
             if not CAIRO_OK:
                 zf.writestr(f"{i+1:03d}_{safe_hint}.svg", filled.encode("utf-8"))
+                ok_count += 1
             else:
                 try:
                     output = _svg_to_output(filled, fmt)
-                    ext = "pdf" if fmt == "pdf" else "png"
+                    ext    = "pdf" if fmt == "pdf" else "png"
                     zf.writestr(f"{i+1:03d}_{safe_hint}.{ext}", output)
-                except Exception:
-                    zf.writestr(f"{i+1:03d}_{safe_hint}_ERROR.svg", filled.encode("utf-8"))
+                    ok_count += 1
+                except Exception as e:
+                    zf.writestr(f"{i+1:03d}_{safe_hint}_ERROR.txt",
+                                f"Error: {e}\n\nCampos: {fields}".encode("utf-8"))
+                    error_count += 1
 
     zip_buf.seek(0)
-    return send_file(zip_buf, mimetype="application/zip",
-                     download_name="certificados.zip", as_attachment=True)
+    resp = send_file(
+        zip_buf, mimetype="application/zip",
+        download_name="certificados_lote.zip", as_attachment=True
+    )
+    resp.headers["X-Generated-Count"] = str(ok_count)
+    resp.headers["X-Error-Count"]     = str(error_count)
+    resp.headers["X-Total-Count"]     = str(len(rows))
+    return resp
 
 
 @app.post("/api/ai/mapeo")
 def ai_mapeo():
-    """
-    Accepts JSON: { svg_elements: [...], csv_headers: [...] }
-    Returns: { mapping: {csv_header: svg_id}, confidence: {}, explanation }
-    Uses Claude to intelligently map CSV columns to SVG element ids.
-    """
     if not AI_OK or not AI_CLIENT:
-        return jsonify({"error": "AI not available — set OPENAI_API_KEY"}), 503
+        return jsonify({"error": "IA no disponible — configurá ANTHROPIC_API_KEY"}), 503
 
-    data = request.get_json(silent=True) or {}
-    svg_elements = data.get("svg_elements", [])
-    csv_headers  = data.get("csv_headers", [])
+    if "file" in request.files:
+        svg_text = request.files["file"].read().decode("utf-8", errors="replace")
+        elements = _detect_elements(svg_text)
+    else:
+        data     = request.get_json(silent=True) or {}
+        elements = data.get("svg_elements", [])
 
-    if not svg_elements or not csv_headers:
-        return jsonify({"error": "svg_elements and csv_headers required"}), 400
+    if not elements:
+        return jsonify({"error": "No se encontraron elementos con id en el SVG"}), 400
 
-    prompt = f"""You are a data mapping assistant for certificate generation.
+    ids   = [e["id"] for e in elements]
+    texts = {e["id"]: e.get("text", "") for e in elements}
 
-SVG element IDs (text fields in the certificate):
-{json.dumps([e['id'] for e in svg_elements], ensure_ascii=False)}
+    prompt = f"""Analiza estos IDs de elementos SVG de un certificado y determina cuál es el campo del nombre del participante y cuál es la fecha.
 
-CSV column headers from the user's spreadsheet:
-{json.dumps(csv_headers, ensure_ascii=False)}
+IDs disponibles: {json.dumps(ids, ensure_ascii=False)}
+Texto actual de cada ID: {json.dumps(texts, ensure_ascii=False)}
 
-Task: Map each CSV column header to the most appropriate SVG element ID.
-
-Rules:
-- Only map a CSV header if you're reasonably confident it matches an SVG field
-- Common mappings: name/nombre/participante → recipient_name, date/fecha → issue_date
-- Return JSON only, no extra text
-
-Response format:
+Responde SOLO con JSON, sin texto adicional:
 {{
-  "mapping": {{"csv_header": "svg_element_id", ...}},
-  "confidence": {{"csv_header": 0.0-1.0, ...}},
-  "unmapped_csv": ["headers not mapped"],
-  "unmapped_svg": ["svg ids not covered"]
+  "name_id": "el_id_del_nombre",
+  "date_id": "el_id_de_la_fecha",
+  "confidence": "alta|media|baja",
+  "justification": "explicación breve en español"
 }}"""
 
     try:
-        resp = AI_CLIENT.chat.completions.create(
-            model="gpt-4o-mini",
-            max_tokens=512,
-            messages=[{"role": "user", "content": prompt}],
-        )
-        text = resp.choices[0].message.content.strip()
-        # Extract JSON block if wrapped in markdown
+        # Soporte Anthropic
+        if hasattr(AI_CLIENT, 'messages'):
+            msg  = AI_CLIENT.messages.create(
+                model="claude-haiku-4-5-20251001",
+                max_tokens=256,
+                messages=[{"role": "user", "content": prompt}]
+            )
+            text = msg.content[0].text.strip()
+        else:
+            # Fallback OpenAI
+            resp = AI_CLIENT.chat.completions.create(
+                model="gpt-4o-mini", max_tokens=256,
+                messages=[{"role": "user", "content": prompt}]
+            )
+            text = resp.choices[0].message.content.strip()
+
         m = re.search(r"```(?:json)?\s*([\s\S]+?)\s*```", text)
         if m:
             text = m.group(1)
         result = json.loads(text)
+        # Validar que los IDs sugeridos existen
+        if result.get("name_id") not in ids:
+            result["name_id"] = ids[0] if ids else ""
+        if result.get("date_id") not in ids:
+            result["date_id"] = ids[1] if len(ids) > 1 else ids[0] if ids else ""
         return jsonify(result)
     except (json.JSONDecodeError, ValueError) as e:
-        return jsonify({"error": f"AI response parse error: {e}"}), 500
+        return jsonify({"error": f"Error al parsear respuesta IA: {e}"}), 500
     except Exception as e:
         return jsonify({"error": str(e)}), 500
 

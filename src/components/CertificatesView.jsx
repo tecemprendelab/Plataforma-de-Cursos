@@ -339,7 +339,7 @@ function CertIndividual({ participants, galleryTplPick, onGalleryConsumed }) {
 
 /* ── Pestaña Lote CSV ───────────────────────────────────────── */
 
-function CertBatch() {
+function CertBatch({ participants = [] }) {
   const [templateName, setTemplateName] = useState(null)
   const [svgFile,      setSvgFile]      = useState(null)
   const [csvFile,      setCsvFile]      = useState(null)
@@ -367,9 +367,9 @@ function CertBatch() {
   }
 
   const generate = async () => {
-    if (!templateName && !svgFile) { setAlert({type:'error',msg:'Seleccioná una plantilla SVG.'}); return }
-    if (!csvFile) { setAlert({type:'error',msg:'Cargá un archivo CSV.'}); return }
-    setLoading(true); setAlert(null); setResult(null); setProgress(20)
+    if (!templateName && !svgFile) { setAlert({type:'error',msg:'Seleccioná una plantilla SVG primero.'}); return }
+    if (!csvFile) { setAlert({type:'error',msg:'Cargá un archivo CSV con los participantes.'}); return }
+    setLoading(true); setAlert(null); setResult(null); setProgress(10)
     const form = new FormData()
     if (svgFile) form.append('file', svgFile); else form.append('template_name', templateName)
     form.append('csv_file', csvFile)
@@ -377,24 +377,59 @@ function CertBatch() {
     form.append('date_field_id', dateId.trim())
     form.append('output_format', fmt)
     try {
-      setProgress(55)
+      setProgress(30)
       const r = await fetch(`${CERT_API}/api/generate/batch`, { method:'POST', body:form })
-      setProgress(90)
-      if (!r.ok) { const d = await r.json(); setAlert({type:'error',msg:d.error||'Error en el lote.'}); return }
+      setProgress(85)
+      if (!r.ok) {
+        let errMsg = 'Error al generar el lote.'
+        try { const d = await r.json(); errMsg = d.error || errMsg } catch(_) {}
+        setAlert({type:'error',msg:errMsg})
+        return
+      }
       const generated = r.headers.get('X-Generated-Count') || '?'
       const errCount  = r.headers.get('X-Error-Count') || '0'
+      const total     = r.headers.get('X-Total-Count') || '?'
       const blob = await r.blob()
+      if (blob.size < 100) { setAlert({type:'error',msg:'El archivo descargado parece estar vacío. Revisá la consola del servidor.'}); return }
       const a = document.createElement('a')
-      a.href = URL.createObjectURL(blob); a.download = 'certificados_lote.zip'; a.click()
-      setProgress(100); setResult({generated, errors: errCount})
-      setAlert({type:'success',msg:`${generated} certificados generados y descargados como ZIP.`})
-    } catch(e) { setAlert({type:'error',msg:e.message}) }
-    finally { setLoading(false); setTimeout(() => setProgress(0), 1400) }
+      a.href = URL.createObjectURL(blob)
+      a.download = 'certificados_lote.zip'
+      a.click()
+      URL.revokeObjectURL(a.href)
+      setProgress(100)
+      setResult({generated, errors: errCount, total})
+      const errNote = Number(errCount) > 0 ? ` (${errCount} con errores — incluidos en el ZIP como .txt)` : ''
+      setAlert({type:'success',msg:`✓ ${generated} de ${total} certificados generados y descargados${errNote}.`})
+    } catch(e) {
+      if (e.name === 'TypeError' && e.message.includes('fetch')) {
+        setAlert({type:'error',msg:'No se puede conectar con el servidor. Verificá que esté activo.'})
+      } else {
+        setAlert({type:'error',msg:`Error inesperado: ${e.message}`})
+      }
+    }
+    finally { setLoading(false); setTimeout(() => setProgress(0), 2000) }
   }
 
   return (
     <div className="grid grid-cols-12 gap-5">
       <div className="col-span-7 space-y-4">
+        {participants.length > 0 && (
+          <div className="bg-white border border-stone-200 rounded-xl p-4">
+            <p className="text-xs font-semibold uppercase tracking-wider text-stone-500 mb-2">Generar CSV desde participantes activos</p>
+            <p className="text-xs text-stone-400 mb-3">Exporta los participantes con estado activo y pago confirmado como CSV listo para usar.</p>
+            <button onClick={() => {
+              const active = participants.filter(p => p.status === 'activo' && p.payment === 'pagado')
+              if (!active.length) return
+              const lines = ['nombre,fecha', ...active.map(p => `"${p.name}","${TODAY_ES}"`)]
+              const blob = new Blob([lines.join('\n')], {type:'text/csv;charset=utf-8'})
+              const f = new File([blob], 'participantes_activos.csv', {type:'text/csv'})
+              handleCsvFile(f)
+            }} className="flex items-center gap-1.5 text-xs font-medium px-3 py-2 bg-orange-500 text-white rounded-lg hover:bg-orange-600 transition-colors">
+              <span className="material-symbols-outlined" style={{fontSize:14}}>group</span>
+              Usar {participants.filter(p=>p.status==='activo'&&p.payment==='pagado').length} participantes activos
+            </button>
+          </div>
+        )}
         <CertDropZone accept=".csv" title="Arrastrá tu archivo CSV aquí"
           subtitle="Columnas requeridas: nombre, fecha — límite 200 registros"
           icon="upload_file" file={csvFile} onFile={handleCsvFile} />
@@ -768,7 +803,7 @@ export default function CertificatesView({ participants, galleryTplPick, onGalle
       </div>
 
       {certTab === 'individual' && <CertIndividual participants={participants} galleryTplPick={galleryTplPick} onGalleryConsumed={onGalleryConsumed} />}
-      {certTab === 'batch'      && <CertBatch />}
+      {certTab === 'batch'      && <CertBatch participants={participants} />}
       {certTab === 'analyze'    && <CertAnalyze aiAvailable={aiAvailable} />}
     </div>
   )
