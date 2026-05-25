@@ -4,7 +4,7 @@
 
 import { useState, useEffect, useRef } from 'react'
 
-const CERT_API = 'http://localhost:5050'
+const CERT_API = 'https://plataforma-de-cursos-1-l606.onrender.com'
 
 const SVG_GALLERY = [
   {

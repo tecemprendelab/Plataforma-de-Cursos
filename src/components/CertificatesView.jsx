@@ -5,7 +5,7 @@
 
 import { useState, useEffect, useRef, useCallback } from 'react'
 
-const CERT_API = 'http://localhost:5050'
+const CERT_API = 'https://plataforma-de-cursos-1-l606.onrender.com'
 
 const TODAY_ES = (() => {
   const d = new Date()
