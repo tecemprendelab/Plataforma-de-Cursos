@@ -18,6 +18,9 @@ const NAV = [
   { section:'Herramientas' },
   { id:'import',       icon:'ti-file-spreadsheet', label:'Importar CSV'        },
   { id:'export',       icon:'ti-download',         label:'Exportar datos'      },
+  { section:'Certificados' },
+  { id:'certificates', icon:'ti-certificate',      label:'Certificados'        },
+  { id:'gallery',      icon:'ti-photo',             label:'Galería SVG'         },
 ]
 
 export default function Sidebar({ view, setView, participants, userEmail, onSignOut, open, onClose }) {

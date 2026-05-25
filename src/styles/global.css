@@ -3,6 +3,9 @@
    Paleta crema / naranja / negro · Tipografía Poppins Latin
    ============================================================ */
 
+/* Tailwind utilities (sólo utilities, sin preflight para no romper CSS existente) */
+@tailwind utilities;
+
 /* ── Poppins utility classes ─────────────────────────────── */
 .poppins-thin           { font-family:"Poppins",sans-serif; font-weight:100; font-style:normal  }
 .poppins-extralight     { font-family:"Poppins",sans-serif; font-weight:200; font-style:normal  }

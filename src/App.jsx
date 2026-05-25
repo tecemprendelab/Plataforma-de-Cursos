@@ -20,6 +20,8 @@ import RemindersView        from './components/RemindersView.jsx'
 import TagsView             from './components/TagsView.jsx'
 import ImportView           from './components/ImportView.jsx'
 import ExportView           from './components/ExportView.jsx'
+import CertificatesView     from './components/CertificatesView.jsx'
+import GalleryView          from './components/GalleryView.jsx'
 import LoginView            from './components/LoginView.jsx'
 import { Toast }            from './components/UI.jsx'
 
@@ -44,12 +46,15 @@ const VIEW_TITLES = {
   tags:         'Etiquetas',
   import:       'Importar CSV',
   export:       'Exportar datos',
+  certificates: 'Certificados',
+  gallery:      'Galería SVG',
 }
 
 function AuthenticatedApp({ user, onSignOut }) {
-  const [view,        setView]        = useState('dashboard')
-  const [toastMsg,    setToast]       = useState('')
-  const [sidebarOpen, setSidebarOpen] = useState(false)
+  const [view,           setView]           = useState('dashboard')
+  const [toastMsg,       setToast]          = useState('')
+  const [sidebarOpen,    setSidebarOpen]    = useState(false)
+  const [galleryTplPick, setGalleryTplPick] = useState(null)
   const toast = useCallback(msg => setToast(msg), [])
   const closeSidebar = useCallback(() => setSidebarOpen(false), [])
   const currentTitle = view.startsWith('profile_') ? 'Perfil' : (VIEW_TITLES[view] || 'TEC Emprende Lab')
@@ -151,6 +156,14 @@ function AuthenticatedApp({ user, onSignOut }) {
 
     if (view === 'export')
       return <ExportView participants={participants} courses={courses} tags={tags}/>
+
+    if (view === 'certificates')
+      return <CertificatesView participants={participants}
+        galleryTplPick={galleryTplPick}
+        onGalleryConsumed={() => setGalleryTplPick(null)} />
+
+    if (view === 'gallery')
+      return <GalleryView onUseCertificate={tpl => { setGalleryTplPick(tpl); setView('certificates') }} />
 
     return <Dashboard {...shared}/>
   }
