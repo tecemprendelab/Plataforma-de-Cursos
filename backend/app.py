@@ -51,55 +51,48 @@ TEMPLATES_DIR = Path(__file__).parent / "templates"
 # ── helpers ──────────────────────────────────────────────────────────────────
 
 def _fill_svg(svg_text: str, fields: dict) -> str:
-    """Replace the text content of <text id="KEY"> elements."""
-    ET.register_namespace("", "http://www.w3.org/2000/svg")
-    ns = {"svg": "http://www.w3.org/2000/svg"}
+    """Replace text content of SVG elements matching id attributes (regex-based)."""
+    result = svg_text
+    for field_id, value in fields.items():
+        safe_id  = re.escape(field_id)
+        safe_val = value.replace('&', '&amp;').replace('<', '&lt;').replace('>', '&gt;')
 
-    try:
-        root = ET.fromstring(svg_text)
-    except ET.ParseError:
-        return svg_text
+        def make_text_replacer(val):
+            def _replacer(m):
+                open_tag = m.group(1)
+                inner    = m.group(2)
+                close_tag = m.group(3)
+                # If inner has a <tspan>, replace only its text content
+                if re.search(r'<[^/!][^>]*tspan', inner, re.IGNORECASE):
+                    def _tspan_rep(tm):
+                        return tm.group(1) + val + tm.group(2)
+                    new_inner = re.sub(
+                        r'(<tspan\b[^>]*>)[^<]*(</tspan>)',
+                        _tspan_rep, inner, count=1, flags=re.IGNORECASE
+                    )
+                else:
+                    new_inner = val
+                return open_tag + new_inner + close_tag
+            return _replacer
 
-    SVG_NS = "http://www.w3.org/2000/svg"
+        # Match <text id="field_id" ...>...</text>
+        result = re.sub(
+            r'(<text\b[^>]*\bid=["\']' + safe_id + r'["\'][^>]*>)'
+            r'([\s\S]*?)'
+            r'(</text>)',
+            make_text_replacer(safe_val),
+            result, flags=re.IGNORECASE
+        )
+        # Match <tspan id="field_id" ...>...</tspan>
+        result = re.sub(
+            r'(<tspan\b[^>]*\bid=["\']' + safe_id + r'["\'][^>]*>)'
+            r'[^<]*'
+            r'(</tspan>)',
+            lambda m, v=safe_val: m.group(1) + v + m.group(2),
+            result, flags=re.IGNORECASE
+        )
 
-    def _tag(el):
-        return el.tag.split("}")[-1] if "}" in el.tag else el.tag
-
-    def _set_text_el(el, value):
-        # Figma uses <text><tspan x y>...</tspan></text>
-        # Preserve the first tspan (keeps positioning) and update its text
-        tspans = [c for c in list(el) if _tag(c) == "tspan"]
-        if tspans:
-            tspans[0].text = value
-            # Remove extra tspans (multi-line originals)
-            for t in tspans[1:]:
-                el.remove(t)
-        else:
-            for child in list(el):
-                el.remove(child)
-            el.text = value
-
-    def _apply(el, value):
-        tag = _tag(el)
-        if tag == "text":
-            _set_text_el(el, value)
-        elif tag == "tspan":
-            el.text = value
-        else:
-            # Figma wraps text in <g id="..."><text>...</text></g>
-            text_el = next(
-                (c for c in el.iter() if _tag(c) == "text" and c is not el),
-                None
-            )
-            if text_el is not None:
-                _set_text_el(text_el, value)
-
-    for el in root.iter():
-        el_id = el.get("id") or el.get(f"{{{SVG_NS}}}id")
-        if el_id and el_id in fields:
-            _apply(el, fields[el_id])
-
-    return ET.tostring(root, encoding="unicode", xml_declaration=False)
+    return result
 
 
 def _load_template(template_name: str) -> str | None:
@@ -146,6 +139,22 @@ def debug():
     return jsonify({
         "form_fields": dict(request.form),
         "files": list(request.files.keys()),
+    })
+
+
+@app.get("/api/test-fill")
+def test_fill():
+    """Diagnostic: fill classic template with test data and report results."""
+    svg_text = _load_template("template_classic.svg")
+    if not svg_text:
+        return jsonify({"error": "template not found", "dir": str(TEMPLATES_DIR)})
+    fields  = {"recipient_name": "NOMBRE DE PRUEBA", "issue_date": "25 de mayo de 2026"}
+    filled  = _fill_svg(svg_text, fields)
+    return jsonify({
+        "fill_worked":     "NOMBRE DE PRUEBA" in filled,
+        "original_remains": "Nombre del Participante" in filled,
+        "template_bytes":  len(svg_text),
+        "filled_bytes":    len(filled),
     })
 
 
