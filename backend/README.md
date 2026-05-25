@@ -25,7 +25,7 @@ python app.py
 
 Para usar el mapeo con IA, configura tu API key:
 ```bash
-export ANTHROPIC_API_KEY=sk-ant-...
+export OPENAI_API_KEY=sk-...
 python app.py
 ```
 

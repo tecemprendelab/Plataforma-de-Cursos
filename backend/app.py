@@ -30,10 +30,10 @@ except ImportError:
     CAIRO_OK = False
 
 try:
-    import anthropic as _anthropic
-    _api_key = os.getenv("ANTHROPIC_API_KEY", "")
+    from openai import OpenAI as _OpenAI
+    _api_key = os.getenv("OPENAI_API_KEY", "")
     if _api_key:
-        AI_CLIENT = _anthropic.Anthropic(api_key=_api_key)
+        AI_CLIENT = _OpenAI(api_key=_api_key)
         AI_OK = True
     else:
         AI_CLIENT = None
@@ -296,7 +296,7 @@ def ai_mapeo():
     Uses Claude to intelligently map CSV columns to SVG element ids.
     """
     if not AI_OK or not AI_CLIENT:
-        return jsonify({"error": "AI not available — set ANTHROPIC_API_KEY"}), 503
+        return jsonify({"error": "AI not available — set OPENAI_API_KEY"}), 503
 
     data = request.get_json(silent=True) or {}
     svg_elements = data.get("svg_elements", [])
@@ -329,12 +329,12 @@ Response format:
 }}"""
 
     try:
-        msg = AI_CLIENT.messages.create(
-            model="claude-haiku-4-5-20251001",
+        resp = AI_CLIENT.chat.completions.create(
+            model="gpt-4o-mini",
             max_tokens=512,
             messages=[{"role": "user", "content": prompt}],
         )
-        text = msg.content[0].text.strip()
+        text = resp.choices[0].message.content.strip()
         # Extract JSON block if wrapped in markdown
         m = re.search(r"```(?:json)?\s*([\s\S]+?)\s*```", text)
         if m:
