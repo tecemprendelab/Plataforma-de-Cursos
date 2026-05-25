@@ -3,7 +3,8 @@
 //  Funciones puras de cálculo de tiempo y fechas.
 //  No dependen de React ni de ningún otro módulo.
 //
-//  Modelo: expiración = fecha_ingreso + accessDays
+//  Regla: el día de ingreso cuenta como día 1.
+//  Si la fecha de ingreso es futura, se trata como si fuera hoy.
 //  Todas las funciones aceptan un segundo parámetro opcional
 //  `days` (días de acceso del curso). Si no se pasa, se usa
 //  el valor global ACCESS_DAYS como respaldo.
@@ -20,31 +21,22 @@ function parseLocal(fechaStr) {
   return new Date(y, m - 1, d)
 }
 
-/** Calcula la fecha de expiración como objeto Date */
-function expiryAsDate(fechaStr, days) {
-  const d = parseLocal(fechaStr)
-  d.setDate(d.getDate() + days)
-  return d
-}
-
 /**
- * Días transcurridos desde una fecha de ingreso.
- * Puede ser negativo si la fecha es futura.
+ * Días transcurridos desde la fecha de ingreso (mín. 0).
+ * Si la fecha es futura, retorna 0.
  * @param {string} fechaStr - Formato ISO 'YYYY-MM-DD'
  */
 export function daysElapsed(fechaStr) {
-  return Math.round((TODAY - parseLocal(fechaStr)) / 86_400_000)
+  return Math.max(0, Math.round((TODAY - parseLocal(fechaStr)) / 86_400_000))
 }
 
 /**
- * Días restantes hasta la expiración (mín. 0).
- * Calculado como: fecha_expiración - hoy
+ * Días restantes de acceso (mín. 0).
  * @param {string} fechaStr - Formato ISO 'YYYY-MM-DD'
  * @param {number} [days]   - Días de acceso del curso (por defecto ACCESS_DAYS)
  */
 export function daysLeft(fechaStr, days = ACCESS_DAYS) {
-  const expiry = expiryAsDate(fechaStr, days)
-  return Math.max(0, Math.round((expiry - TODAY) / 86_400_000))
+  return Math.max(0, days - daysElapsed(fechaStr))
 }
 
 /**
@@ -53,8 +45,7 @@ export function daysLeft(fechaStr, days = ACCESS_DAYS) {
  * @param {number} [days]   - Días de acceso del curso (por defecto ACCESS_DAYS)
  */
 export function accessPct(fechaStr, days = ACCESS_DAYS) {
-  const elapsed = daysElapsed(fechaStr)
-  return Math.min(100, Math.max(0, Math.round(elapsed / days * 100)))
+  return Math.min(100, Math.round(daysElapsed(fechaStr) / days * 100))
 }
 
 /**
@@ -63,7 +54,7 @@ export function accessPct(fechaStr, days = ACCESS_DAYS) {
  * @param {number} [days]   - Días de acceso del curso (por defecto ACCESS_DAYS)
  */
 export function isExpired(fechaStr, days = ACCESS_DAYS) {
-  return TODAY >= expiryAsDate(fechaStr, days)
+  return daysElapsed(fechaStr) >= days
 }
 
 /**
@@ -100,13 +91,13 @@ export function fmtDate(str) {
  * @param {number} [days]   - Días de acceso del curso (por defecto ACCESS_DAYS)
  */
 export function expiryDate(fechaStr, days = ACCESS_DAYS) {
-  return expiryAsDate(fechaStr, days).toLocaleDateString('es-CR', {
-    day: 'numeric', month: 'long', year: 'numeric',
-  })
+  const d = parseLocal(fechaStr)
+  d.setDate(d.getDate() + days)
+  return d.toLocaleDateString('es-CR', { day: 'numeric', month: 'long', year: 'numeric' })
 }
 
 /**
- * Fecha límite para realizar la prueba (días de acceso - EXAM_WARN).
+ * Fecha límite para realizar la prueba.
  * @param {string} fechaStr - Formato ISO 'YYYY-MM-DD'
  * @param {number} [days]   - Días de acceso del curso (por defecto ACCESS_DAYS)
  */
@@ -128,17 +119,14 @@ export function todayISO() {
 
 /**
  * Resuelve los días de acceso para un participante según sus cursos.
- * Si el participante está inscrito en más de un curso, se usa el máximo.
- * Si ningún curso tiene accessDays definido, se usa ACCESS_DAYS global.
- *
- * @param {object} participant - Objeto participante (debe tener .courses = [id, ...])
- * @param {Array}  courses     - Lista de todos los cursos disponibles
+ * Si está en más de un curso, usa el máximo.
+ * @param {object} participant - Debe tener .courses = [id, ...]
+ * @param {Array}  courses     - Lista de todos los cursos
  * @returns {number}
  */
 export function getAccessDays(participant, courses = []) {
   if (!participant?.courses?.length || !courses.length) return ACCESS_DAYS
   const enrolled = courses.filter(c => participant.courses.includes(c.id))
   if (!enrolled.length) return ACCESS_DAYS
-  const max = Math.max(...enrolled.map(c => Number(c.accessDays) || ACCESS_DAYS))
-  return max
+  return Math.max(...enrolled.map(c => Number(c.accessDays) || ACCESS_DAYS))
 }
