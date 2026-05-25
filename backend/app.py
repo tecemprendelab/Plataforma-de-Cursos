@@ -60,16 +60,34 @@ def _fill_svg(svg_text: str, fields: dict) -> str:
     except ET.ParseError:
         return svg_text
 
-    def _set_text(el, value):
-        # Clear existing tspan children and set text directly
+    SVG_NS = "http://www.w3.org/2000/svg"
+
+    def _tag(el):
+        return el.tag.split("}")[-1] if "}" in el.tag else el.tag
+
+    def _set_text_el(el, value):
         for child in list(el):
             el.remove(child)
         el.text = value
 
+    def _apply(el, value):
+        tag = _tag(el)
+        if tag == "text":
+            _set_text_el(el, value)
+        else:
+            # Figma wraps text in <g id="..."><text>...</text></g>
+            # Find the first <text> descendant and update it
+            text_el = next(
+                (c for c in el.iter() if _tag(c) == "text" and c is not el),
+                None
+            )
+            if text_el is not None:
+                _set_text_el(text_el, value)
+
     for el in root.iter():
-        el_id = el.get("id") or el.get("{http://www.w3.org/2000/svg}id")
+        el_id = el.get("id") or el.get(f"{{{SVG_NS}}}id")
         if el_id and el_id in fields:
-            _set_text(el, fields[el_id])
+            _apply(el, fields[el_id])
 
     return ET.tostring(root, encoding="unicode", xml_declaration=False)
 
