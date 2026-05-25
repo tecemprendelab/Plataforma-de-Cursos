@@ -1,21 +1,21 @@
 // ============================================================
 //  AccessView.jsx — React JSX
 // ============================================================
-import { isExpired, isWarning, daysLeft, expiryDate } from '../utils/time.js'
+import { isExpired, isWarning, daysLeft, getAccessDays } from '../utils/time.js'
 
 import { StatCard, AccessBar } from './UI.jsx'
 import { openEmailClient } from '../utils/email.js'
 
 export default function AccessView({ participants, courses = [], onToggleAccess, onRenew }) {
-  const expired   = participants.filter(p => isExpired(p.fecha))
-  const warning   = participants.filter(p => p.access && isWarning(p.fecha))
-  const sinAcceso = participants.filter(p => p.status === 'activo' && p.payment === 'pagado' && !p.access && !isExpired(p.fecha))
+  const expired   = participants.filter(p => isExpired(p.fecha, getAccessDays(p, courses)))
+  const warning   = participants.filter(p => p.access && isWarning(p.fecha, getAccessDays(p, courses)))
+  const sinAcceso = participants.filter(p => p.status === 'activo' && p.payment === 'pagado' && !p.access && !isExpired(p.fecha, getAccessDays(p, courses)))
   const conAcceso = participants.filter(p => p.access)
   const shortName = id => courses.find(c => c.id === id)?.short || id
 
   return (
     <div>
-      <div className="page-header"><div><h2 className="h1">Control de Accesos</h2><p className="text-muted" style={{fontSize:13,marginTop:3}}>Vigencia de 45 días · Revocación automática al expirar</p></div></div>
+      <div className="page-header"><div><h2 className="h1">Control de Accesos</h2><p className="text-muted" style={{fontSize:13,marginTop:3}}>Vigencia personalizada por curso · Revocación automática al expirar</p></div></div>
       <div className="stats-grid">
         <StatCard num={conAcceso.length} label="Activos" />
         <StatCard num={sinAcceso.length} label="Pendientes" accent="var(--orange)" />
@@ -26,31 +26,37 @@ export default function AccessView({ participants, courses = [], onToggleAccess,
       {expired.length > 0 && (
         <div className="alert alert-red">
           <div className="alert-title"><i className="ti ti-lock"/> {expired.length} acceso{expired.length!==1?'s':''} expirado{expired.length!==1?'s':''}</div>
-          {expired.map(p => (
-            <div key={p.id} style={{display:'flex',alignItems:'center',justifyContent:'space-between',padding:'8px 0',borderBottom:'1px solid var(--cream-2)',flexWrap:'wrap',gap:8}}>
-              <div style={{flex:1,minWidth:0}}>
-                <div style={{fontWeight:500,fontSize:13}}>{p.name}</div>
-                <div className="text-xs text-muted" style={{marginBottom:6}}>{p.email}</div>
-                <div style={{maxWidth:280}}><AccessBar fecha={p.fecha}/></div>
+          {expired.map(p => {
+            const days = getAccessDays(p, courses)
+            return (
+              <div key={p.id} style={{display:'flex',alignItems:'center',justifyContent:'space-between',padding:'8px 0',borderBottom:'1px solid var(--cream-2)',flexWrap:'wrap',gap:8}}>
+                <div style={{flex:1,minWidth:0}}>
+                  <div style={{fontWeight:500,fontSize:13}}>{p.name}</div>
+                  <div className="text-xs text-muted" style={{marginBottom:6}}>{p.email}</div>
+                  <div style={{maxWidth:280}}><AccessBar fecha={p.fecha} days={days}/></div>
+                </div>
+                <button className="btn btn-ghost btn-sm" style={{marginLeft:'auto'}} onClick={() => onRenew(p.id)}><i className="ti ti-refresh"/> Renovar</button>
               </div>
-              <button className="btn btn-ghost btn-sm" style={{marginLeft:'auto'}} onClick={() => onRenew(p.id)}><i className="ti ti-refresh"/> Renovar</button>
-            </div>
-          ))}
+            )
+          })}
         </div>
       )}
 
       {warning.length > 0 && (
         <div className="alert alert-orange">
           <div className="alert-title"><i className="ti ti-clock"/> {warning.length} por vencer esta semana</div>
-          {warning.map(p => (
-            <div key={p.id} style={{display:'flex',alignItems:'center',justifyContent:'space-between',padding:'8px 0',borderBottom:'1px solid var(--cream-2)',flexWrap:'wrap',gap:8}}>
-              <div style={{flex:1,minWidth:0}}>
-                <div style={{fontWeight:500,fontSize:13}}>{p.name} <span style={{fontSize:11,color:'var(--orange)'}}>· {daysLeft(p.fecha)}d</span></div>
-                <div style={{maxWidth:280,marginTop:4}}><AccessBar fecha={p.fecha}/></div>
+          {warning.map(p => {
+            const days = getAccessDays(p, courses)
+            return (
+              <div key={p.id} style={{display:'flex',alignItems:'center',justifyContent:'space-between',padding:'8px 0',borderBottom:'1px solid var(--cream-2)',flexWrap:'wrap',gap:8}}>
+                <div style={{flex:1,minWidth:0}}>
+                  <div style={{fontWeight:500,fontSize:13}}>{p.name} <span style={{fontSize:11,color:'var(--orange)'}}>· {daysLeft(p.fecha, days)}d</span></div>
+                  <div style={{maxWidth:280,marginTop:4}}><AccessBar fecha={p.fecha} days={days}/></div>
+                </div>
+                <button className="btn btn-orange btn-sm" style={{marginLeft:'auto'}} onClick={() => openEmailClient(p)}><i className="ti ti-mail"/> Recordatorio</button>
               </div>
-              <button className="btn btn-orange btn-sm" style={{marginLeft:'auto'}} onClick={() => openEmailClient(p)}><i className="ti ti-mail"/> Recordatorio</button>
-            </div>
-          ))}
+            )
+          })}
         </div>
       )}
 
@@ -75,19 +81,22 @@ export default function AccessView({ participants, courses = [], onToggleAccess,
         <table className="ttable">
           <thead><tr><th style={{width:'26%'}}>Participante</th><th style={{width:'22%'}}>Cursos</th><th style={{width:'34%'}}>Tiempo de acceso</th><th style={{width:'18%'}}>Acción</th></tr></thead>
           <tbody>
-            {participants.map(p => (
-              <tr key={p.id} className={isExpired(p.fecha)?'row-exp':isWarning(p.fecha)&&p.access?'row-warn':''}>
-                <td style={{fontWeight:500}}>{p.name}</td>
-                <td className="text-xs text-muted">{p.courses.map(shortName).join(', ')}</td>
-                <td>{p.access ? <AccessBar fecha={p.fecha}/> : <span className="text-sm text-muted">Sin acceso</span>}</td>
-                <td>
-                  <button onClick={() => onToggleAccess(p.id)}
-                    style={{background:'none',border:`1px solid ${p.access?'var(--orange)':'var(--border)'}`,borderRadius:6,padding:'5px 12px',fontSize:11,cursor:'pointer',color:p.access?'var(--orange)':'var(--gray)',fontFamily:'var(--font-body)'}}>
-                    {p.access ? 'Revocar' : 'Activar'}
-                  </button>
-                </td>
-              </tr>
-            ))}
+            {participants.map(p => {
+              const days = getAccessDays(p, courses)
+              return (
+                <tr key={p.id} className={isExpired(p.fecha,days)?'row-exp':isWarning(p.fecha,days)&&p.access?'row-warn':''}>
+                  <td style={{fontWeight:500}}>{p.name}</td>
+                  <td className="text-xs text-muted">{p.courses.map(shortName).join(', ')}</td>
+                  <td>{p.access ? <AccessBar fecha={p.fecha} days={days}/> : <span className="text-sm text-muted">Sin acceso</span>}</td>
+                  <td>
+                    <button onClick={() => onToggleAccess(p.id)}
+                      style={{background:'none',border:`1px solid ${p.access?'var(--orange)':'var(--border)'}`,borderRadius:6,padding:'5px 12px',fontSize:11,cursor:'pointer',color:p.access?'var(--orange)':'var(--gray)',fontFamily:'var(--font-body)'}}>
+                      {p.access ? 'Revocar' : 'Activar'}
+                    </button>
+                  </td>
+                </tr>
+              )
+            })}
           </tbody>
         </table>
       </div>
@@ -95,8 +104,9 @@ export default function AccessView({ participants, courses = [], onToggleAccess,
       {/* Cards — móvil */}
       <div className="card-stack">
         {participants.map(p => {
-          const exp  = isExpired(p.fecha)
-          const warn = isWarning(p.fecha) && p.access
+          const days = getAccessDays(p, courses)
+          const exp  = isExpired(p.fecha, days)
+          const warn = isWarning(p.fecha, days) && p.access
           return (
             <div key={p.id} className={`pcard ${exp ? 'row-exp' : warn ? 'row-warn' : ''}`}>
               <div className="pcard-head">
@@ -106,7 +116,7 @@ export default function AccessView({ participants, courses = [], onToggleAccess,
                 </div>
               </div>
               {p.access
-                ? <AccessBar fecha={p.fecha}/>
+                ? <AccessBar fecha={p.fecha} days={days}/>
                 : <span className="text-sm text-muted">Sin acceso</span>}
               <button onClick={() => onToggleAccess(p.id)}
                 className="btn btn-sm"

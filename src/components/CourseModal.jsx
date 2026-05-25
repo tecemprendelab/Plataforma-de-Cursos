@@ -12,7 +12,7 @@ import {
 const EMPTY = {
   name:'', short:'', type:'curso', platform:'TEC Digital',
   start:'', end:'', capacity:'30', price:'', modalidad:'Asincrónico',
-  code:'', description:'', active:true,
+  code:'', description:'', active:true, accessDays:'45',
 }
 
 function genCode(name, type) {
@@ -25,7 +25,7 @@ function genCode(name, type) {
 }
 
 export default function CourseModal({ course, onSave, onClose }) {
-  const [form, setForm]     = useState(course ? { ...course, capacity: String(course.capacity) } : { ...EMPTY })
+  const [form, setForm]     = useState(course ? { ...course, capacity: String(course.capacity), accessDays: String(course.accessDays ?? 45) } : { ...EMPTY })
   const [errors, setErrors] = useState({})
 
   const f = (key, val) => setForm(prev => ({ ...prev, [key]: val }))
@@ -47,6 +47,7 @@ export default function CourseModal({ course, onSave, onClose }) {
       short:    form.short.trim() || form.name.slice(0, 24),
       code:     form.code.trim()  || genCode(form.name, form.type),
       capacity: Number(form.capacity) || 30,
+      accessDays: Number(form.accessDays) || 45,
     })
     onClose()
   }
@@ -128,6 +129,19 @@ export default function CourseModal({ course, onSave, onClose }) {
           <label className="text-sm text-muted" style={{ display:'block', marginBottom:4 }}>Capacidad</label>
           <input className="finput" type="number" min="1" value={form.capacity}
             onChange={e => f('capacity', e.target.value)}/>
+        </div>
+        <div>
+          <label className="text-sm text-muted" style={{ display:'block', marginBottom:4 }}>Días de acceso</label>
+          <input className="finput" type="number" min="1" max="365" value={form.accessDays}
+            onChange={e => f('accessDays', e.target.value)}
+            placeholder="45"/>
+          {form.accessDays && (
+            <div style={{ fontSize:10, color:'var(--gray)', marginTop:2 }}>
+              {Number(form.accessDays) >= 7 && Number(form.accessDays) % 7 === 0
+                ? `${Number(form.accessDays) / 7} semana${Number(form.accessDays)/7!==1?'s':''}`
+                : `${form.accessDays} días`}
+            </div>
+          )}
         </div>
         <div>
           <label className="text-sm text-muted" style={{ display:'block', marginBottom:4 }}>

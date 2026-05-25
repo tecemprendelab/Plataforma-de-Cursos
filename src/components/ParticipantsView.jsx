@@ -3,7 +3,7 @@
 // ============================================================
 
 import { useState }     from 'react'
-import { isExpired, isWarning, daysLeft } from '../utils/time.js'
+import { isExpired, isWarning, daysLeft, getAccessDays } from '../utils/time.js'
 import { TimerBadge, AccessBar, Avatar }  from './UI.jsx'
 import { TagPill }      from './TagPill.jsx'
 import { getTagColor }  from '../data/tags.js'
@@ -23,6 +23,7 @@ export default function ParticipantsView({
 
   const filtered = participants
     .filter(p => {
+      const days = getAccessDays(p, courses)
       const q = search.toLowerCase()
       const matchQ = !q || p.name.toLowerCase().includes(q)
         || p.email.toLowerCase().includes(q) || p.phone.includes(q)
@@ -33,14 +34,14 @@ export default function ParticipantsView({
         || (filterStatus === 'inactivo'  && p.status === 'inactivo')
         || (filterStatus === 'acceso'    && p.access)
         || (filterStatus === 'sinacceso' && !p.access)
-        || (filterStatus === 'expirado'  && isExpired(p.fecha))
-        || (filterStatus === 'warning'   && isWarning(p.fecha))
+        || (filterStatus === 'expirado'  && isExpired(p.fecha, days))
+        || (filterStatus === 'warning'   && isWarning(p.fecha, days))
       return matchQ && matchC && matchT && matchS
     })
     .sort((a, b) => {
       if (sortBy === 'fecha_asc') return a.fecha.localeCompare(b.fecha)
       if (sortBy === 'nombre')    return a.name.localeCompare(b.name)
-      if (sortBy === 'expiry')    return daysLeft(a.fecha) - daysLeft(b.fecha)
+      if (sortBy === 'expiry')    return daysLeft(a.fecha, getAccessDays(a, courses)) - daysLeft(b.fecha, getAccessDays(b, courses))
       return b.fecha.localeCompare(a.fecha)
     })
 
@@ -148,8 +149,9 @@ export default function ParticipantsView({
           </thead>
           <tbody>
             {filtered.length ? filtered.map(p => {
-              const exp   = p.access && isExpired(p.fecha)
-              const warn  = p.access && isWarning(p.fecha)
+              const days = getAccessDays(p, courses)
+              const exp   = p.access && isExpired(p.fecha, days)
+              const warn  = p.access && isWarning(p.fecha, days)
               const ptags = tags.filter(t => (p.tags||[]).includes(t.id))
               return (
                 <tr key={p.id} className={exp ? 'row-exp' : warn ? 'row-warn' : ''}>
@@ -170,14 +172,14 @@ export default function ParticipantsView({
                     {p.courses.map(shortName).join(', ')}
                   </td>
                   <td>
-                    {p.access ? <AccessBar fecha={p.fecha}/> : <span className="text-sm text-muted">Sin acceso</span>}
+                    {p.access ? <AccessBar fecha={p.fecha} days={days}/> : <span className="text-sm text-muted">Sin acceso</span>}
                   </td>
                   <td>
                     {ptags.length
                       ? <div style={{ display:'flex', flexWrap:'wrap' }}>{ptags.map(t => <TagPill key={t.id} tag={t} small/>)}</div>
                       : <span className="text-xs text-muted" style={{ fontStyle:'italic' }}>Sin etiquetas</span>}
                   </td>
-                  <td><TimerBadge fecha={p.fecha} access={p.access}/></td>
+                  <td><TimerBadge fecha={p.fecha} access={p.access} days={days}/></td>
                   <td>
                     <div style={{ display:'flex', gap:4 }}>
                       <button className="btn-icon" onClick={() => openEdit(p)} title="Editar">
@@ -212,8 +214,9 @@ export default function ParticipantsView({
       {/* Cards — móvil */}
       <div className="card-stack">
         {filtered.length ? filtered.map(p => {
-          const exp   = p.access && isExpired(p.fecha)
-          const warn  = p.access && isWarning(p.fecha)
+          const days = getAccessDays(p, courses)
+          const exp   = p.access && isExpired(p.fecha, days)
+          const warn  = p.access && isWarning(p.fecha, days)
           const ptags = tags.filter(t => (p.tags||[]).includes(t.id))
           return (
             <div key={p.id} className={`pcard ${exp ? 'row-exp' : warn ? 'row-warn' : ''}`}>
@@ -223,13 +226,13 @@ export default function ParticipantsView({
                   <div className="pname">{p.name}</div>
                   <div className="pemail">{p.email}</div>
                 </div>
-                <TimerBadge fecha={p.fecha} access={p.access}/>
+                <TimerBadge fecha={p.fecha} access={p.access} days={days}/>
               </div>
 
               {p.access && (
                 <div className="pcard-section">
                   <span className="pcard-label">Tiempo de acceso</span>
-                  <AccessBar fecha={p.fecha}/>
+                  <AccessBar fecha={p.fecha} days={days}/>
                 </div>
               )}
 

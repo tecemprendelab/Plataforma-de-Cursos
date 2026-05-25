@@ -21,7 +21,7 @@
 import jsPDF       from 'jspdf'
 import autoTable   from 'jspdf-autotable'
 import {
-  daysLeft, isExpired, isWarning, todayISO,
+  daysLeft, isExpired, isWarning, todayISO, getAccessDays,
 } from './time.js'
 
 // ---------- Paleta (sincronizada con global.css) ----------
@@ -298,15 +298,15 @@ function drawHorizontalBars(doc, x, y, w, items, totalRef) {
 }
 
 // ---------- Stats ----------
-function calcStats(participants) {
+function calcStats(participants, courses = []) {
   return {
     total:      participants.length,
     activos:    participants.filter(p => p.status === 'activo').length,
     inactivos:  participants.filter(p => p.status === 'inactivo').length,
     conAcceso:  participants.filter(p => p.access).length,
     sinAcceso:  participants.filter(p => !p.access).length,
-    porVencer:  participants.filter(p => p.access && isWarning(p.fecha)).length,
-    expirados:  participants.filter(p => isExpired(p.fecha)).length,
+    porVencer:  participants.filter(p => p.access && isWarning(p.fecha, getAccessDays(p, courses))).length,
+    expirados:  participants.filter(p => isExpired(p.fecha, getAccessDays(p, courses))).length,
     pagosPend:  participants.filter(p => p.payment === 'pendiente').length,
     pagados:    participants.filter(p => p.payment === 'pagado').length,
   }
@@ -314,7 +314,7 @@ function calcStats(participants) {
 
 // ---------- Sección: Resumen ejecutivo ----------
 function renderSummary(doc, pageW, pageH, participants, courses, tags) {
-  const stats = calcStats(participants)
+  const stats = calcStats(participants, courses)
   const totalCursos = courses.length
   const cursosActivos = courses.filter(c => c.active).length
   const totalTags = tags.length
@@ -496,8 +496,8 @@ function renderAlerts(doc, pageW, participants, courses) {
     'Participantes que requieren seguimiento inmediato por parte del equipo.'
   )
 
-  const porVencer = participants.filter(p => p.access && isWarning(p.fecha))
-  const expirados = participants.filter(p => isExpired(p.fecha))
+  const porVencer = participants.filter(p => p.access && isWarning(p.fecha, getAccessDays(p, courses)))
+  const expirados = participants.filter(p => isExpired(p.fecha, getAccessDays(p, courses)))
   const pagosPend = participants.filter(p => p.payment === 'pendiente')
 
   const renderSub = (title, list, daysCol) => {
@@ -522,8 +522,9 @@ function renderAlerts(doc, pageW, participants, courses) {
 
     const body = list.map(p => {
       const cursos = (p.courses || []).map(id => safeText(shortName(id, courses))).join(', ') || '—'
+      const days = getAccessDays(p, courses)
       const lastCol = daysCol
-        ? (isExpired(p.fecha) ? 'Expirado' : `${daysLeft(p.fecha)} d`)
+        ? (isExpired(p.fecha, days) ? 'Expirado' : `${daysLeft(p.fecha, days)} d`)
         : (p.payment === 'pagado' ? 'Pagado' : 'Pendiente')
       return [safeText(p.name), safeText(p.email) || '—', safeText(p.phone) || '—', cursos, lastCol]
     })
@@ -558,9 +559,10 @@ function renderList(doc, pageW, participants, courses) {
 
   const rows = participants.map(p => {
     const cursos = (p.courses || []).map(id => safeText(shortName(id, courses))).join(', ') || '—'
+    const days = getAccessDays(p, courses)
     const dias = !p.access ? 'Sin acceso'
-      : isExpired(p.fecha) ? 'Expirado'
-      : `${daysLeft(p.fecha)} d`
+      : isExpired(p.fecha, days) ? 'Expirado'
+      : `${daysLeft(p.fecha, days)} d`
     return [
       safeText(p.name),
       safeText(p.cedula) || '—',

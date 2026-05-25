@@ -28,25 +28,31 @@ export function Badge({ type = 'gray', children }) {
   )
 }
 
-/** Badge que muestra el estado de acceso según tiempo */
-export function TimerBadge({ fecha, access }) {
-  if (!access)           return <Badge type="gray">Sin acceso</Badge>
-  if (isExpired(fecha))  return <Badge type="red">Expirado</Badge>
-  if (isWarning(fecha))  return <Badge type="orange">{daysLeft(fecha)}d restantes</Badge>
-  return <Badge type="black">{daysLeft(fecha)}d restantes</Badge>
+/**
+ * Badge que muestra el estado de acceso según tiempo.
+ * @param {string}  fecha  - ISO date string
+ * @param {boolean} access - Si el participante tiene acceso activo
+ * @param {number}  [days] - Días de acceso del curso (por defecto ACCESS_DAYS global)
+ */
+export function TimerBadge({ fecha, access, days = ACCESS_DAYS }) {
+  if (!access)                  return <Badge type="gray">Sin acceso</Badge>
+  if (isExpired(fecha, days))   return <Badge type="red">Expirado</Badge>
+  if (isWarning(fecha, days))   return <Badge type="orange">{daysLeft(fecha, days)}d restantes</Badge>
+  return <Badge type="black">{daysLeft(fecha, days)}d restantes</Badge>
 }
 
 // ── AccessBar ─────────────────────────────────────────────
 /**
- * Barra de progreso de 45 días con colores semánticos.
+ * Barra de progreso con colores semánticos.
  * @param {string}  fecha   - ISO date string
  * @param {boolean} compact - Oculta etiquetas de texto
+ * @param {number}  [days]  - Días de acceso del curso (por defecto ACCESS_DAYS global)
  */
-export function AccessBar({ fecha, compact = false }) {
-  const pct   = accessPct(fecha)
-  const left  = daysLeft(fecha)
-  const exp   = isExpired(fecha)
-  const warn  = isWarning(fecha)
+export function AccessBar({ fecha, compact = false, days = ACCESS_DAYS }) {
+  const pct   = accessPct(fecha, days)
+  const left  = daysLeft(fecha, days)
+  const exp   = isExpired(fecha, days)
+  const warn  = isWarning(fecha, days)
 
   const barClass = exp ? 'pbar pbar-exp' : warn ? 'pbar pbar-warn' : 'pbar pbar-green'
   const bgColor  = exp ? '#FBE8E3' : warn ? '#FEF3EB' : 'var(--green-l)'
@@ -58,7 +64,7 @@ export function AccessBar({ fecha, compact = false }) {
       {!compact && (
         <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 3, fontSize: 11 }}>
           <span style={{ color: txtColor, fontWeight: 500 }}>{label}</span>
-          <span style={{ color: 'var(--gray)' }}>{pct}% de {ACCESS_DAYS}d</span>
+          <span style={{ color: 'var(--gray)' }}>{pct}% de {days}d</span>
         </div>
       )}
       <div className="pbar-wrap" style={{ background: bgColor }}>

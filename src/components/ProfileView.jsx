@@ -3,7 +3,7 @@
 //  Perfil individual. Muestra etiquetas y permite editarlas.
 // ============================================================
 
-import { isExpired, isWarning, daysLeft, daysElapsed, fmtDate, expiryDate, examDeadlineDate, needsExamReminder } from '../utils/time.js'
+import { isExpired, isWarning, daysLeft, daysElapsed, fmtDate, expiryDate, examDeadlineDate, needsExamReminder, getAccessDays } from '../utils/time.js'
 
 import { AccessBar, TimerBadge, Badge } from './UI.jsx'
 import { TagPill }          from './TagPill.jsx'
@@ -15,9 +15,10 @@ export default function ProfileView({ id, participants, courses, tags, onToggleA
   const p = participants.find(x => x.id === id)
   if (!p) return <div>Participante no encontrado</div>
 
-  const exp         = isExpired(p.fecha)
-  const warn        = isWarning(p.fecha)
-  const examRemind  = needsExamReminder(p.fecha)
+  const days        = getAccessDays(p, courses)
+  const exp         = isExpired(p.fecha, days)
+  const warn        = isWarning(p.fecha, days)
+  const examRemind  = needsExamReminder(p.fecha, days)
   const ptags       = tags.filter(t => (p.tags||[]).includes(t.id))
 
   const [editingTags, setEditingTags] = useState(false)
@@ -54,7 +55,7 @@ export default function ProfileView({ id, participants, courses, tags, onToggleA
             {ptags.map(t => <TagPill key={t.id} tag={t}/>)}
             <Badge type={p.status === 'activo' ? 'green' : 'gray'}>{p.status}</Badge>
             <Badge type={p.payment === 'pagado' ? 'green' : 'orange'}>{p.payment}</Badge>
-            <TimerBadge fecha={p.fecha} access={p.access}/>
+            <TimerBadge fecha={p.fecha} access={p.access} days={days}/>
           </div>
         </div>
         <div style={{ display:'flex', gap:8, flexShrink:0 }}>
@@ -87,17 +88,17 @@ export default function ProfileView({ id, participants, courses, tags, onToggleA
             style={{ marginBottom:12, fontWeight:600, letterSpacing:.5 }}>
             ACCESO A PLATAFORMA
           </div>
-          <AccessBar fecha={p.fecha}/>
+          <AccessBar fecha={p.fecha} days={days}/>
           <div style={{ marginTop:12, display:'grid', gridTemplateColumns:'1fr 1fr', gap:8, fontSize:12 }}>
             <div><span style={{ color:'var(--gray)' }}>Ingreso:</span> <b>{fmtDate(p.fecha)}</b></div>
             <div>
               <span style={{ color:'var(--gray)' }}>Expiración:</span>{' '}
               <b style={{ color: exp ? 'var(--orange-d)' : warn ? 'var(--orange)' : 'var(--black)' }}>
-                {expiryDate(p.fecha)}
+                {expiryDate(p.fecha, days)}
               </b>
             </div>
             <div><span style={{ color:'var(--gray)' }}>Transcurridos:</span> <b>{daysElapsed(p.fecha)}d</b></div>
-            <div><span style={{ color:'var(--gray)' }}>Restantes:</span> <b>{daysLeft(p.fecha)}d</b></div>
+            <div><span style={{ color:'var(--gray)' }}>Restantes:</span> <b>{daysLeft(p.fecha, days)}d</b></div>
           </div>
         </div>
 
@@ -116,7 +117,10 @@ export default function ProfileView({ id, participants, courses, tags, onToggleA
                 <div className="text-xs text-muted" style={{ marginTop:2 }}>
                   {c.platform} · {fmtDate(c.start)} → {fmtDate(c.end)}
                 </div>
-                <span className="badge badge-gray" style={{ marginTop:4 }}>{c.code}</span>
+                <div style={{ marginTop:4, display:'flex', gap:6, alignItems:'center' }}>
+                  <span className="badge badge-gray">{c.code}</span>
+                  <span className="text-xs text-muted">{c.accessDays ?? 45}d de acceso</span>
+                </div>
               </div>
             )
           }) : <p className="text-sm text-muted">Sin cursos inscritos</p>}
@@ -154,7 +158,7 @@ export default function ProfileView({ id, participants, courses, tags, onToggleA
         <div className="alert alert-orange" style={{ marginBottom:16 }}>
           <div className="alert-title"><i className="ti ti-mail"/> Recordatorio de prueba final</div>
           <p className="text-sm text-muted" style={{ marginBottom:12 }}>
-            Prueba antes del <b>{examDeadlineDate(p.fecha)}</b> · Acceso expira el <b>{expiryDate(p.fecha)}</b>
+            Prueba antes del <b>{examDeadlineDate(p.fecha, days)}</b> · Acceso expira el <b>{expiryDate(p.fecha, days)}</b>
           </p>
           <button className="btn btn-orange btn-sm" onClick={() => openEmailClient(p)}>
             <i className="ti ti-mail-forward"/> Abrir correo recordatorio

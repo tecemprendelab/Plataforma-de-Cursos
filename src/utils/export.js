@@ -4,28 +4,32 @@
 // ============================================================
 
 import * as XLSX from 'xlsx'
-import { daysElapsed, daysLeft, expiryDate } from './time.js'
+import { daysElapsed, daysLeft, expiryDate, getAccessDays } from './time.js'
 
 function shortName(id, courses) {
   return courses.find(c => c.id === id)?.short || id
 }
 
 function buildRows(participants, courses) {
-  return participants.map(p => ({
-    'Nombre':             p.name,
-    'Correo':             p.email,
-    'Teléfono':           p.phone,
-    'Cursos':             p.courses.map(id => shortName(id, courses)).join(', '),
-    'Estado':             p.status,
-    'Pago':               p.payment,
-    'Acceso activo':      p.access ? 'Sí' : 'No',
-    'Fecha de ingreso':   p.fecha,
-    'Días transcurridos': daysElapsed(p.fecha),
-    'Días restantes':     daysLeft(p.fecha),
-    'Fecha expiración':   expiryDate(p.fecha),
-    'Etiquetas':          (p.tags||[]).join(', '),
-    'Notas':              p.notes || '',
-  }))
+  return participants.map(p => {
+    const days = getAccessDays(p, courses)
+    return {
+      'Nombre':             p.name,
+      'Correo':             p.email,
+      'Teléfono':           p.phone,
+      'Cursos':             p.courses.map(id => shortName(id, courses)).join(', '),
+      'Estado':             p.status,
+      'Pago':               p.payment,
+      'Acceso activo':      p.access ? 'Sí' : 'No',
+      'Fecha de ingreso':   p.fecha,
+      'Días de acceso':     days,
+      'Días transcurridos': daysElapsed(p.fecha),
+      'Días restantes':     daysLeft(p.fecha, days),
+      'Fecha expiración':   expiryDate(p.fecha, days),
+      'Etiquetas':          (p.tags||[]).join(', '),
+      'Notas':              p.notes || '',
+    }
+  })
 }
 
 export function exportToExcel(participants, courses, filename='TEC_Emprende_Participantes.xlsx') {

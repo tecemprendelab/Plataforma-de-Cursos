@@ -1,7 +1,7 @@
 // ============================================================
 //  RemindersView.jsx — React JSX
 // ============================================================
-import { needsExamReminder, daysLeft, examDeadlineDate, expiryDate } from '../utils/time.js'
+import { needsExamReminder, daysLeft, examDeadlineDate, expiryDate, getAccessDays } from '../utils/time.js'
 
 import { AccessBar, Badge } from './UI.jsx'
 import { buildReminderEmail, openEmailClient, copyEmailToClipboard } from '../utils/email.js'
@@ -30,9 +30,9 @@ function EmailModal({ participant, onClose }) {
   )
 }
 
-export default function RemindersView({ participants, courses, setView }) {
+export default function RemindersView({ participants, courses = [], setView }) {
   const [previewId, setPreviewId] = useState(null)
-  const pending = participants.filter(p => p.access && needsExamReminder(p.fecha))
+  const pending = participants.filter(p => p.access && needsExamReminder(p.fecha, getAccessDays(p, courses)))
   const previewP = previewId ? participants.find(x => x.id === previewId) : null
 
   return (
@@ -43,6 +43,7 @@ export default function RemindersView({ participants, courses, setView }) {
       {pending.length === 0
         ? <div className="alert alert-green"><i className="ti ti-check"/> No hay recordatorios pendientes por ahora.</div>
         : pending.map(p => {
+          const days = getAccessDays(p, courses)
           const courseNames = p.courses.map(id => courses.find(c => c.id === id)?.short || id).join(', ')
           return (
             <div key={p.id} className="card" style={{padding:20,marginBottom:16}}>
@@ -51,12 +52,12 @@ export default function RemindersView({ participants, courses, setView }) {
                   <div style={{fontWeight:500,fontSize:14}}>{p.name}</div>
                   <div className="text-xs text-muted">{p.email} · {courseNames}</div>
                 </div>
-                <Badge type="orange"><i className="ti ti-clock" style={{fontSize:11,verticalAlign:-1,marginRight:3}}/>{daysLeft(p.fecha)}d para expirar</Badge>
+                <Badge type="orange"><i className="ti ti-clock" style={{fontSize:11,verticalAlign:-1,marginRight:3}}/>{daysLeft(p.fecha, days)}d para expirar</Badge>
               </div>
-              <AccessBar fecha={p.fecha}/>
+              <AccessBar fecha={p.fecha} days={days}/>
               <div style={{display:'flex',gap:8,alignItems:'center',flexWrap:'wrap',marginTop:10,fontSize:12,color:'var(--gray)'}}>
-                <span>Prueba antes del: <b style={{color:'var(--black)'}}>{examDeadlineDate(p.fecha)}</b></span>
-                <span>· Acceso expira: <b style={{color:'var(--orange-d)'}}>{expiryDate(p.fecha)}</b></span>
+                <span>Prueba antes del: <b style={{color:'var(--black)'}}>{examDeadlineDate(p.fecha, days)}</b></span>
+                <span>· Acceso expira: <b style={{color:'var(--orange-d)'}}>{expiryDate(p.fecha, days)}</b></span>
               </div>
               <div style={{marginTop:14,display:'flex',gap:8}}>
                 <button className="btn btn-orange btn-sm" onClick={() => setPreviewId(p.id)}><i className="ti ti-mail-forward"/> Ver correo y enviar</button>

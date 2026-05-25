@@ -170,7 +170,7 @@ function AuthenticatedApp({ user, onSignOut }) {
 
   return (
     <div className="app-shell">
-      <Sidebar view={view} setView={setView} participants={participants}
+      <Sidebar view={view} setView={setView} participants={participants} courses={courses}
         userEmail={user?.email} onSignOut={onSignOut}
         open={sidebarOpen} onClose={closeSidebar}/>
       <div style={{ flex:1, minWidth:0, display:'flex', flexDirection:'column' }}>

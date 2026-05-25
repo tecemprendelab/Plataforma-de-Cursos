@@ -1,12 +1,12 @@
-import { isExpired, isWarning, fmtDate } from '../utils/time.js'
+import { isExpired, isWarning, fmtDate, getAccessDays } from '../utils/time.js'
 import { StatCard, AccessBar, TimerBadge, Avatar } from './UI.jsx'
 
 export default function Dashboard({ participants, courses, setView }) {
   const today    = new Date().toLocaleDateString('es-CR',{weekday:'long',day:'numeric',month:'long',year:'numeric'})
   const activos  = participants.filter(p=>p.status==='activo').length
   const conAcc   = participants.filter(p=>p.access).length
-  const expired  = participants.filter(p=>p.access&&isExpired(p.fecha)).length
-  const warning  = participants.filter(p=>p.access&&isWarning(p.fecha)).length
+  const expired  = participants.filter(p=>p.access&&isExpired(p.fecha, getAccessDays(p, courses))).length
+  const warning  = participants.filter(p=>p.access&&isWarning(p.fecha, getAccessDays(p, courses))).length
   const recent   = [...participants].sort((a,b)=>b.fecha.localeCompare(a.fecha)).slice(0,6)
   const activeCourses = courses.filter(c=>c.active)
 
@@ -33,7 +33,7 @@ export default function Dashboard({ participants, courses, setView }) {
             <div key={c.id} className="card" style={{padding:'14px 16px'}}>
               <div style={{fontWeight:500,marginBottom:3}}>{c.short}</div>
               <div className="text-xs text-muted" style={{marginBottom:6}}>{fmtDate(c.start)} → {fmtDate(c.end)} · {c.modalidad}</div>
-              <div className="text-xs text-muted" style={{marginBottom:5}}>{enr}/{c.capacity} inscritos</div>
+              <div className="text-xs text-muted" style={{marginBottom:5}}>{enr}/{c.capacity} inscritos · {c.accessDays ?? 45}d de acceso</div>
               <div className="pbar-wrap"><div className="pbar pbar-green" style={{width:`${pct}%`}}/></div>
             </div>
           )
@@ -42,19 +42,22 @@ export default function Dashboard({ participants, courses, setView }) {
       </div>
       <h3 className="h3" style={{marginBottom:12}}>Actividad reciente</h3>
       <div className="card">
-        {recent.map((p,i)=>(
-          <div key={p.id} onClick={()=>setView(`profile_${p.id}`)}
-            className="recent-row"
-            style={{display:'flex',alignItems:'center',padding:'10px 16px',borderTop:i>0?'1px solid var(--cream-2)':'none',gap:12,cursor:'pointer',flexWrap:'wrap'}}>
-            <Avatar name={p.name} variant={isExpired(p.fecha)?'red':isWarning(p.fecha)?'warn':'cream'}/>
-            <div style={{flex:1,minWidth:0}}>
-              <div style={{fontWeight:500,fontSize:13}}>{p.name}</div>
-              <div className="text-xs text-muted" style={{overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap'}}>{p.email}</div>
+        {recent.map((p,i)=>{
+          const days = getAccessDays(p, courses)
+          return (
+            <div key={p.id} onClick={()=>setView(`profile_${p.id}`)}
+              className="recent-row"
+              style={{display:'flex',alignItems:'center',padding:'10px 16px',borderTop:i>0?'1px solid var(--cream-2)':'none',gap:12,cursor:'pointer',flexWrap:'wrap'}}>
+              <Avatar name={p.name} variant={isExpired(p.fecha,days)?'red':isWarning(p.fecha,days)?'warn':'cream'}/>
+              <div style={{flex:1,minWidth:0}}>
+                <div style={{fontWeight:500,fontSize:13}}>{p.name}</div>
+                <div className="text-xs text-muted" style={{overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap'}}>{p.email}</div>
+              </div>
+              <div style={{flex:'0 1 160px',minWidth:120}}><AccessBar fecha={p.fecha} compact days={days}/></div>
+              <TimerBadge fecha={p.fecha} access={p.access} days={days}/>
             </div>
-            <div style={{flex:'0 1 160px',minWidth:120}}><AccessBar fecha={p.fecha} compact/></div>
-            <TimerBadge fecha={p.fecha} access={p.access}/>
-          </div>
-        ))}
+          )
+        })}
       </div>
     </div>
   )

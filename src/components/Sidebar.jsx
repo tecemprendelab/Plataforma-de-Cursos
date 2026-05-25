@@ -2,7 +2,7 @@
 //  Sidebar.jsx — React JSX
 // ============================================================
 
-import { isExpired, needsExamReminder } from '../utils/time.js'
+import { isExpired, needsExamReminder, getAccessDays } from '../utils/time.js'
 
 const NAV = [
   { section:'Principal' },
@@ -23,9 +23,9 @@ const NAV = [
   { id:'gallery',      icon:'ti-photo',             label:'Galería SVG'         },
 ]
 
-export default function Sidebar({ view, setView, participants, userEmail, onSignOut, open, onClose }) {
-  const expCount    = participants.filter(p => isExpired(p.fecha)).length
-  const remindCount = participants.filter(p => p.access && needsExamReminder(p.fecha)).length
+export default function Sidebar({ view, setView, participants, courses = [], userEmail, onSignOut, open, onClose }) {
+  const expCount    = participants.filter(p => isExpired(p.fecha, getAccessDays(p, courses))).length
+  const remindCount = participants.filter(p => p.access && needsExamReminder(p.fecha, getAccessDays(p, courses))).length
   const activeBase  = view.startsWith('profile_') ? 'participants' : view
 
   const handleNav = (id) => {
