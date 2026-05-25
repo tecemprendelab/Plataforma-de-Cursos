@@ -78,8 +78,8 @@ input, select, button, textarea { font-family: var(--font-body) }
 ::-webkit-scrollbar-thumb:hover { background:var(--border) }
 
 /* ── Layout ──────────────────────────────────────────────── */
-.app-shell    { display:flex; min-height:100vh; position:relative }
-.main-content { flex:1; padding:28px 32px; overflow-y:auto; min-width:0 }
+.app-shell    { display:flex; min-height:100vh; position:relative; overflow-x:hidden }
+.main-content { flex:1; padding:28px 32px; overflow-y:auto; overflow-x:hidden; min-width:0; max-width:100% }
 
 /* ── Mobile top bar (oculta en desktop) ──────────────────── */
 .mobile-topbar { display:none }
@@ -166,8 +166,9 @@ input, select, button, textarea { font-family: var(--font-body) }
 .badge-green  { background:#D1FAE5;         color:#065F46 }
 
 /* ── Tabla ───────────────────────────────────────────────── */
-.table-wrap { width:100%; overflow-x:auto }
+.table-wrap { width:100%; overflow-x:auto; -webkit-overflow-scrolling:touch }
 .ttable { width:100%; border-collapse:collapse; table-layout:fixed }
+.ttable-responsive { overflow-x:auto; -webkit-overflow-scrolling:touch }
 .ttable th {
   background:var(--cream-2); padding:10px 14px;
   text-align:left; font-size:11px; font-weight:600;
@@ -394,14 +395,37 @@ input, select, button, textarea { font-family: var(--font-body) }
 }
 
 /* ============================================================
-   RESPONSIVE — breakpoints
-   ≥1024  desktop (default reglas arriba)
-   <1024  tablet  — sidebar pasa a drawer, header móvil aparece
-   <768   móvil   — tabla → cards, filtros stack, grids 1 col
-   <600   small   — modales fullscreen, padding compacto
+   RESPONSIVE
+   ≥1280  desktop wide  — layout completo
+   1024–1279  desktop   — sidebar fijo, contenido normal
+   768–1023   tablet    — sidebar drawer, tabla visible
+   480–767    móvil     — cards, filtros stack, 1 col
+   <480       small     — modales full, padding mínimo
    ============================================================ */
 
-/* ── ≤1023px (tablet + móvil): sidebar drawer ────────────── */
+/* ── Base: asegurar que nada se desborde horizontalmente ──── */
+html { overflow-x:hidden }
+body { overflow-x:hidden }
+
+.main-content {
+  flex:1; padding:28px 32px;
+  overflow-y:auto; overflow-x:hidden;
+  min-width:0; max-width:100%;
+}
+
+/* Tabla siempre con scroll horizontal si no cabe */
+.ttable-responsive {
+  overflow-x:auto;
+  -webkit-overflow-scrolling:touch;
+}
+.ttable { min-width:600px }
+
+/* ── ≤1279px: padding lateral más compacto ────────────────── */
+@media (max-width: 1279px) {
+  .main-content { padding:24px 24px }
+}
+
+/* ── ≤1023px (tablet + móvil): sidebar pasa a drawer ──────── */
 @media (max-width: 1023px) {
   .sidebar {
     position:fixed !important;
@@ -436,7 +460,7 @@ input, select, button, textarea { font-family: var(--font-body) }
     padding:8px 10px; cursor:pointer;
     color:var(--black); font-size:18px;
     display:inline-flex; align-items:center; justify-content:center;
-    min-width:40px; min-height:40px;
+    min-width:40px; min-height:40px; flex-shrink:0;
   }
   .mobile-topbar .hamburger:hover { background:var(--cream-2) }
   .mobile-topbar .mt-title {
@@ -446,16 +470,16 @@ input, select, button, textarea { font-family: var(--font-body) }
     overflow:hidden; text-overflow:ellipsis; white-space:nowrap;
   }
   .mobile-topbar .mt-brand {
-    display:flex; align-items:center; gap:8px;
+    display:flex; align-items:center; gap:8px; min-width:0;
   }
   .mobile-topbar .mt-logo {
     width:28px; height:28px; background:var(--orange);
     border-radius:6px; display:flex; align-items:center; justify-content:center;
-    color:#fff; font-family:var(--font-display); font-size:13px;
+    color:#fff; font-family:var(--font-display); font-size:13px; flex-shrink:0;
   }
 
-  .main-content { padding:20px 20px }
-  .page-header { margin-bottom:16px }
+  .main-content { padding:20px 18px }
+  .page-header  { margin-bottom:16px }
 }
 
 @keyframes fadeIn {
@@ -463,28 +487,29 @@ input, select, button, textarea { font-family: var(--font-body) }
   to   { opacity:1 }
 }
 
-/* ── ≤1023px: tabla → cards (tablet también, por espacio) ── */
+/* ── ≤1023px: tabla oculta → cards ───────────────────────── */
 @media (max-width: 1023px) {
   .ttable-responsive { display:none }
-  .card-stack { display:flex }
+  .card-stack        { display:flex }
 }
 
-/* ── ≤767px (móvil): filtros stack, tipografía compacta ──── */
+/* ── ≤767px (móvil): layout de una columna ───────────────── */
 @media (max-width: 767px) {
-  .main-content { padding:16px 14px }
+  .main-content { padding:14px 12px }
 
-  /* Headers de página: pasa a columna */
+  /* Page header en columna */
   .page-header {
     flex-direction:column;
     align-items:stretch;
-    gap:12px;
+    gap:10px;
   }
   .page-header .btn { width:100%; justify-content:center }
 
-  /* Filtros: cada control 100% de ancho */
+  /* Filtros en columna */
   .filters-row {
     flex-direction:column !important;
     align-items:stretch !important;
+    gap:8px !important;
   }
   .filters-row > * {
     width:100% !important;
@@ -492,103 +517,108 @@ input, select, button, textarea { font-family: var(--font-body) }
     flex:none !important;
   }
 
-  /* Stats: 2 columnas en móvil */
+  /* Stats: 2 columnas */
   .stats-grid {
     grid-template-columns:repeat(2, 1fr);
-    gap:10px;
+    gap:8px;
+    margin-bottom:16px;
   }
-  .stat-card { padding:14px }
+  .stat-card { padding:12px 14px }
   .stat-num  { font-size:22px }
 
-  /* Tabla: ocultar; mostrar card-stack */
+  /* Tabla → cards (refuerzo) */
   .ttable-responsive { display:none }
-  .card-stack { display:flex }
+  .card-stack        { display:flex }
 
-  /* Inputs: tamaño táctil */
-  .finput { padding:10px 12px; font-size:14px; min-height:42px }
-  .btn    { padding:10px 16px; font-size:14px; min-height:42px }
-  .btn-sm { padding:8px 14px; font-size:13px; min-height:38px }
-  .btn-icon { padding:8px 10px; font-size:13px; min-height:36px }
+  /* Inputs y botones táctiles */
+  .finput  { padding:10px 12px; font-size:14px; min-height:44px }
+  .btn     { padding:10px 16px; font-size:14px; min-height:44px }
+  .btn-sm  { padding:8px 14px;  font-size:13px; min-height:38px }
+  .btn-icon{ padding:8px 10px;  font-size:13px; min-height:36px }
 
-  /* Cards: padding más compacto */
-  .card-padded { padding:16px }
+  /* Card padding */
+  .card-padded { padding:14px }
 
-  /* Profile header: columna */
+  /* Profile header en columna */
   .profile-header {
     flex-direction:column;
     align-items:flex-start;
-    padding:18px;
-    gap:14px;
+    padding:16px;
+    gap:12px;
   }
   .profile-header > div:last-child {
-    width:100%;
-    flex-wrap:wrap;
+    width:100%; flex-wrap:wrap;
   }
 
-  /* Grids genéricos a 1 columna */
-  .grid-2col {
-    grid-template-columns:1fr !important;
-  }
+  /* Grids a 1 columna */
+  .grid-2col { grid-template-columns:1fr !important }
 
-  /* Alertas: padding */
+  /* Alertas */
   .alert { padding:12px 14px }
 
-  /* Tipografía */
+  /* Tipografía compacta */
   .h1 { font-size:20px }
   .h2 { font-size:17px }
   .h3 { font-size:15px }
 
-  /* Course-card header acomoda */
+  /* Course-card header */
   .course-card-head {
     flex-direction:column !important;
     align-items:flex-start !important;
-    gap:12px !important;
+    gap:10px !important;
   }
   .course-card-head > div:last-child {
     flex-direction:row !important;
-    align-items:center !important;
-    margin-left:0 !important;
     width:100%;
     justify-content:space-between;
     flex-wrap:wrap;
+    margin-left:0 !important;
   }
+
+  /* Acciones de participante en grid 2x2 */
+  .pcard-actions { display:grid; grid-template-columns:1fr 1fr; gap:6px }
+  .pcard-actions .btn-icon { flex:none; justify-content:center; min-height:38px }
+
+  /* Modal grids */
+  .modal-grid-2,
+  .modal-grid-3,
+  .modal-grid-4 { grid-template-columns:1fr !important }
+
+  /* Tabla de acceso: ocultar columnas menos importantes */
+  .access-table-hide { display:none }
 }
 
-/* ── ≤599px (small): modales fullscreen ──────────────────── */
+/* ── ≤599px: modales full-screen desde abajo ──────────────── */
 @media (max-width: 599px) {
-  .overlay {
-    align-items:flex-end;
-  }
+  .overlay { align-items:flex-end }
   .modal-box {
     width:100% !important;
     max-width:100% !important;
-    max-height:96vh;
+    max-height:94vh;
     border-radius:var(--radius-xl) var(--radius-xl) 0 0;
-    padding:20px 18px;
+    padding:20px 16px 28px;
+    overflow-y:auto;
   }
 
-  /* Modal grids a 1 columna */
-  .modal-grid-2,
-  .modal-grid-3,
-  .modal-grid-4 {
-    grid-template-columns:1fr !important;
-  }
+  /* Toast full width */
+  .toast { left:12px; right:12px; bottom:12px; text-align:center }
 
-  /* Stats compactos */
-  .stat-num { font-size:20px }
-
-  /* Toast: full width */
-  .toast { left:16px; right:16px; bottom:16px; text-align:center }
-}
-
-/* Modal grid-4 a 2 cols en pantallas medianas */
-@media (min-width: 600px) and (max-width: 900px) {
-  .modal-grid-4 {
-    grid-template-columns:1fr 1fr !important;
-  }
-}
-
-/* ── ≤420px (extra-small): stats 1 col ───────────────────── */
-@media (max-width: 420px) {
+  /* Stats 1 columna */
   .stats-grid { grid-template-columns:1fr }
+
+  /* Padding mínimo */
+  .main-content { padding:12px 10px }
+  .card-padded  { padding:12px }
+  .alert        { padding:10px 12px }
 }
+
+/* ── 600–900px: modal-grid-4 en 2 cols ───────────────────── */
+@media (min-width: 600px) and (max-width: 900px) {
+  .modal-grid-4 { grid-template-columns:1fr 1fr !important }
+}
+
+/* ── Prevenir overflow en cualquier resolución ────────────── */
+.card, .alert, .pcard, .stat-card {
+  min-width:0; max-width:100%;
+}
+img, svg, video { max-width:100%; height:auto }

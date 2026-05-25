@@ -53,7 +53,7 @@ export default function Dashboard({ participants, courses, setView }) {
                 <div style={{fontWeight:500,fontSize:13}}>{p.name}</div>
                 <div className="text-xs text-muted" style={{overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap'}}>{p.email}</div>
               </div>
-              <div style={{flex:'0 1 160px',minWidth:120}}><AccessBar fecha={p.fecha} compact days={days}/></div>
+              <div style={{flex:'0 1 160px',minWidth:0,width:'min(160px,35vw)'}}><AccessBar fecha={p.fecha} compact days={days}/></div>
               <TimerBadge fecha={p.fecha} access={p.access} days={days}/>
             </div>
           )

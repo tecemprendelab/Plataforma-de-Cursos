@@ -89,7 +89,7 @@ export default function ProfileView({ id, participants, courses, tags, onToggleA
             ACCESO A PLATAFORMA
           </div>
           <AccessBar fecha={p.fecha} days={days}/>
-          <div style={{ marginTop:12, display:'grid', gridTemplateColumns:'1fr 1fr', gap:8, fontSize:12 }}>
+          <div className="grid-2col" style={{ marginTop:12, display:'grid', gridTemplateColumns:'1fr 1fr', gap:8, fontSize:12 }}>
             <div><span style={{ color:'var(--gray)' }}>Ingreso:</span> <b>{fmtDate(p.fecha)}</b></div>
             <div>
               <span style={{ color:'var(--gray)' }}>Expiración:</span>{' '}
