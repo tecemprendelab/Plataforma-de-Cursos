@@ -208,13 +208,13 @@ def generate():
 
     if request.is_json:
         data = request.get_json()
-        fmt = data.get("format", "pdf").lower()
+        fmt = data.get("format", data.get("output_format", "pdf")).lower()
         fields = data.get("fields", {})
         tname = data.get("template_name")
         if tname:
             svg_text = _load_template(tname)
     else:
-        fmt = request.form.get("format", "pdf").lower()
+        fmt = (request.form.get("format") or request.form.get("output_format", "pdf")).lower()
         try:
             fields = json.loads(request.form.get("fields", "{}"))
         except (json.JSONDecodeError, ValueError):
@@ -225,6 +225,17 @@ def generate():
             tname = request.form.get("template_name")
             if tname:
                 svg_text = _load_template(tname)
+
+        # Frontend sends individual fields + name_field_id/date_field_id
+        if not fields:
+            name_id  = request.form.get("name_field_id", "recipient_name")
+            date_id  = request.form.get("date_field_id", "issue_date")
+            name_val = request.form.get("recipient_name", "")
+            date_val = request.form.get("issue_date", "")
+            if name_val:
+                fields[name_id] = name_val
+            if date_val:
+                fields[date_id] = date_val
 
     if not svg_text:
         return jsonify({"error": "no SVG provided"}), 400
@@ -256,9 +267,16 @@ def generate_batch():
       format: pdf | png
     Returns: ZIP archive of certificates.
     """
-    fmt = request.form.get("format", "pdf").lower()
-    csv_data = request.form.get("csv_data", "")
+    fmt      = (request.form.get("format") or request.form.get("output_format", "pdf")).lower()
+    name_id  = request.form.get("name_field_id", "recipient_name")
+    date_id  = request.form.get("date_field_id", "issue_date")
     svg_text = None
+
+    # Accept csv as file or raw text
+    if "csv_file" in request.files:
+        csv_data = request.files["csv_file"].read().decode("utf-8", errors="replace")
+    else:
+        csv_data = request.form.get("csv_data", "")
 
     if "file" in request.files:
         svg_text = request.files["file"].read().decode("utf-8", errors="replace")
@@ -280,14 +298,22 @@ def generate_batch():
     zip_buf = io.BytesIO()
     with zipfile.ZipFile(zip_buf, "w", zipfile.ZIP_DEFLATED) as zf:
         for i, row in enumerate(rows):
-            fields = {k.strip(): v.strip() for k, v in row.items()}
+            raw = {k.strip(): v.strip() for k, v in row.items()}
+            # Map CSV columns to SVG element IDs using name_id / date_id
+            fields = dict(raw)
+            for csv_key in ("nombre", "name", "participante", "recipient_name"):
+                if csv_key in raw:
+                    fields[name_id] = raw[csv_key]
+                    break
+            for csv_key in ("fecha", "date", "issue_date"):
+                if csv_key in raw:
+                    fields[date_id] = raw[csv_key]
+                    break
             filled = _fill_svg(svg_text, fields)
 
             name_hint = (
-                fields.get("recipient_name")
-                or fields.get("nombre")
-                or fields.get("name")
-                or str(i + 1)
+                raw.get("recipient_name") or raw.get("nombre")
+                or raw.get("name") or str(i + 1)
             )
             safe_hint = re.sub(r"[^\w\- ]", "", name_hint).strip()[:60] or str(i + 1)
 
