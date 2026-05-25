@@ -66,17 +66,27 @@ def _fill_svg(svg_text: str, fields: dict) -> str:
         return el.tag.split("}")[-1] if "}" in el.tag else el.tag
 
     def _set_text_el(el, value):
-        for child in list(el):
-            el.remove(child)
-        el.text = value
+        # Figma uses <text><tspan x y>...</tspan></text>
+        # Preserve the first tspan (keeps positioning) and update its text
+        tspans = [c for c in list(el) if _tag(c) == "tspan"]
+        if tspans:
+            tspans[0].text = value
+            # Remove extra tspans (multi-line originals)
+            for t in tspans[1:]:
+                el.remove(t)
+        else:
+            for child in list(el):
+                el.remove(child)
+            el.text = value
 
     def _apply(el, value):
         tag = _tag(el)
         if tag == "text":
             _set_text_el(el, value)
+        elif tag == "tspan":
+            el.text = value
         else:
             # Figma wraps text in <g id="..."><text>...</text></g>
-            # Find the first <text> descendant and update it
             text_el = next(
                 (c for c in el.iter() if _tag(c) == "text" and c is not el),
                 None
@@ -129,6 +139,15 @@ def _svg_to_output(svg_text: str, fmt: str) -> bytes:
 
 
 # ── routes ───────────────────────────────────────────────────────────────────
+
+@app.post("/api/debug")
+def debug():
+    """Echo back received form fields and file names for troubleshooting."""
+    return jsonify({
+        "form_fields": dict(request.form),
+        "files": list(request.files.keys()),
+    })
+
 
 @app.get("/api/health")
 def health():
