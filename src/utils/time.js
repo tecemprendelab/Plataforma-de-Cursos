@@ -8,15 +8,20 @@
 export { ACCESS_DAYS, WARN_DAYS, EXAM_WARN } from '../data/constants.js'
 import { ACCESS_DAYS, WARN_DAYS, EXAM_WARN } from '../data/constants.js'
 
-const TODAY = new Date()
-TODAY.setHours(0, 0, 0, 0)
+    const _now = new Date()
+  const TODAY = new Date(_now.getFullYear(), _now.getMonth(), _now.getDate())
+
+  function parseLocal(fechaStr) {
+    const [y, m, d] = fechaStr.split('-').map(Number)
+    return new Date(y, m - 1, d)
+  }
 
 /**
  * Días transcurridos desde una fecha de ingreso.
  * @param {string} fechaStr - Formato ISO 'YYYY-MM-DD'
  */
 export function daysElapsed(fechaStr) {
-  return Math.floor((TODAY - new Date(fechaStr)) / 86_400_000)
+  return Math.floor((TODAY - parseLocal(fechaStr)) / 86_400_000)
 }
 
 /** Días restantes de acceso (mín. 0) */
@@ -70,5 +75,11 @@ export function examDeadlineDate(fechaStr) {
 
 /** Fecha de hoy en formato ISO */
 export function todayISO() {
-  return new Date().toISOString().split('T')[0]
-}
+    const d = new Date()
+    return [
+      d.getFullYear(),
+      String(d.getMonth() + 1).padStart(2, '0'),
+      String(d.getDate()).padStart(2, '0'),
+    ].join('-')
+  } 
+
