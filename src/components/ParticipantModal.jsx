@@ -7,12 +7,20 @@ import { useState }       from 'react'
 import { Modal }          from './UI.jsx'
 import { AccessBar }      from './UI.jsx'
 import { TagSelector }    from './TagSelector.jsx'
-import { todayISO }       from '../utils/time.js'
+import { todayISO, ACCESS_DAYS } from '../utils/time.js'
 
 const EMPTY_FORM = {
   name:'', email:'', phone:'',
   status:'activo', payment:'pagado', access:true,
   fecha:todayISO(), courses:[], tags:[], notes:'',
+}
+
+/** Resuelve los días de acceso según los cursos seleccionados en el form */
+function resolveAccessDays(selectedCourseIds, courses) {
+  if (!selectedCourseIds?.length || !courses?.length) return ACCESS_DAYS
+  const enrolled = courses.filter(c => selectedCourseIds.includes(c.id))
+  if (!enrolled.length) return ACCESS_DAYS
+  return Math.max(...enrolled.map(c => Number(c.accessDays) || ACCESS_DAYS))
 }
 
 export default function ParticipantModal({ participant, courses, tags, onSave, onClose }) {
@@ -48,6 +56,9 @@ export default function ParticipantModal({ participant, courses, tags, onSave, o
 
   // Solo mostrar cursos activos
   const activeCourses = courses.filter(c => c.active)
+
+  // Días de acceso según los cursos actualmente seleccionados en el form
+  const accessDays = resolveAccessDays(form.courses, courses)
 
   return (
     <Modal onClose={onClose} width={560}>
@@ -100,18 +111,7 @@ export default function ParticipantModal({ participant, courses, tags, onSave, o
         </div>
       </div>
 
-      {/* Fecha + barra en vivo */}
-      <div style={{ marginBottom:14 }}>
-        <label className="text-sm text-muted" style={{ display:'block', marginBottom:4 }}>
-          Fecha de ingreso
-          <span style={{ marginLeft:8, color:'var(--orange)', fontSize:11 }}>(contador de 45 días)</span>
-        </label>
-        <input className="finput" type="date" value={form.fecha}
-          onChange={e => f('fecha', e.target.value)} style={{ maxWidth:200 }}/>
-        {form.fecha && <div style={{ marginTop:10 }}><AccessBar fecha={form.fecha}/></div>}
-      </div>
-
-      {/* Cursos dinámicos */}
+      {/* Cursos dinámicos — van ANTES de la fecha para que accessDays esté actualizado */}
       <div style={{ marginBottom:14 }}>
         <label className="text-sm text-muted" style={{ display:'block', marginBottom:8 }}>
           Cursos / talleres inscritos
@@ -125,10 +125,27 @@ export default function ParticipantModal({ participant, courses, tags, onSave, o
                 onClick={() => toggleCourse(c.id)}
                 className={`pill${form.courses.includes(c.id) ? ' sel' : ''}`}>
                 {c.short}
+                {c.accessDays && c.accessDays !== 45
+                  ? <span style={{ fontSize:10, opacity:.7, marginLeft:4 }}>({c.accessDays}d)</span>
+                  : null}
               </span>
             ))}
           </div>
         )}
+      </div>
+
+      {/* Fecha + barra en vivo */}
+      <div style={{ marginBottom:14 }}>
+        <label className="text-sm text-muted" style={{ display:'block', marginBottom:4 }}>
+          Fecha de ingreso
+          <span style={{ marginLeft:8, color:'var(--orange)', fontSize:11 }}>
+            (acceso por {accessDays} días
+            {accessDays % 7 === 0 ? ` · ${accessDays/7} semana${accessDays/7!==1?'s':''}` : ''})
+          </span>
+        </label>
+        <input className="finput" type="date" value={form.fecha}
+          onChange={e => f('fecha', e.target.value)} style={{ maxWidth:200 }}/>
+        {form.fecha && <div style={{ marginTop:10 }}><AccessBar fecha={form.fecha} days={accessDays}/></div>}
       </div>
 
       {/* Etiquetas */}
