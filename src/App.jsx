@@ -173,7 +173,7 @@ function AuthenticatedApp({ user, onSignOut }) {
       <Sidebar view={view} setView={setView} participants={participants} courses={courses}
         userEmail={user?.email} onSignOut={onSignOut}
         open={sidebarOpen} onClose={closeSidebar}/>
-      <div style={{ flex:1, minWidth:0, display:'flex', flexDirection:'column' }}>
+      <div className="main-wrapper" style={{ flex:1, minWidth:0, display:'flex', flexDirection:'column' }}>
         <div className="mobile-topbar">
           <button className="hamburger" onClick={() => setSidebarOpen(true)} aria-label="Abrir menú">
             <i className="ti ti-menu-2"/>
