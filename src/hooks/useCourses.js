@@ -30,6 +30,7 @@ function fromDb(row) {
     code:        row.code ?? '',
     description: row.description ?? '',
     active:      row.active,
+    accessDays:  row.access_days != null ? Number(row.access_days) : 45,
   }
 }
 
@@ -47,13 +48,20 @@ function toDb(form) {
     code:        form.code || null,
     description: form.description ?? null,
     active:      form.active ?? true,
+    access_days: form.accessDays != null ? Number(form.accessDays) : 45,
   }
 }
 
 function loadLocal() {
   try {
     const raw = localStorage.getItem(COURSES_STORAGE_KEY)
-    return raw ? JSON.parse(raw) : structuredClone(DEFAULT_COURSES)
+    if (!raw) return structuredClone(DEFAULT_COURSES)
+    const parsed = JSON.parse(raw)
+    // Migración: asegurar que todos los cursos tengan accessDays
+    return parsed.map(c => ({
+      ...c,
+      accessDays: c.accessDays != null ? Number(c.accessDays) : 45,
+    }))
   } catch {
     return structuredClone(DEFAULT_COURSES)
   }
@@ -92,6 +100,7 @@ export function useCourses() {
         code:        form.code        || '',
         description: form.description || '',
         active:      true,
+        accessDays:  Number(form.accessDays) || 45,
       }
       setCourses(prev => [...prev, newCourse])
       return newCourse
@@ -107,7 +116,7 @@ export function useCourses() {
   const updateCourse = useCallback(async (id, form) => {
     if (!isSupabaseConfigured) {
       setCourses(prev => prev.map(c =>
-        c.id === id ? { ...c, ...form, capacity: Number(form.capacity) || c.capacity } : c
+        c.id === id ? { ...c, ...form, capacity: Number(form.capacity) || c.capacity, accessDays: Number(form.accessDays) || c.accessDays || 45 } : c
       ))
       return
     }

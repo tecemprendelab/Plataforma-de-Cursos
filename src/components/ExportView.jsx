@@ -1,12 +1,8 @@
 // ============================================================
 //  ExportView.jsx — React JSX
-//  Tres cards de exportación:
-//    1. Excel (.xlsx)
-//    2. CSV
-//    3. Reporte PDF (con checkboxes para elegir secciones)
 // ============================================================
 import { useState } from 'react'
-import { daysLeft } from '../utils/time.js'
+import { daysLeft, getAccessDays } from '../utils/time.js'
 import { exportToExcel, exportToCSV } from '../utils/export.js'
 import { exportReportToPDF }           from '../utils/pdf.js'
 
@@ -103,7 +99,7 @@ export default function ExportView({ participants, courses, tags = [] }) {
                 <td className="text-sm text-muted">{p.email}</td>
                 <td className="text-xs text-muted">{p.courses.map(shortName).join(', ')}</td>
                 <td><span className={`badge badge-${p.access ? 'black' : 'gray'}`}>{p.access ? 'Sí' : 'No'}</span></td>
-                <td style={{ fontSize: 13 }}>{p.access ? daysLeft(p.fecha) + 'd' : '—'}</td>
+                <td style={{ fontSize: 13 }}>{p.access ? daysLeft(p.fecha, getAccessDays(p, courses)) + 'd' : '—'}</td>
               </tr>
             ))}
             {participants.length > 8 && (
