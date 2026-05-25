@@ -26,12 +26,13 @@ export function daysElapsed(fechaStr) {
 
 /** Días restantes de acceso (mín. 0) */
 export function daysLeft(fechaStr) {
-  return Math.max(0, ACCESS_DAYS - daysElapsed(fechaStr))
+    return Math.max(0, ACCESS_DAYS - Math.max(0, daysElapsed(fechaStr)))
 }
 
 /** Porcentaje consumido del período de acceso (0-100) */
 export function accessPct(fechaStr) {
-  return Math.min(100, Math.round(daysElapsed(fechaStr) / ACCESS_DAYS * 100))
+  return Math.min(100, Math.round(Math.max(0, daysElapsed(fechaStr)) / ACCESS_DAYS *
+  100))
 }
 
 /** true si el período de 45 días ya expiró */
