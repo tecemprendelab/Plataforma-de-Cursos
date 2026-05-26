@@ -88,10 +88,6 @@ function SvgPreviewCard({ tpl, loading, selected, onSelect, onPreview, onDelete 
             {(tpl.colors||[]).slice(0,4).map((c,i) => <ColorDot key={i} color={c} />)}
           </div>
         </div>
-        <div className="flex flex-wrap gap-1.5 mb-3">
-          <span className="text-xs bg-stone-100 text-stone-500 px-2 py-0.5 rounded-full font-mono">id:{tpl.name_id}</span>
-          <span className="text-xs bg-stone-100 text-stone-500 px-2 py-0.5 rounded-full font-mono">id:{tpl.date_id}</span>
-        </div>
         <div className="flex flex-wrap gap-1">
           {(tpl.tags||[]).map(tag => (
             <span key={tag} className="text-xs bg-orange-50 text-orange-700 px-2 py-0.5 rounded-full border border-orange-100">{tag}</span>

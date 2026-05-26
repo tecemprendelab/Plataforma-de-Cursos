@@ -107,14 +107,15 @@ export function useTemplates() {
   const loadSvgContent = useCallback(async (tpl) => {
     if (tpl.svgContent) return tpl.svgContent
 
-    // Built-in: cargar desde el backend Flask
+    // Built-in: archivos estáticos en /templates/ (sin dependencia del backend)
     if (tpl.is_builtin) {
       try {
-        const form = new FormData()
-        form.append('template_name', tpl.file_name)
-        const r = await fetch(`${CERT_API}/api/preview`, { method: 'POST', body: form })
+        const r = await fetch(`/templates/${tpl.file_name}`)
         if (r.ok) return await r.text()
-      } catch (_) {}
+        console.warn(`[useTemplates] built-in preview fetch ${r.status} for ${tpl.file_name}`)
+      } catch (e) {
+        console.warn(`[useTemplates] built-in preview error for ${tpl.file_name}:`, e)
+      }
       return null
     }
 
@@ -124,7 +125,10 @@ export function useTemplates() {
         const { data } = supabase.storage.from(BUCKET).getPublicUrl(tpl.storage_path)
         const r = await fetch(data.publicUrl)
         if (r.ok) return await r.text()
-      } catch (_) {}
+        console.warn(`[useTemplates] custom preview fetch ${r.status} for ${tpl.storage_path}`)
+      } catch (e) {
+        console.warn(`[useTemplates] custom preview error for ${tpl.storage_path}:`, e)
+      }
     }
     return null
   }, [])
