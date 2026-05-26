@@ -4,7 +4,7 @@
 
 import { isExpired, needsExamReminder, getAccessDays } from '../utils/time.js'
 
-const NAV = [
+export const NAV = [
   { section:'Principal' },
   { id:'dashboard',    icon:'ti-layout-dashboard', label:'Dashboard'          },
   { id:'participants', icon:'ti-users',            label:'Participantes'       },

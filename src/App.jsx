@@ -25,6 +25,8 @@ import CertificatesView     from './components/CertificatesView.jsx'
 import GalleryView          from './components/GalleryView.jsx'
 import LoginView            from './components/LoginView.jsx'
 import { Toast }            from './components/UI.jsx'
+import CommandPalette       from './components/CommandPalette.jsx'
+import { useGlobalShortcut } from './hooks/useGlobalShortcut.js'
 
 export default function App() {
   const { user, loading, signIn, signOut, isSupabaseConfigured } = useAuth()
@@ -57,8 +59,13 @@ function AuthenticatedApp({ user, onSignOut, theme, toggleTheme }) {
   const [toastMsg,       setToast]          = useState('')
   const [sidebarOpen,    setSidebarOpen]    = useState(false)
   const [galleryTplPick, setGalleryTplPick] = useState(null)
+  const [paletteOpen,    setPaletteOpen]    = useState(false)
   const toast = useCallback(msg => setToast(msg), [])
   const closeSidebar = useCallback(() => setSidebarOpen(false), [])
+  const openPalette  = useCallback(() => setPaletteOpen(true), [])
+  const closePalette = useCallback(() => setPaletteOpen(false), [])
+
+  useGlobalShortcut({ key:'k', meta:true, ctrl:true }, openPalette)
   const currentTitle = view.startsWith('profile_') ? 'Perfil' : (VIEW_TITLES[view] || 'TEC Emprende Lab')
 
   // ── Estado global ─────────────────────────────────────────
@@ -189,6 +196,9 @@ function AuthenticatedApp({ user, onSignOut, theme, toggleTheme }) {
         <main className="main-content">{renderView()}</main>
       </div>
       <Toast message={toastMsg} onHide={() => setToast('')}/>
+      <CommandPalette open={paletteOpen} onClose={closePalette}
+        participants={participants} courses={courses} tags={tags}
+        setView={setView}/>
     </div>
   )
 }

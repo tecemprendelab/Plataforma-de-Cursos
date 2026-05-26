@@ -1,5 +1,6 @@
 import { isExpired, isWarning, fmtDate, getAccessDays } from '../utils/time.js'
 import { StatCard, AccessBar, TimerBadge, Avatar } from './UI.jsx'
+import { DonutAccess, BarChartCourses } from './Charts.jsx'
 
 export default function Dashboard({ participants, courses, setView }) {
   const today    = new Date().toLocaleDateString('es-CR',{weekday:'long',day:'numeric',month:'long',year:'numeric'})
@@ -24,6 +25,16 @@ export default function Dashboard({ participants, courses, setView }) {
       </div>
       {expired>0&&<div className="alert alert-red"><div className="alert-title"><i className="ti ti-lock"/> {expired} acceso{expired!==1?'s':''} expirado{expired!==1?'s':''} — revocados automáticamente</div><p className="text-sm text-muted">Podés renovarlos desde Control de Accesos.</p></div>}
       {warning>0&&<div className="alert alert-orange"><div className="alert-title"><i className="ti ti-clock"/> {warning} participante{warning!==1?'s':''} con acceso por vencer</div><p className="text-sm text-muted">Enviá el recordatorio de prueba desde Recordatorios.</p></div>}
+      <div className="charts-grid">
+        <div className="card card-padded">
+          <div className="chart-title">Estado de accesos</div>
+          <DonutAccess participants={participants} courses={courses}/>
+        </div>
+        <div className="card card-padded">
+          <div className="chart-title">Inscritos por curso</div>
+          <BarChartCourses participants={participants} courses={courses}/>
+        </div>
+      </div>
       <h3 className="h3" style={{marginBottom:14}}>Cursos y talleres activos</h3>
       <div className="grid-2col" style={{display:'grid',gridTemplateColumns:'repeat(auto-fit, minmax(260px, 1fr))',gap:12,marginBottom:24}}>
         {activeCourses.map(c=>{
