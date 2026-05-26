@@ -139,12 +139,12 @@ export default function ParticipantsView({
         <table className="ttable">
           <thead>
             <tr>
-              <th style={{ width:'22%' }}>Participante</th>
-              <th style={{ width:'16%' }}>Cursos</th>
-              <th style={{ width:'22%' }}>Tiempo de acceso</th>
-              <th style={{ width:'20%' }}>Etiquetas</th>
-              <th style={{ width:'10%' }}>Estado</th>
-              <th style={{ width:'10%' }}>Acciones</th>
+              <th style={{ width:'24%' }}>Participante</th>
+              <th style={{ width:'14%' }}>Cursos</th>
+              <th style={{ width:'20%' }}>Tiempo de acceso</th>
+              <th style={{ width:'14%' }}>Etiquetas</th>
+              <th style={{ width:'14%' }}>Estado</th>
+              <th style={{ width:'14%' }}>Acciones</th>
             </tr>
           </thead>
           <tbody>
@@ -177,7 +177,7 @@ export default function ParticipantsView({
                   <td>
                     {ptags.length
                       ? <div style={{ display:'flex', flexWrap:'wrap' }}>{ptags.map(t => <TagPill key={t.id} tag={t} small/>)}</div>
-                      : <span className="text-xs text-muted" style={{ fontStyle:'italic' }}>Sin etiquetas</span>}
+                      : <span className="text-xs text-muted">—</span>}
                   </td>
                   <td><TimerBadge fecha={p.fecha} access={p.access} days={days}/></td>
                   <td>
