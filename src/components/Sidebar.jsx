@@ -40,7 +40,7 @@ export default function Sidebar({ view, setView, participants, courses = [], use
       <aside className={`sidebar${open ? ' open' : ''}`}
         style={{ width:220, background:'var(--sidebar-bg)', minHeight:'100vh',
           display:'flex', flexDirection:'column', padding:'24px 0',
-          flexShrink:0, position:'fixed', top:0, left:0, height:'100vh', overflowY:'auto', zIndex:10 }}>
+          flexShrink:0, position:'fixed', top:0, left:0, height:'100vh', overflowY:'auto', zIndex:50 }}>
         <div style={{ padding:'0 20px 28px', display:'flex', alignItems:'flex-start', gap:10 }}>
           <div style={{ flex:1, minWidth:0 }}>
             <div style={{ width:36, height:36, background:'var(--orange)', borderRadius:8,
