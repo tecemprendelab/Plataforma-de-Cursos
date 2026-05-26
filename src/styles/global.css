@@ -28,6 +28,8 @@
 
 /* ── Design tokens ───────────────────────────────────────── */
 :root {
+  color-scheme: light;
+
   /* Colores */
   --cream:       #FAF6EE;
   --cream-2:     #F2EBD9;
@@ -43,6 +45,17 @@
   --green:       #3D7A5A;
   --green-l:     #E4F0E8;
 
+  /* Tokens semánticos (sirven para soportar dark mode) */
+  --sidebar-bg:   var(--black);
+  --sidebar-text: var(--cream);
+  --row-hover:    #FDFAF5;
+  --row-exp-bg:   #FFF5F3;
+  --row-warn-bg:  #FFFAF5;
+  --row-exp-bd:   #F4C4B5;
+  --row-warn-bd:  #FDE8D3;
+  --alert-warm-bg: #FFF8F3;
+  --shadow-card:  0 1px 2px rgba(26,22,18,.03);
+
   /* Tipografía — Poppins en todos los niveles */
   --font-display: "Poppins", sans-serif;   /* títulos: semibold */
   --font-body:    "Poppins", sans-serif;   /* cuerpo:  regular/medium */
@@ -53,6 +66,34 @@
   --radius-md:   8px;
   --radius-lg:   12px;
   --radius-xl:   16px;
+}
+
+/* ── Dark mode ───────────────────────────────────────────── */
+[data-theme="dark"] {
+  color-scheme: dark;
+
+  --cream:       #1A1612;   /* page bg */
+  --cream-2:     #25201A;   /* alt rows / hover */
+  --cream-3:     #2E2820;   /* deeper */
+  --white:       #1F1B15;   /* card surface */
+  --border:      #3A332B;
+  --black:       #FAF6EE;   /* text (invertido) */
+  --black-2:     #E8DCC8;
+  --gray:        #9C9485;
+  --green-l:     #1F3328;
+
+  /* Sidebar queda oscuro siempre (no se invierte) */
+  --sidebar-bg:   #0E0B08;
+  --sidebar-text: #FAF6EE;
+
+  /* Tintes cálidos en modo oscuro */
+  --row-hover:    #2A241C;
+  --row-exp-bg:   #3A1F1A;
+  --row-warn-bg:  #3A2D1A;
+  --row-exp-bd:   #5A2D24;
+  --row-warn-bd:  #5A4624;
+  --alert-warm-bg: #2E2218;
+  --shadow-card:  0 1px 2px rgba(0,0,0,.4);
 }
 
 /* ── Reset ───────────────────────────────────────────────── */
@@ -152,7 +193,7 @@ input, select, button, textarea { font-family: var(--font-body) }
 }
 
 /* ── Cards ───────────────────────────────────────────────── */
-.card       { background:#fff; border:1px solid var(--border); border-radius:var(--radius-lg); overflow:hidden; box-shadow:0 1px 2px rgba(26,22,18,.03) }
+.card       { background:var(--white); border:1px solid var(--border); border-radius:var(--radius-lg); overflow:hidden; box-shadow:var(--shadow-card) }
 .card-padded { padding:20px }
 
 /* ── Badges ──────────────────────────────────────────────── */
@@ -179,20 +220,20 @@ input, select, button, textarea { font-family: var(--font-body) }
   padding:10px 14px; border-top:1px solid var(--cream-2);
   font-size:13px; font-weight:400; vertical-align:middle;
 }
-.ttable tr:hover td { background:#FDFAF5 }
-.ttable tr.row-exp  td { background:#FFF5F3 }
-.ttable tr.row-warn td { background:#FFFAF5 }
+.ttable tr:hover td { background:var(--row-hover) }
+.ttable tr.row-exp  td { background:var(--row-exp-bg) }
+.ttable tr.row-warn td { background:var(--row-warn-bg) }
 
 /* ── Card-stack (alternativa móvil a tablas) ─────────────── */
 .card-stack { display:none; flex-direction:column; gap:10px }
 .pcard {
-  background:#fff; border:1px solid var(--border);
+  background:var(--white); border:1px solid var(--border);
   border-radius:var(--radius-lg); padding:14px;
   display:flex; flex-direction:column; gap:10px;
-  box-shadow:0 1px 2px rgba(26,22,18,.03);
+  box-shadow:var(--shadow-card);
 }
-.pcard.row-exp  { background:#FFF5F3; border-color:#F4C4B5 }
-.pcard.row-warn { background:#FFFAF5; border-color:#FDE8D3 }
+.pcard.row-exp  { background:var(--row-exp-bg);  border-color:var(--row-exp-bd) }
+.pcard.row-warn { background:var(--row-warn-bg); border-color:var(--row-warn-bd) }
 .pcard-head { display:flex; align-items:center; gap:10px; min-width:0 }
 .pcard-head .pcard-id { flex:1; min-width:0 }
 .pcard-id .pname {
@@ -218,9 +259,9 @@ input, select, button, textarea { font-family: var(--font-body) }
 
 /* ── Alertas ─────────────────────────────────────────────── */
 .alert { border-radius:var(--radius-lg); padding:14px 18px; margin-bottom:16px }
-.alert-red    { background:#fff;    border:2px solid var(--orange-d) }
-.alert-orange { background:#FFF8F3; border:2px solid var(--orange) }
-.alert-green  { background:#F0FDF4; border:1px solid #86EFAC; color:#065F46 }
+.alert-red    { background:var(--white);          border:2px solid var(--orange-d) }
+.alert-orange { background:var(--alert-warm-bg);  border:2px solid var(--orange) }
+.alert-green  { background:var(--green-l);        border:1px solid #86EFAC; color:#065F46 }
 .alert-title  { font-weight:600; font-size:13px; margin-bottom:8px; display:flex; align-items:center; gap:6px }
 .alert-red    .alert-title { color:var(--orange-d) }
 .alert-orange .alert-title { color:var(--orange-d) }
@@ -247,9 +288,9 @@ input, select, button, textarea { font-family: var(--font-body) }
   gap:12px; margin-bottom:24px;
 }
 .stat-card  {
-  background:#fff; border:1px solid var(--border);
+  background:var(--white); border:1px solid var(--border);
   border-radius:var(--radius-lg); padding:16px 18px; min-width:0;
-  box-shadow:0 1px 2px rgba(26,22,18,.03);
+  box-shadow:var(--shadow-card);
 }
 .stat-num   { font-size:26px; font-weight:600; font-family:var(--font-display) }
 .stat-label { font-size:12px; color:var(--gray); margin-top:2px; font-weight:400 }
@@ -275,7 +316,7 @@ input, select, button, textarea { font-family: var(--font-body) }
   padding:40px; text-align:center; cursor:pointer;
   transition:all .2s; background:var(--cream-2);
 }
-.drop-area:hover, .drop-area.drag { border-color:var(--orange); background:#FFF5EF }
+.drop-area:hover, .drop-area.drag { border-color:var(--orange); background:var(--alert-warm-bg) }
 
 /* ── Avatar ──────────────────────────────────────────────── */
 .avatar {
@@ -307,8 +348,8 @@ input, select, button, textarea { font-family: var(--font-body) }
 
 /* ── Profile header ──────────────────────────────────────── */
 .profile-header {
-  background:var(--black); border-radius:var(--radius-xl);
-  padding:24px; margin-bottom:16px; color:var(--cream);
+  background:var(--sidebar-bg); border-radius:var(--radius-xl);
+  padding:24px; margin-bottom:16px; color:var(--sidebar-text);
   display:flex; gap:20px; align-items:center;
 }
 .profile-av {
@@ -321,7 +362,7 @@ input, select, button, textarea { font-family: var(--font-body) }
 
 /* ── Email preview ───────────────────────────────────────── */
 .email-preview {
-  background:#fff; border:1px solid var(--border);
+  background:var(--white); border:1px solid var(--border);
   border-radius:var(--radius-lg); padding:20px;
   font-size:13px; line-height:1.8;
 }

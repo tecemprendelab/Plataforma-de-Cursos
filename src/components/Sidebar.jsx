@@ -23,10 +23,11 @@ const NAV = [
   { id:'gallery',      icon:'ti-photo',             label:'Galería SVG'         },
 ]
 
-export default function Sidebar({ view, setView, participants, courses = [], userEmail, onSignOut, open, onClose }) {
+export default function Sidebar({ view, setView, participants, courses = [], userEmail, onSignOut, open, onClose, theme, onToggleTheme }) {
   const expCount    = participants.filter(p => isExpired(p.fecha, getAccessDays(p, courses))).length
   const remindCount = participants.filter(p => p.access && needsExamReminder(p.fecha, getAccessDays(p, courses))).length
   const activeBase  = view.startsWith('profile_') ? 'participants' : view
+  const isDark      = theme === 'dark'
 
   const handleNav = (id) => {
     setView(id)
@@ -37,18 +38,29 @@ export default function Sidebar({ view, setView, participants, courses = [], use
     <>
       {open && <div className="sidebar-backdrop" onClick={onClose}/>}
       <aside className={`sidebar${open ? ' open' : ''}`}
-        style={{ width:220, background:'var(--black)', minHeight:'100vh',
+        style={{ width:220, background:'var(--sidebar-bg)', minHeight:'100vh',
           display:'flex', flexDirection:'column', padding:'24px 0',
           flexShrink:0, position:'fixed', top:0, left:0, height:'100vh', overflowY:'auto', zIndex:10 }}>
-        <div style={{ padding:'0 20px 28px' }}>
-          <div style={{ width:36, height:36, background:'var(--orange)', borderRadius:8,
-            display:'flex', alignItems:'center', justifyContent:'center', marginBottom:10 }}>
-            <span style={{ color:'#fff', fontFamily:'var(--font-display)', fontSize:15 }}>T</span>
+        <div style={{ padding:'0 20px 28px', display:'flex', alignItems:'flex-start', gap:10 }}>
+          <div style={{ flex:1, minWidth:0 }}>
+            <div style={{ width:36, height:36, background:'var(--orange)', borderRadius:8,
+              display:'flex', alignItems:'center', justifyContent:'center', marginBottom:10 }}>
+              <span style={{ color:'#fff', fontFamily:'var(--font-display)', fontSize:15 }}>T</span>
+            </div>
+            <div style={{ color:'var(--sidebar-text)', fontFamily:'var(--font-display)', fontSize:15, lineHeight:1.2 }}>
+              TEC Emprende Lab
+            </div>
+            <div style={{ color:'var(--gray)', fontSize:11, marginTop:3 }}>Panel de gestión</div>
           </div>
-          <div style={{ color:'var(--cream)', fontFamily:'var(--font-display)', fontSize:15, lineHeight:1.2 }}>
-            TEC Emprende Lab
-          </div>
-          <div style={{ color:'var(--gray)', fontSize:11, marginTop:3 }}>Panel de gestión</div>
+          {onToggleTheme && (
+            <button onClick={onToggleTheme} title={isDark ? 'Modo claro' : 'Modo oscuro'}
+              aria-label={isDark ? 'Activar modo claro' : 'Activar modo oscuro'}
+              style={{ background:'transparent', border:'1px solid #3A332B', color:'var(--sidebar-text)',
+                borderRadius:8, padding:'6px 8px', cursor:'pointer', fontSize:14, lineHeight:1,
+                display:'inline-flex', alignItems:'center', justifyContent:'center', flexShrink:0 }}>
+              <i className={`ti ${isDark ? 'ti-sun' : 'ti-moon'}`}/>
+            </button>
+          )}
         </div>
         <div style={{ padding:'0 10px', flex:1 }}>
           {NAV.map((item, i) => {
@@ -75,20 +87,20 @@ export default function Sidebar({ view, setView, participants, courses = [], use
           })}
         </div>
         {userEmail && (
-          <div style={{ padding:'12px 20px', borderTop:'1px solid var(--black-2)',
+          <div style={{ padding:'12px 20px', borderTop:'1px solid #3A332B',
             display:'flex', alignItems:'center', gap:8 }}>
-            <div style={{ flex:1, minWidth:0, color:'var(--cream)', fontSize:12,
+            <div style={{ flex:1, minWidth:0, color:'var(--sidebar-text)', fontSize:12,
               overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }} title={userEmail}>
               {userEmail}
             </div>
             <button onClick={onSignOut} title="Cerrar sesión"
-              style={{ background:'transparent', border:'1px solid var(--black-2)', color:'var(--gray)',
+              style={{ background:'transparent', border:'1px solid #3A332B', color:'var(--gray)',
                 borderRadius:6, padding:'4px 8px', fontSize:11, cursor:'pointer' }}>
               Salir
             </button>
           </div>
         )}
-        <div style={{ padding:'16px 20px', borderTop:'1px solid var(--black-2)',
+        <div style={{ padding:'16px 20px', borderTop:'1px solid #3A332B',
           fontSize:11, color:'var(--gray)' }}>
           v4.2 · TEC Emprende Lab
         </div>

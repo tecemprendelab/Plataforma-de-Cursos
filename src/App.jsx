@@ -10,6 +10,7 @@ import { useParticipants }  from './hooks/useParticipants.js'
 import { useTags }          from './hooks/useTags.js'
 import { useCourses }       from './hooks/useCourses.js'
 import { useAuth }          from './hooks/useAuth.js'
+import { useTheme }         from './hooks/useTheme.js'
 import Sidebar              from './components/Sidebar.jsx'
 import Dashboard            from './components/Dashboard.jsx'
 import ParticipantsView     from './components/ParticipantsView.jsx'
@@ -27,6 +28,7 @@ import { Toast }            from './components/UI.jsx'
 
 export default function App() {
   const { user, loading, signIn, signOut, isSupabaseConfigured } = useAuth()
+  const { theme, toggleTheme } = useTheme()
 
   if (isSupabaseConfigured && loading) {
     return <div className="login-shell"><div className="poppins-medium text-muted">Cargando…</div></div>
@@ -34,7 +36,7 @@ export default function App() {
   if (isSupabaseConfigured && !user) {
     return <LoginView onSignIn={signIn}/>
   }
-  return <AuthenticatedApp user={user} onSignOut={signOut}/>
+  return <AuthenticatedApp user={user} onSignOut={signOut} theme={theme} toggleTheme={toggleTheme}/>
 }
 
 const VIEW_TITLES = {
@@ -50,7 +52,7 @@ const VIEW_TITLES = {
   gallery:      'Galería SVG',
 }
 
-function AuthenticatedApp({ user, onSignOut }) {
+function AuthenticatedApp({ user, onSignOut, theme, toggleTheme }) {
   const [view,           setView]           = useState('dashboard')
   const [toastMsg,       setToast]          = useState('')
   const [sidebarOpen,    setSidebarOpen]    = useState(false)
@@ -172,7 +174,8 @@ function AuthenticatedApp({ user, onSignOut }) {
     <div className="app-shell">
       <Sidebar view={view} setView={setView} participants={participants} courses={courses}
         userEmail={user?.email} onSignOut={onSignOut}
-        open={sidebarOpen} onClose={closeSidebar}/>
+        open={sidebarOpen} onClose={closeSidebar}
+        theme={theme} onToggleTheme={toggleTheme}/>
       <div className="main-wrapper" style={{ flex:1, minWidth:0, display:'flex', flexDirection:'column' }}>
         <div className="mobile-topbar">
           <button className="hamburger" onClick={() => setSidebarOpen(true)} aria-label="Abrir menú">
