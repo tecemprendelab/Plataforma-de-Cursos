@@ -146,6 +146,91 @@ def _fill_svg(svg_text: str, fields: dict) -> str:
     return result
 
 
+def _fix_outlined_text(svg_text: str) -> str:
+    """
+    Figma a veces exporta texto como <path> (outline/vectorizado).
+    Detecta recipient_name e issue_date como <path> y los convierte
+    a <text> editables para que _fill_svg pueda reemplazarlos.
+    """
+    import re as _re
+    fixes = [
+        ("recipient_name",
+         '<text id="recipient_name" fill="#00457C"'
+         ' style="white-space: pre" xml:space="preserve"'
+         ' font-family="Onest,Liberation Sans,DejaVu Sans,sans-serif"'
+         ' font-size="47.9322" font-weight="800" letter-spacing="0em">'
+         '<tspan x="63" y="320.437">recipient_name</tspan></text>'),
+        ("issue_date",
+         '<text id="issue_date" fill="#00457C"'
+         ' style="white-space: pre" xml:space="preserve"'
+         ' font-family="Outfit,Liberation Sans,DejaVu Sans,sans-serif"'
+         ' font-size="14" letter-spacing="0em">'
+         '<tspan x="60" y="462.08">issue_date</tspan></text>'),
+    ]
+    PAT = r'<path[^>]+id=[\x22\x27]{fid}[\x22\x27][^>]*/>'
+    for fid, replacement in fixes:
+        pat = PAT.format(fid=_re.escape(fid))
+        if _re.search(pat, svg_text):
+            svg_text = _re.sub(pat, replacement, svg_text)
+    return svg_text
+
+def _embed_fonts(svg_text: str) -> str:
+    """
+    Embebe las fuentes del sistema como base64 en el SVG.
+    Garantiza que cairosvg renderice el texto correctamente
+    sin depender de las fuentes instaladas en el servidor.
+    Mapea Onest → LiberationSans-Bold, Outfit → LiberationSans-Regular.
+    """
+    import base64, os
+
+    font_map = {
+        "Onest":   ("/usr/share/fonts/truetype/liberation/LiberationSans-Bold.ttf",    "800"),
+        "Outfit":  ("/usr/share/fonts/truetype/liberation/LiberationSans-Regular.ttf", "400"),
+    }
+
+    # Buscar fuentes alternativas si Liberation no está disponible
+    fallbacks = [
+        "/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf",
+        "/usr/share/fonts/truetype/freefont/FreeSansBold.ttf",
+    ]
+    fallbacks_regular = [
+        "/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf",
+        "/usr/share/fonts/truetype/freefont/FreeSans.ttf",
+    ]
+
+    def find_font(primary, alts):
+        if os.path.exists(primary):
+            return primary
+        for a in alts:
+            if os.path.exists(a):
+                return a
+        return None
+
+    styles = []
+    for family, (path, weight) in font_map.items():
+        alts = fallbacks if weight == "800" else fallbacks_regular
+        real_path = find_font(path, alts)
+        if not real_path:
+            continue
+        with open(real_path, "rb") as f:
+            b64 = base64.b64encode(f.read()).decode("utf-8")
+        styles.append(
+            f"@font-face {{\n"
+            f"  font-family: \'{family}\';\n"
+            f"  font-weight: {weight};\n"
+            f"  src: url(\'data:font/truetype;base64,{b64}\') format(\'truetype\');\n"
+            f"}}"
+        )
+
+    if not styles:
+        return svg_text
+
+    font_block = "<defs><style>" + "\n".join(styles) + "</style></defs>"
+    # Insertar justo después del tag <svg ...>
+    import re as _re
+    return _re.sub(r"(<svg\b[^>]*>)", r"\1" + font_block, svg_text, count=1)
+
+
 def _load_template(template_name: str):
     safe = Path(template_name).name
     path = TEMPLATES_DIR / safe
@@ -181,6 +266,7 @@ def _detect_elements(svg_text: str) -> list:
 def _svg_to_output(svg_text: str, fmt: str) -> bytes:
     if not CAIRO_OK:
         raise RuntimeError("cairosvg no instalado en el servidor")
+    svg_text = _embed_fonts(svg_text)
     enc = svg_text.encode("utf-8")
     if fmt == "pdf":
         return cairosvg.svg2pdf(bytestring=enc)
@@ -236,11 +322,11 @@ def list_templates():
 def analyze():
     svg_text = None
     if "file" in request.files:
-        svg_text = request.files["file"].read().decode("utf-8", errors="replace")
+        svg_text = _fix_outlined_text(request.files["file"].read().decode("utf-8", errors="replace"))
     else:
         tname = request.form.get("template_name") or (request.get_json(silent=True) or {}).get("template_name")
         if tname:
-            svg_text = _load_template(tname)
+            svg_text = _fix_outlined_text(_load_template(tname))
     if not svg_text:
         return jsonify({"error": "no SVG proporcionado"}), 400
     return jsonify({"elements": _detect_elements(svg_text)})
@@ -250,11 +336,11 @@ def analyze():
 def preview():
     svg_text = None
     if "file" in request.files:
-        svg_text = request.files["file"].read().decode("utf-8", errors="replace")
+        svg_text = _fix_outlined_text(request.files["file"].read().decode("utf-8", errors="replace"))
     else:
         tname = request.form.get("template_name") or (request.get_json(silent=True) or {}).get("template_name")
         if tname:
-            svg_text = _load_template(tname)
+            svg_text = _fix_outlined_text(_load_template(tname))
     if not svg_text:
         return jsonify({"error": "no SVG proporcionado"}), 400
 
@@ -284,7 +370,7 @@ def generate():
         fields  = data.get("fields", {})
         tname   = data.get("template_name")
         if tname:
-            svg_text = _load_template(tname)
+            svg_text = _fix_outlined_text(_load_template(tname))
     else:
         fmt = (request.form.get("format") or request.form.get("output_format", "pdf")).lower()
         try:
@@ -293,11 +379,11 @@ def generate():
             fields = {}
 
         if "file" in request.files:
-            svg_text = request.files["file"].read().decode("utf-8", errors="replace")
+            svg_text = _fix_outlined_text(request.files["file"].read().decode("utf-8", errors="replace"))
         else:
             tname = request.form.get("template_name")
             if tname:
-                svg_text = _load_template(tname)
+                svg_text = _fix_outlined_text(_load_template(tname))
 
         if not fields:
             name_id  = request.form.get("name_field_id", "recipient_name")
@@ -338,11 +424,11 @@ def generate_batch():
     # Cargar SVG
     svg_text = None
     if "file" in request.files:
-        svg_text = request.files["file"].read().decode("utf-8", errors="replace")
+        svg_text = _fix_outlined_text(request.files["file"].read().decode("utf-8", errors="replace"))
     else:
         tname = request.form.get("template_name")
         if tname:
-            svg_text = _load_template(tname)
+            svg_text = _fix_outlined_text(_load_template(tname))
 
     if not svg_text:
         return jsonify({"error": "No se proporcionó plantilla SVG"}), 400
@@ -413,7 +499,7 @@ def ai_mapeo():
         return jsonify({"error": "IA no disponible — configurá ANTHROPIC_API_KEY"}), 503
 
     if "file" in request.files:
-        svg_text = request.files["file"].read().decode("utf-8", errors="replace")
+        svg_text = _fix_outlined_text(request.files["file"].read().decode("utf-8", errors="replace"))
         elements = _detect_elements(svg_text)
     else:
         data     = request.get_json(silent=True) or {}
