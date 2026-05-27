@@ -52,6 +52,47 @@ if not AI_OK:
     except (ImportError, Exception):
         pass
 
+# ── Instalación de fuentes en runtime ────────────────────────────────────────
+import subprocess as _sp
+import urllib.request as _ur
+import zipfile as _zf
+
+def _install_fonts():
+    """Instala Outfit y Onest si no están disponibles."""
+    try:
+        result = _sp.run(["fc-list"], capture_output=True, text=True)
+        fonts_list = result.stdout.lower()
+        if "outfit" in fonts_list and "onest" in fonts_list:
+            return
+        import os, tempfile
+        font_dir = "/usr/local/share/fonts/custom"
+        os.makedirs(font_dir, exist_ok=True)
+        sources = {
+            "Outfit": "https://fonts.google.com/download?family=Outfit",
+            "Onest":  "https://fonts.google.com/download?family=Onest",
+        }
+        for name, url in sources.items():
+            if name.lower() in fonts_list:
+                continue
+            try:
+                tmp = os.path.join(tempfile.gettempdir(), f"{name}.zip")
+                _ur.urlretrieve(url, tmp)
+                with _zf.ZipFile(tmp, "r") as z:
+                    for zi in z.infolist():
+                        if zi.filename.endswith(".ttf") or zi.filename.endswith(".otf"):
+                            zi.filename = os.path.basename(zi.filename)
+                            z.extract(zi, font_dir)
+                os.remove(tmp)
+                print(f"[fonts] {name} instalada en {font_dir}")
+            except Exception as e:
+                print(f"[fonts] No se pudo instalar {name}: {e}")
+        _sp.run(["fc-cache", "-f", font_dir], capture_output=True)
+    except Exception as e:
+        print(f"[fonts] Error en instalación de fuentes: {e}")
+
+_install_fonts()
+
+
 app = Flask(__name__)
 CORS(app, expose_headers=["X-Generated-Count", "X-Error-Count", "X-Total-Count"])
 
