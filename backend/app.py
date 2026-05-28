@@ -114,13 +114,52 @@ def _split_name_lines(name: str, threshold: int = 4) -> tuple:
 
 
 def _fill_svg(svg_text: str, fields: dict) -> str:
-    """Replace text content of SVG <text> elements by id."""
+    """Replace text content of SVG <text> elements by id.
+    Para recipient_name con 4+ palabras, divide en dos tspan.
+    """
     result = svg_text
+    LINE_HEIGHT = 45  # acorde a font-size=36
+
     for field_id, value in fields.items():
         if not field_id or value is None:
             continue
+
+        raw_val = str(value)
+
+        # Nombre con 4+ palabras -> dos lineas
+        if field_id == "recipient_name":
+            linea1, linea2 = _split_name_lines(raw_val)
+            safe_l1 = linea1.replace("&", "&amp;").replace("<", "&lt;").replace(">", "&gt;")
+            if linea2:
+                safe_l2 = linea2.replace("&", "&amp;").replace("<", "&lt;").replace(">", "&gt;")
+                safe_id = re.escape(field_id)
+
+                def make_two_line(l1, l2, lh):
+                    def _r(m):
+                        inner = m.group(2)
+                        xm = re.search(r'<tspan[^>]+x=["\']([^"\'][^"\']*)["\']', inner)
+                        ym = re.search(r'<tspan[^>]+y=["\']([^"\'][^"\']*)["\']', inner)
+                        x_val = xm.group(1) if xm else "65.4"
+                        y_val = float(ym.group(1)) if ym else 316.0
+                        y1 = y_val - lh * 0.5
+                        new_inner = (
+                            f'<tspan x="{x_val}" y="{y1:.1f}">{l1}</tspan>'
+                            f'<tspan x="{x_val}" dy="{lh}">{l2}</tspan>'
+                        )
+                        return m.group(1) + new_inner + m.group(3)
+                    return _r
+
+                result = re.sub(
+                    r'(<text\b[^>]*\bid=["\']' + safe_id + r'["\'][^>]*>)'
+                    r'([\s\S]*?)'
+                    r'(</text>)',
+                    make_two_line(safe_l1, safe_l2, LINE_HEIGHT),
+                    result, flags=re.IGNORECASE
+                )
+                continue
+
         safe_id  = re.escape(str(field_id))
-        safe_val = str(value).replace('&', '&amp;').replace('<', '&lt;').replace('>', '&gt;')
+        safe_val = raw_val.replace("&", "&amp;").replace("<", "&lt;").replace(">", "&gt;")
 
         def make_replacer(val):
             def _replacer(m):
@@ -139,7 +178,6 @@ def _fill_svg(svg_text: str, fields: dict) -> str:
                 return open_tag + new_inner + close_tag
             return _replacer
 
-        # Match <text id="..." ...>...</text>
         result = re.sub(
             r'(<text\b[^>]*\bid=["\']' + safe_id + r'["\'][^>]*>)'
             r'([\s\S]*?)'
@@ -147,7 +185,6 @@ def _fill_svg(svg_text: str, fields: dict) -> str:
             make_replacer(safe_val),
             result, flags=re.IGNORECASE
         )
-        # Match <tspan id="..." ...>...</tspan>
         result = re.sub(
             r'(<tspan\b[^>]*\bid=["\']' + safe_id + r'["\'][^>]*>)'
             r'[^<]*'
@@ -170,8 +207,8 @@ def _fix_outlined_text(svg_text: str) -> str:
          '<text id="recipient_name" fill="#00457C"'
          ' style="white-space: pre" xml:space="preserve"'
          ' font-family="Onest,Liberation Sans,DejaVu Sans,sans-serif"'
-         ' font-size="47.9322" font-weight="800" letter-spacing="0em">'
-         '<tspan x="63" y="320.437">recipient_name</tspan></text>'),
+         ' font-size="36" font-weight="800" letter-spacing="0em">'
+         '<tspan x="65.4" y="316">recipient_name</tspan></text>'),
         ("issue_date",
          '<text id="issue_date" fill="#00457C"'
          ' style="white-space: pre" xml:space="preserve"'
