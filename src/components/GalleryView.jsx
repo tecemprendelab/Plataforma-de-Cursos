@@ -292,11 +292,23 @@ export default function GalleryView({ onUseCertificate }) {
     if (selectedId === id) setSelectedId(null)
   }
 
-  const handleUse = (tpl) => {
-    // Adaptar al formato que espera CertificatesView (ids.name / ids.date)
+  const handleUse = async (tpl) => {
+    // Para plantillas de Supabase: cargar el SVG y convertirlo en File object
+    // Para built-ins: pasar file_name para que el backend lo sirva desde /templates/
+    let _file = tpl._file || null
+
+    if (!_file && !tpl.is_builtin) {
+      // Plantilla custom en Supabase — cargar el SVG content
+      const svgText = await loadSvgContent(tpl)
+      if (svgText) {
+        _file = new File([svgText], tpl.file_name, { type: 'image/svg+xml' })
+      }
+    }
+
     const adapted = {
       ...tpl,
-      file: tpl.file_name,
+      file: tpl.is_builtin ? tpl.file_name : null,
+      _file,
       ids: { name: tpl.name_id, date: tpl.date_id },
     }
     setSelectedId(null)
