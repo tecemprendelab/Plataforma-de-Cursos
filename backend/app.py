@@ -562,6 +562,79 @@ def _svg_to_output(svg_text: str, fmt: str) -> bytes:
     return cairosvg.svg2png(bytestring=enc, scale=2)
 
 
+# Cache para consultas de cédulas al TSE
+_cedula_cache: dict = {}
+
+def _lookup_cedula(cedula: str) -> str | None:
+    """
+    Consulta el nombre completo de una persona por su cédula
+    usando la API de Hacienda CR (que consume datos del TSE/Registro Civil).
+    Devuelve el nombre en mayúsculas o None si no se encuentra.
+    """
+    import urllib.request as _ur
+    import json as _json
+
+    cedula = cedula.strip().replace("-", "").replace(" ", "")
+    if not cedula.isdigit():
+        return None
+
+    if cedula in _cedula_cache:
+        return _cedula_cache[cedula]
+
+    try:
+        url = f"https://api.hacienda.go.cr/fe/ae?identificacion={cedula}"
+        req = _ur.Request(url, headers={"User-Agent": "Mozilla/5.0"})
+        with _ur.urlopen(req, timeout=5) as resp:
+            data = _json.loads(resp.read().decode("utf-8"))
+
+        # La API devuelve: {"nombre": "JUAN PÉREZ GARCÍA", "tipoIdentificacion": "01", ...}
+        nombre = data.get("nombre", "").strip().upper()
+        if nombre:
+            _cedula_cache[cedula] = nombre
+            return nombre
+    except Exception:
+        pass
+
+    _cedula_cache[cedula] = None
+    return None
+
+
+def _resolve_fields(row: dict, name_id: str, date_id: str) -> dict:
+    """Map CSV row to SVG field ids, trying common column name aliases.
+    Si hay columna de cédula, consulta la API del TSE para obtener el nombre oficial.
+    """
+    raw    = {k.strip(): v.strip() for k, v in row.items()}
+    fields = dict(raw)
+
+    # Intentar obtener nombre desde cédula (tiene prioridad sobre columna nombre)
+    cedula = None
+    for col in ("cedula", "cédula", "id", "identificacion", "identificación",
+                "num_cedula", "numero_cedula", "dni", "Cedula", "Cédula"):
+        if col in raw and raw[col]:
+            cedula = raw[col]
+            break
+
+    nombre_from_api = None
+    if cedula:
+        nombre_from_api = _lookup_cedula(cedula)
+
+    if nombre_from_api:
+        fields[name_id] = nombre_from_api
+    else:
+        # Fallback: columna nombre del CSV
+        for col in ("nombre", "name", "participante", "recipient_name", "Nombre"):
+            if col in raw and raw[col]:
+                fields[name_id] = raw[col]
+                break
+
+    for col in ("fecha", "date", "issue_date", "Fecha"):
+        if col in raw and raw[col]:
+            fields[date_id] = raw[col]
+            break
+
+    return fields
+
+
 def _resolve_fields(row: dict, name_id: str, date_id: str) -> dict:
     """Map CSV row to SVG field ids, trying common column name aliases."""
     raw    = {k.strip(): v.strip() for k, v in row.items()}
