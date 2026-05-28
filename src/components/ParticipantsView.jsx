@@ -30,46 +30,38 @@ export default function ParticipantsView({
     if (!conCedula.length) { setVerifyResult({ error: 'Ningún participante tiene cédula registrada.' }); return }
     setVerifying(true); setVerifyResult(null)
 
-    // Reintentar hasta 2 veces (Render puede estar dormido)
-    let res, lastError
-    for (let intento = 0; intento < 2; intento++) {
+    // Consultar la API de Hacienda CR directamente desde el browser (sin pasar por el backend)
+    const results = []
+    for (const p of conCedula) {
+      const ced = String(p.cedula).replace(/[-. ]/g, '')
       try {
-        res = await fetch(`${CERT_API}/api/cedulas/lookup`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ cedulas: conCedula.map(p => p.cedula) }),
-          signal: AbortSignal.timeout(30000)
-        })
-        lastError = null
-        break
-      } catch(e) {
-        lastError = e
-        if (intento === 0) await new Promise(r => setTimeout(r, 3000)) // esperar 3s antes de reintentar
-      }
-    }
-
-    if (lastError || !res) {
-      setVerifyResult({ error: `No se pudo conectar al servidor. Verificá que el backend esté activo e intentá de nuevo.` })
-      setVerifying(false); return
-    }
-
-    try {
-      const data = await res.json()
-      if (data.error) { setVerifyResult({ error: data.error }); return }
-      const results = data.results || []
-      const updates = []
-      for (const r of results) {
-        if (!r.ok) continue
-        const p = conCedula.find(p => String(p.cedula) === String(r.cedula))
-        if (p && r.nombre && r.nombre.trim().toUpperCase() !== p.name.trim().toUpperCase()) {
-          updates.push({ id: p.id, nombreActual: p.name, nombreTSE: r.nombre, cedula: r.cedula })
+        const res = await fetch(
+          `https://api.hacienda.go.cr/fe/ae?identificacion=${ced}`,
+          { signal: AbortSignal.timeout(8000) }
+        )
+        if (res.ok) {
+          const data = await res.json()
+          const nombre = (data.nombre || '').trim().toUpperCase()
+          results.push({ cedula: ced, nombre: nombre || null, ok: !!nombre })
+        } else {
+          results.push({ cedula: ced, nombre: null, ok: false })
         }
+      } catch {
+        results.push({ cedula: ced, nombre: null, ok: false })
       }
-      const noEncontrados = results.filter(r => !r.ok).length
-      setVerifyResult({ updates, total: conCedula.length, found: results.filter(r => r.ok).length, noEncontrados })
-    } catch(e) {
-      setVerifyResult({ error: `Error procesando la respuesta: ${e.message}` })
-    } finally { setVerifying(false) }
+    }
+
+    const updates = []
+    for (const r of results) {
+      if (!r.ok) continue
+      const p = conCedula.find(p => String(p.cedula).replace(/[-. ]/g, '') === r.cedula)
+      if (p && r.nombre && r.nombre !== p.name.trim().toUpperCase()) {
+        updates.push({ id: p.id, nombreActual: p.name, nombreTSE: r.nombre, cedula: r.cedula })
+      }
+    }
+    const noEncontrados = results.filter(r => !r.ok).length
+    setVerifyResult({ updates, total: conCedula.length, found: results.filter(r => r.ok).length, noEncontrados })
+    setVerifying(false)
   }
 
   const applyUpdate = (id, nombre) => {
