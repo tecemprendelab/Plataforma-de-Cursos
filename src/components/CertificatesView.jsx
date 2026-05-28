@@ -120,6 +120,7 @@ function ConfidenceBadge({ level }) {
 /* ── Pestaña Individual ─────────────────────────────────────── */
 
 function CertIndividual({ participants, galleryTplPick, onGalleryConsumed }) {
+  const { templates, loadSvgContent } = useTemplates()
   const [templateName,    setTemplateName]    = useState('template_classic.svg')
   const [svgFile,         setSvgFile]         = useState(null)
   const [nameId,          setNameId]          = useState('recipient_name')
@@ -175,15 +176,33 @@ function CertIndividual({ participants, galleryTplPick, onGalleryConsumed }) {
     })))
   }
 
-  const selectTemplate = async (filename) => {
-    setTemplateName(filename); setSvgFile(null)
-    try {
-      const r = await fetch(`${CERT_API}/api/templates/${filename}`)
-      if (r.ok) {
-        const txt = await r.text()
-        parseIds(new File([new Blob([txt], {type:'image/svg+xml'})], filename))
+  const selectTemplate = async (val) => {
+    if (!val) { setTemplateName(null); setSvgFile(null); return }
+    // Plantilla built-in
+    const builtin = BUILT_IN_TEMPLATES.find(t => t.file === val)
+    if (builtin) {
+      setTemplateName(val); setSvgFile(null)
+      try {
+        const r = await fetch(`${CERT_API}/api/templates/${val}`)
+        if (r.ok) {
+          const txt = await r.text()
+          parseIds(new File([new Blob([txt], {type:'image/svg+xml'})], val))
+        }
+      } catch(_) {}
+      return
+    }
+    // Plantilla custom de Supabase
+    const tpl = templates.find(t => t.id === val)
+    if (tpl) {
+      const svgText = await loadSvgContent(tpl)
+      if (svgText) {
+        const file = new File([svgText], tpl.file_name, { type: 'image/svg+xml' })
+        setSvgFile(file); setTemplateName(null)
+        parseIds(file)
+        if (tpl.name_id) setNameId(tpl.name_id)
+        if (tpl.date_id) setDateId(tpl.date_id)
       }
-    } catch(_) {}
+    }
   }
 
   const validate = () => {
@@ -223,18 +242,22 @@ function CertIndividual({ participants, galleryTplPick, onGalleryConsumed }) {
       <div className="w-[340px] shrink-0 space-y-4">
         <div className="bg-white border border-stone-200 rounded-xl p-4">
           <p className="text-xs font-semibold uppercase tracking-wider text-stone-500 mb-3">Plantilla</p>
-          <div className="grid grid-cols-2 gap-2 mb-3">
-            {BUILT_IN_TEMPLATES.map(t => (
-              <label key={t.file} className="cursor-pointer">
-                <input type="radio" name="certTpl" value={t.file}
-                  checked={templateName === t.file} onChange={() => selectTemplate(t.file)} className="hidden peer" />
-                <div className="p-3 border border-stone-200 rounded-lg text-center peer-checked:border-orange-500 peer-checked:bg-orange-50 transition-all">
-                  <i className="ti ti-certificate text-lg block mb-1" />
-                  <span className="text-xs font-medium">{t.name}</span>
-                </div>
-              </label>
-            ))}
-          </div>
+          <select
+            value={svgFile ? '' : (templateName || '')}
+            onChange={e => selectTemplate(e.target.value)}
+            className="w-full border border-stone-200 rounded-lg px-3 py-2 text-sm bg-amber-50 focus:outline-none focus:ring-2 focus:ring-orange-400 mb-3">
+            <option value="">— Seleccionar plantilla —</option>
+            <optgroup label="Plantillas predefinidas">
+              {BUILT_IN_TEMPLATES.map(t => <option key={t.id} value={t.file}>{t.name}</option>)}
+            </optgroup>
+            {templates.filter(t => !t.is_builtin).length > 0 && (
+              <optgroup label="Mis plantillas">
+                {templates.filter(t => !t.is_builtin).map(t => (
+                  <option key={t.id} value={t.id}>{t.name}</option>
+                ))}
+              </optgroup>
+            )}
+          </select>
 
           {participants.length > 0 && (
             <div className="mb-3">
