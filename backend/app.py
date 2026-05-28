@@ -166,7 +166,7 @@ def _fill_svg(svg_text: str, fields: dict) -> str:
                 open_tag  = m.group(1)
                 inner     = m.group(2)
                 close_tag = m.group(3)
-                if re.search(r'<[^/!][^>]*tspan', inner, re.IGNORECASE):
+                if re.search(r'<tspan\b', inner, re.IGNORECASE):
                     def _tspan(tm):
                         return tm.group(1) + val + tm.group(2)
                     new_inner = re.sub(
