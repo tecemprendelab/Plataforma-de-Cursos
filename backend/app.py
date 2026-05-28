@@ -922,3 +922,51 @@ Responde SOLO con JSON, sin texto adicional:
 if __name__ == "__main__":
     port = int(os.getenv("PORT", 5050))
     app.run(host="0.0.0.0", port=port, debug=False)
+
+
+@app.post("/api/cedulas/lookup")
+def cedulas_lookup():
+    """
+    Recibe lista de cédulas y devuelve nombres oficiales del Registro Civil.
+    Body JSON: {"cedulas": ["110370477", "205840321", ...]}
+    Respuesta: {"results": [{"cedula": "110370477", "nombre": "JUAN PÉREZ", "ok": true}, ...]}
+    """
+    data = request.get_json(silent=True) or {}
+    cedulas = data.get("cedulas", [])
+    if not cedulas or not isinstance(cedulas, list):
+        return jsonify({"error": "Enviá un JSON con campo 'cedulas' como lista"}), 400
+
+    results = []
+    for ced in cedulas[:200]:  # máximo 200 por request
+        nombre = _lookup_cedula(str(ced))
+        results.append({
+            "cedula": str(ced),
+            "nombre": nombre,
+            "ok": nombre is not None
+        })
+
+    return jsonify({"results": results})
+
+
+@app.post("/api/cedulas/lookup")
+def cedulas_lookup():
+    """
+    Recibe lista de cédulas y devuelve nombres del Registro Civil.
+    Body JSON: {"cedulas": ["110370477", ...]}
+    Respuesta: {"results": [{"cedula": "110370477", "nombre": "JUAN PÉREZ", "ok": true}, ...]}
+    """
+    data = request.get_json(silent=True) or {}
+    cedulas = data.get("cedulas", [])
+    if not cedulas or not isinstance(cedulas, list):
+        return jsonify({"error": "Enviá un JSON con campo 'cedulas' como lista"}), 400
+
+    results = []
+    for ced in cedulas[:200]:
+        nombre = _lookup_cedula(str(ced))
+        results.append({
+            "cedula": str(ced),
+            "nombre": nombre,
+            "ok": nombre is not None
+        })
+
+    return jsonify({"results": results})

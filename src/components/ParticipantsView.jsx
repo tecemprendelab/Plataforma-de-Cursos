@@ -20,6 +20,42 @@ export default function ParticipantsView({
   const [sortBy,       setSortBy]       = useState('fecha_desc')
   const [modalOpen,    setModalOpen]    = useState(false)
   const [editTarget,   setEditTarget]   = useState(null)
+  const [verifying,    setVerifying]    = useState(false)
+  const [verifyResult, setVerifyResult] = useState(null)
+
+  const CERT_API = 'https://plataforma-de-cursos-1-l606.onrender.com'
+
+  const verifyCedulas = async () => {
+    const conCedula = participants.filter(p => p.cedula)
+    if (!conCedula.length) { setVerifyResult({ error: 'Ningún participante tiene cédula registrada.' }); return }
+    setVerifying(true); setVerifyResult(null)
+    try {
+      const res = await fetch(`${CERT_API}/api/cedulas/lookup`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ cedulas: conCedula.map(p => p.cedula) })
+      })
+      const data = await res.json()
+      const results = data.results || []
+      // Mapear resultados a participantes
+      const updates = []
+      for (const r of results) {
+        if (!r.ok) continue
+        const p = conCedula.find(p => String(p.cedula) === String(r.cedula))
+        if (p && r.nombre && r.nombre.trim().toUpperCase() !== p.name.trim().toUpperCase()) {
+          updates.push({ id: p.id, nombreActual: p.name, nombreTSE: r.nombre, cedula: r.cedula })
+        }
+      }
+      setVerifyResult({ updates, total: conCedula.length, found: results.filter(r => r.ok).length })
+    } catch(e) {
+      setVerifyResult({ error: `Error consultando la API: ${e.message}` })
+    } finally { setVerifying(false) }
+  }
+
+  const applyUpdate = (id, nombre) => {
+    onUpdate(id, { name: nombre })
+    setVerifyResult(prev => ({ ...prev, updates: prev.updates.filter(u => u.id !== id) }))
+  }
 
   const filtered = participants
     .filter(p => {
@@ -73,10 +109,59 @@ export default function ParticipantsView({
             {filtered.length} resultado{filtered.length !== 1 ? 's' : ''}
           </p>
         </div>
-        <button className="btn btn-orange" onClick={openNew}>
-          <i className="ti ti-plus"/> Nuevo participante
-        </button>
+        <div style={{ display:'flex', gap:8 }}>
+          <button className="btn" style={{ background:'#f0f9ff', color:'#0369a1', border:'1px solid #bae6fd' }}
+            onClick={verifyCedulas} disabled={verifying}>
+            {verifying
+              ? <><i className="ti ti-loader-2" style={{ animation:'spin 1s linear infinite' }}/> Verificando...</>
+              : <><i className="ti ti-id-badge"/> Verificar nombres por cédula</>}
+          </button>
+          <button className="btn btn-orange" onClick={openNew}>
+            <i className="ti ti-plus"/> Nuevo participante
+          </button>
+        </div>
       </div>
+
+      {/* Resultados de verificación por cédula */}
+      {verifyResult && (
+        <div style={{ margin:'0 0 14px', padding:'12px 16px', borderRadius:10,
+          background: verifyResult.error ? '#fff1f2' : '#f0fdf4',
+          border: `1px solid ${verifyResult.error ? '#fecdd3' : '#bbf7d0'}` }}>
+          {verifyResult.error ? (
+            <p style={{ color:'#be123c', fontSize:13 }}><i className="ti ti-alert-circle"/> {verifyResult.error}</p>
+          ) : (
+            <>
+              <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center', marginBottom: verifyResult.updates?.length ? 8 : 0 }}>
+                <p style={{ color:'#15803d', fontSize:13, fontWeight:600 }}>
+                  <i className="ti ti-check"/> Consultados: {verifyResult.total} · Encontrados: {verifyResult.found} · Diferencias: {verifyResult.updates?.length || 0}
+                </p>
+                <button onClick={() => setVerifyResult(null)} style={{ background:'none', border:'none', cursor:'pointer', color:'#6b7280', fontSize:16 }}>✕</button>
+              </div>
+              {verifyResult.updates?.length > 0 && (
+                <div style={{ display:'flex', flexDirection:'column', gap:6 }}>
+                  {verifyResult.updates.map(u => (
+                    <div key={u.id} style={{ display:'flex', alignItems:'center', gap:8, fontSize:13,
+                      background:'white', padding:'6px 10px', borderRadius:6, border:'1px solid #bbf7d0' }}>
+                      <span style={{ color:'#6b7280', minWidth:90 }}>Céd. {u.cedula}</span>
+                      <span style={{ color:'#ef4444', textDecoration:'line-through' }}>{u.nombreActual}</span>
+                      <i className="ti ti-arrow-right" style={{ color:'#9ca3af' }}/>
+                      <span style={{ color:'#15803d', fontWeight:600 }}>{u.nombreTSE}</span>
+                      <button onClick={() => applyUpdate(u.id, u.nombreTSE)}
+                        style={{ marginLeft:'auto', padding:'2px 10px', borderRadius:5,
+                          background:'#16a34a', color:'white', border:'none', cursor:'pointer', fontSize:12 }}>
+                        Actualizar
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              )}
+              {verifyResult.updates?.length === 0 && (
+                <p style={{ color:'#15803d', fontSize:13 }}>✓ Todos los nombres coinciden con el Registro Civil.</p>
+              )}
+            </>
+          )}
+        </div>
+      )}
 
       {/* Filtros */}
       <div className="filters-row" style={{ display:'flex', gap:8, marginBottom:14, flexWrap:'wrap' }}>
