@@ -29,15 +29,34 @@ export default function ParticipantsView({
     const conCedula = participants.filter(p => p.cedula)
     if (!conCedula.length) { setVerifyResult({ error: 'Ningún participante tiene cédula registrada.' }); return }
     setVerifying(true); setVerifyResult(null)
+
+    // Reintentar hasta 2 veces (Render puede estar dormido)
+    let res, lastError
+    for (let intento = 0; intento < 2; intento++) {
+      try {
+        res = await fetch(`${CERT_API}/api/cedulas/lookup`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ cedulas: conCedula.map(p => p.cedula) }),
+          signal: AbortSignal.timeout(30000)
+        })
+        lastError = null
+        break
+      } catch(e) {
+        lastError = e
+        if (intento === 0) await new Promise(r => setTimeout(r, 3000)) // esperar 3s antes de reintentar
+      }
+    }
+
+    if (lastError || !res) {
+      setVerifyResult({ error: `No se pudo conectar al servidor. Verificá que el backend esté activo e intentá de nuevo.` })
+      setVerifying(false); return
+    }
+
     try {
-      const res = await fetch(`${CERT_API}/api/cedulas/lookup`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ cedulas: conCedula.map(p => p.cedula) })
-      })
       const data = await res.json()
+      if (data.error) { setVerifyResult({ error: data.error }); return }
       const results = data.results || []
-      // Mapear resultados a participantes
       const updates = []
       for (const r of results) {
         if (!r.ok) continue
@@ -46,9 +65,10 @@ export default function ParticipantsView({
           updates.push({ id: p.id, nombreActual: p.name, nombreTSE: r.nombre, cedula: r.cedula })
         }
       }
-      setVerifyResult({ updates, total: conCedula.length, found: results.filter(r => r.ok).length })
+      const noEncontrados = results.filter(r => !r.ok).length
+      setVerifyResult({ updates, total: conCedula.length, found: results.filter(r => r.ok).length, noEncontrados })
     } catch(e) {
-      setVerifyResult({ error: `Error consultando la API: ${e.message}` })
+      setVerifyResult({ error: `Error procesando la respuesta: ${e.message}` })
     } finally { setVerifying(false) }
   }
 
@@ -133,7 +153,9 @@ export default function ParticipantsView({
             <>
               <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center', marginBottom: verifyResult.updates?.length ? 8 : 0 }}>
                 <p style={{ color:'#15803d', fontSize:13, fontWeight:600 }}>
-                  <i className="ti ti-check"/> Consultados: {verifyResult.total} · Encontrados: {verifyResult.found} · Diferencias: {verifyResult.updates?.length || 0}
+                  <i className="ti ti-check"/> Consultados: {verifyResult.total} · Encontrados: {verifyResult.found}
+                  {verifyResult.noEncontrados > 0 && <span style={{color:'#d97706'}}> · No encontrados: {verifyResult.noEncontrados}</span>}
+                  {' · '}Diferencias: {verifyResult.updates?.length || 0}
                 </p>
                 <button onClick={() => setVerifyResult(null)} style={{ background:'none', border:'none', cursor:'pointer', color:'#6b7280', fontSize:16 }}>✕</button>
               </div>

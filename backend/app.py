@@ -567,33 +567,48 @@ _cedula_cache: dict = {}
 
 def _lookup_cedula(cedula: str) -> str | None:
     """
-    Consulta el nombre completo de una persona por su cédula
-    usando la API de Hacienda CR (que consume datos del TSE/Registro Civil).
-    Devuelve el nombre en mayúsculas o None si no se encuentra.
+    Consulta el nombre completo por cédula.
+    Intenta múltiples APIs del estado costarricense.
     """
     import urllib.request as _ur
     import json as _json
+    import urllib.error as _ue
 
-    cedula = cedula.strip().replace("-", "").replace(" ", "")
-    if not cedula.isdigit():
+    cedula = cedula.strip().replace("-", "").replace(" ", "").replace(".", "")
+    if not cedula.isdigit() or len(cedula) < 8:
         return None
 
     if cedula in _cedula_cache:
         return _cedula_cache[cedula]
 
-    try:
-        url = f"https://api.hacienda.go.cr/fe/ae?identificacion={cedula}"
-        req = _ur.Request(url, headers={"User-Agent": "Mozilla/5.0"})
-        with _ur.urlopen(req, timeout=5) as resp:
-            data = _json.loads(resp.read().decode("utf-8"))
+    apis = [
+        f"https://api.hacienda.go.cr/fe/ae?identificacion={cedula}",
+        f"https://api.suitetecnologica.com/api/v1/personas/{cedula}",
+    ]
 
-        # La API devuelve: {"nombre": "JUAN PÉREZ GARCÍA", "tipoIdentificacion": "01", ...}
-        nombre = data.get("nombre", "").strip().upper()
-        if nombre:
-            _cedula_cache[cedula] = nombre
-            return nombre
-    except Exception:
-        pass
+    for url in apis:
+        try:
+            req = _ur.Request(url, headers={
+                "User-Agent": "Mozilla/5.0",
+                "Accept": "application/json",
+            })
+            with _ur.urlopen(req, timeout=8) as resp:
+                raw = resp.read().decode("utf-8")
+                data = _json.loads(raw)
+
+            # Formato Hacienda: {"nombre": "JUAN PEREZ"}
+            nombre = (
+                data.get("nombre") or
+                data.get("name") or
+                data.get("fullName") or
+                ""
+            ).strip().upper()
+
+            if nombre and len(nombre) > 3:
+                _cedula_cache[cedula] = nombre
+                return nombre
+        except (_ue.URLError, _ue.HTTPError, Exception):
+            continue
 
     _cedula_cache[cedula] = None
     return None
@@ -947,26 +962,3 @@ def cedulas_lookup():
 
     return jsonify({"results": results})
 
-
-@app.post("/api/cedulas/lookup")
-def cedulas_lookup():
-    """
-    Recibe lista de cédulas y devuelve nombres del Registro Civil.
-    Body JSON: {"cedulas": ["110370477", ...]}
-    Respuesta: {"results": [{"cedula": "110370477", "nombre": "JUAN PÉREZ", "ok": true}, ...]}
-    """
-    data = request.get_json(silent=True) or {}
-    cedulas = data.get("cedulas", [])
-    if not cedulas or not isinstance(cedulas, list):
-        return jsonify({"error": "Enviá un JSON con campo 'cedulas' como lista"}), 400
-
-    results = []
-    for ced in cedulas[:200]:
-        nombre = _lookup_cedula(str(ced))
-        results.append({
-            "cedula": str(ced),
-            "nombre": nombre,
-            "ok": nombre is not None
-        })
-
-    return jsonify({"results": results})
