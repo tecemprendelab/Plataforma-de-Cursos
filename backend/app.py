@@ -304,6 +304,64 @@ def _fix_image_patterns(svg_text: str) -> str:
 
 
 
+def _inject_firma_yorleny(svg_text: str) -> str:
+    """
+    Inserta el sello de firma digital de Yorleny León Marchena
+    en el SVG del certificado, encima de su línea de firma.
+    Solo actúa si el SVG contiene la firma de Yorleny (id con 'Yorleny').
+    """
+    import re as _re, os as _os
+    from xml.etree import ElementTree as _ET
+
+    # Verificar que este SVG tiene la firma de Yorleny
+    if 'Yorleny' not in svg_text and 'yorleny' not in svg_text.lower():
+        return svg_text
+
+    # Verificar que el sello no está ya insertado
+    if 'firma_yorleny' in svg_text or 'Documento firmado' in svg_text:
+        return svg_text
+
+    # Cargar el SVG del sello y extraer el base64
+    sello_path = _os.path.join(_os.path.dirname(__file__), 'templates', 'firma_yorleny.svg')
+    if not _os.path.exists(sello_path):
+        return svg_text
+
+    try:
+        with open(sello_path, 'r', encoding='utf-8') as f:
+            sello_svg = f.read()
+        root_sello = _ET.fromstring(sello_svg)
+        XLINK = 'http://www.w3.org/1999/xlink'
+        sello_b64 = None
+        for el in root_sello.iter():
+            tag = el.tag.split('}')[-1] if '}' in el.tag else el.tag
+            if tag == 'image':
+                href = el.get(f'{{{XLINK}}}href') or el.get('href', '')
+                if href.startswith('data:'):
+                    sello_b64 = href
+                    break
+        if not sello_b64:
+            return svg_text
+    except Exception:
+        return svg_text
+
+    # Posición del sello: x=328, y=460, w=80, h=38
+    sello_tag = (
+        f'<image x="328" y="460" width="80" height="38"'
+        f' preserveAspectRatio="xMidYMid meet"'
+        f' xmlns:xlink="http://www.w3.org/1999/xlink"'
+        f' xlink:href="{sello_b64}"/>\n  '
+    )
+
+    # Insertar antes del path/text de Yorleny León Marchena
+    result = _re.sub(
+        r'(<(?:path|text|g)[^>]+id=["\'][^"\']*[Yy]orleny[^"\']*["\'])',
+        sello_tag + r'\1',
+        svg_text,
+        count=1
+    )
+    return result
+
+
 def _embed_fonts(svg_text: str) -> str:
     """
     Embebe las fuentes como base64 en el SVG para garantizar
@@ -450,11 +508,11 @@ def list_templates():
 def analyze():
     svg_text = None
     if "file" in request.files:
-        svg_text = _fix_image_patterns(_fix_outlined_text(request.files["file"].read().decode("utf-8", errors="replace")))
+        svg_text = _inject_firma_yorleny(_fix_image_patterns(_fix_outlined_text(request.files["file"].read().decode("utf-8", errors="replace"))))
     else:
         tname = request.form.get("template_name") or (request.get_json(silent=True) or {}).get("template_name")
         if tname:
-            svg_text = _fix_image_patterns(_fix_outlined_text(_load_template(tname)))
+            svg_text = _inject_firma_yorleny(_fix_image_patterns(_fix_outlined_text(_load_template(tname))))
     if not svg_text:
         return jsonify({"error": "no SVG proporcionado"}), 400
     return jsonify({"elements": _detect_elements(svg_text)})
@@ -464,11 +522,11 @@ def analyze():
 def preview():
     svg_text = None
     if "file" in request.files:
-        svg_text = _fix_image_patterns(_fix_outlined_text(request.files["file"].read().decode("utf-8", errors="replace")))
+        svg_text = _inject_firma_yorleny(_fix_image_patterns(_fix_outlined_text(request.files["file"].read().decode("utf-8", errors="replace"))))
     else:
         tname = request.form.get("template_name") or (request.get_json(silent=True) or {}).get("template_name")
         if tname:
-            svg_text = _fix_image_patterns(_fix_outlined_text(_load_template(tname)))
+            svg_text = _inject_firma_yorleny(_fix_image_patterns(_fix_outlined_text(_load_template(tname))))
     if not svg_text:
         return jsonify({"error": "no SVG proporcionado"}), 400
 
@@ -498,7 +556,7 @@ def generate():
         fields  = data.get("fields", {})
         tname   = data.get("template_name")
         if tname:
-            svg_text = _fix_image_patterns(_fix_outlined_text(_load_template(tname)))
+            svg_text = _inject_firma_yorleny(_fix_image_patterns(_fix_outlined_text(_load_template(tname))))
     else:
         fmt = (request.form.get("format") or request.form.get("output_format", "pdf")).lower()
         try:
@@ -507,11 +565,11 @@ def generate():
             fields = {}
 
         if "file" in request.files:
-            svg_text = _fix_image_patterns(_fix_outlined_text(request.files["file"].read().decode("utf-8", errors="replace")))
+            svg_text = _inject_firma_yorleny(_fix_image_patterns(_fix_outlined_text(request.files["file"].read().decode("utf-8", errors="replace"))))
         else:
             tname = request.form.get("template_name")
             if tname:
-                svg_text = _fix_image_patterns(_fix_outlined_text(_load_template(tname)))
+                svg_text = _inject_firma_yorleny(_fix_image_patterns(_fix_outlined_text(_load_template(tname))))
 
         if not fields:
             name_id  = request.form.get("name_field_id", "recipient_name")
@@ -552,11 +610,11 @@ def generate_batch():
     # Cargar SVG
     svg_text = None
     if "file" in request.files:
-        svg_text = _fix_image_patterns(_fix_outlined_text(request.files["file"].read().decode("utf-8", errors="replace")))
+        svg_text = _inject_firma_yorleny(_fix_image_patterns(_fix_outlined_text(request.files["file"].read().decode("utf-8", errors="replace"))))
     else:
         tname = request.form.get("template_name")
         if tname:
-            svg_text = _fix_image_patterns(_fix_outlined_text(_load_template(tname)))
+            svg_text = _inject_firma_yorleny(_fix_image_patterns(_fix_outlined_text(_load_template(tname))))
 
     if not svg_text:
         return jsonify({"error": "No se proporcionó plantilla SVG"}), 400
@@ -627,7 +685,7 @@ def ai_mapeo():
         return jsonify({"error": "IA no disponible — configurá ANTHROPIC_API_KEY"}), 503
 
     if "file" in request.files:
-        svg_text = _fix_image_patterns(_fix_outlined_text(request.files["file"].read().decode("utf-8", errors="replace")))
+        svg_text = _inject_firma_yorleny(_fix_image_patterns(_fix_outlined_text(request.files["file"].read().decode("utf-8", errors="replace"))))
         elements = _detect_elements(svg_text)
     else:
         data     = request.get_json(silent=True) or {}
