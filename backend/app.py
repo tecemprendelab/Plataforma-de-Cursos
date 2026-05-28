@@ -100,6 +100,47 @@ TEMPLATES_DIR = Path(__file__).parent / "templates"
 
 
 # ── helpers ───────────────────────────────────────────────────────────────────
+# Cache para no llamar la API dos veces con el mismo nombre
+_tildes_cache: dict = {}
+
+def _fix_tildes(name: str) -> str:
+    """
+    Corrige tildes en nombres propios usando Claude Haiku.
+    Ejemplo: 'ADRIAN MORALES' → 'ADRIÁN MORALES'
+    Si la API no está disponible, devuelve el nombre sin cambios.
+    """
+    if not AI_OK or not AI_CLIENT:
+        return name
+
+    name_stripped = name.strip()
+    if name_stripped in _tildes_cache:
+        return _tildes_cache[name_stripped]
+
+    try:
+        msg = AI_CLIENT.messages.create(
+            model="claude-haiku-4-5-20251001",
+            max_tokens=60,
+            messages=[{
+                "role": "user",
+                "content": (
+                    f"Corrige las tildes del siguiente nombre propio en español. "
+                    f"Devolvé SOLO el nombre corregido, en mayúsculas, sin explicaciones ni puntuación extra.\n\n"
+                    f"{name_stripped}"
+                )
+            }]
+        )
+        corrected = msg.content[0].text.strip().upper()
+        # Validar que la respuesta es razonable (no mucho más larga que el original)
+        if corrected and len(corrected) <= len(name_stripped) + 10:
+            _tildes_cache[name_stripped] = corrected
+            return corrected
+    except Exception:
+        pass
+
+    _tildes_cache[name_stripped] = name_stripped
+    return name_stripped
+
+
 
 def _split_name_lines(name: str) -> tuple:
     """
@@ -126,6 +167,10 @@ def _fill_svg(svg_text: str, fields: dict) -> str:
             continue
 
         raw_val = str(value)
+
+        # Corregir tildes en nombre del participante
+        if field_id == "recipient_name":
+            raw_val = _fix_tildes(raw_val)
 
         # Nombre con 4+ palabras -> dos lineas
         if field_id == "recipient_name":
