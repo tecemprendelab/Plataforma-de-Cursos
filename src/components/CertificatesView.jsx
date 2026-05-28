@@ -4,6 +4,7 @@
 // ============================================================
 
 import { useState, useEffect, useRef, useCallback } from 'react'
+import { useTemplates } from '../hooks/useTemplates.js'
 
 const CERT_API = 'https://plataforma-de-cursos-1-l606.onrender.com'
 
@@ -340,6 +341,7 @@ function CertIndividual({ participants, galleryTplPick, onGalleryConsumed }) {
 /* ── Pestaña Lote CSV ───────────────────────────────────────── */
 
 function CertBatch({ participants = [] }) {
+  const { templates, loadSvgContent } = useTemplates()
   const [templateName, setTemplateName] = useState(null)
   const [svgFile,      setSvgFile]      = useState(null)
   const [csvFile,      setCsvFile]      = useState(null)
@@ -468,10 +470,34 @@ function CertBatch({ participants = [] }) {
       <div className="col-span-5 space-y-4">
         <div className="bg-white border border-stone-200 rounded-xl p-4">
           <p className="text-xs font-semibold uppercase tracking-wider text-stone-500 mb-3">Plantilla SVG</p>
-          <select value={templateName||''} onChange={e => { setTemplateName(e.target.value||null); setSvgFile(null) }}
+          <select value={templateName||''} onChange={async e => {
+              const val = e.target.value
+              if (!val) { setTemplateName(null); setSvgFile(null); return }
+              // Plantilla built-in
+              const builtin = BUILT_IN_TEMPLATES.find(t => t.file === val)
+              if (builtin) { setTemplateName(val); setSvgFile(null); return }
+              // Plantilla custom de Supabase — cargar SVG como File
+              const tpl = templates.find(t => t.id === val)
+              if (tpl) {
+                const svgText = await loadSvgContent(tpl)
+                if (svgText) {
+                  setSvgFile(new File([svgText], tpl.file_name, { type: 'image/svg+xml' }))
+                  setTemplateName(null)
+                }
+              }
+            }}
             className="w-full border border-stone-200 rounded-lg px-3 py-2 text-sm bg-amber-50 focus:outline-none focus:ring-2 focus:ring-orange-400 mb-3">
             <option value="">— Seleccionar plantilla —</option>
-            {BUILT_IN_TEMPLATES.map(t => <option key={t.id} value={t.file}>{t.name}</option>)}
+            <optgroup label="Plantillas predefinidas">
+              {BUILT_IN_TEMPLATES.map(t => <option key={t.id} value={t.file}>{t.name}</option>)}
+            </optgroup>
+            {templates.filter(t => !t.is_builtin).length > 0 && (
+              <optgroup label="Mis plantillas">
+                {templates.filter(t => !t.is_builtin).map(t => (
+                  <option key={t.id} value={t.id}>{t.name}</option>
+                ))}
+              </optgroup>
+            )}
           </select>
           <CertDropZone accept=".svg" title="O subir SVG propio" subtitle="Opcional"
             icon="upload_file" file={svgFile} onFile={f => { setSvgFile(f); if (f) setTemplateName(null) }} />
