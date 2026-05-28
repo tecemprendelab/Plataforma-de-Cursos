@@ -48,7 +48,7 @@ export default function ProfileView({ id, participants, courses, tags, onToggleA
         <div style={{ flex:1 }}>
           <div style={{ fontFamily:'var(--font-display)', fontSize:22 }}>{p.name}</div>
           <div style={{ fontSize:13, color:'var(--gray)', marginTop:4 }}>
-            {p.email} · {p.phone || 'Sin teléfono'}
+            {p.cedula && <><i className="ti ti-id-badge" style={{marginRight:3}}/>{p.cedula} · </>}{p.email} · {p.phone || 'Sin teléfono'}
           </div>
           {/* Etiquetas en el header */}
           <div style={{ marginTop:8, display:'flex', flexWrap:'wrap', alignItems:'center', gap:4 }}>
