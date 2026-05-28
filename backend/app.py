@@ -101,6 +101,18 @@ TEMPLATES_DIR = Path(__file__).parent / "templates"
 
 # ── helpers ───────────────────────────────────────────────────────────────────
 
+def _split_name_lines(name: str, threshold: int = 4) -> tuple:
+    """
+    Si el nombre tiene >= threshold palabras, lo divide en dos líneas
+    lo más equilibradas posible. Devuelve (linea1, linea2) o (name, None).
+    """
+    words = name.split()
+    if len(words) < threshold:
+        return (name, None)
+    mid = len(words) // 2
+    return (" ".join(words[:mid]), " ".join(words[mid:]))
+
+
 def _fill_svg(svg_text: str, fields: dict) -> str:
     """Replace text content of SVG <text> elements by id."""
     result = svg_text
