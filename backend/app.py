@@ -101,13 +101,14 @@ TEMPLATES_DIR = Path(__file__).parent / "templates"
 
 # ── helpers ───────────────────────────────────────────────────────────────────
 
-def _split_name_lines(name: str, threshold: int = 4) -> tuple:
+def _split_name_lines(name: str) -> tuple:
     """
-    Si el nombre tiene >= threshold palabras, lo divide en dos líneas
-    lo más equilibradas posible. Devuelve (linea1, linea2) o (name, None).
+    Divide el nombre en dos líneas equilibradas.
+    Con 2+ palabras siempre divide por la mitad.
+    Con 1 sola palabra devuelve (name, None).
     """
     words = name.split()
-    if len(words) < threshold:
+    if len(words) < 2:
         return (name, None)
     mid = len(words) // 2
     return (" ".join(words[:mid]), " ".join(words[mid:]))
