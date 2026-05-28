@@ -118,7 +118,7 @@ def _fill_svg(svg_text: str, fields: dict) -> str:
     Para recipient_name con 4+ palabras, divide en dos tspan.
     """
     result = svg_text
-    LINE_HEIGHT = 58  # acorde a font-size=47.9322
+    LINE_HEIGHT = 44  # acorde a font-size=47.9322
 
     for field_id, value in fields.items():
         if not field_id or value is None:
@@ -207,8 +207,8 @@ def _fix_outlined_text(svg_text: str) -> str:
          '<text id="recipient_name" fill="#00457C"'
          ' style="white-space: pre" xml:space="preserve"'
          ' font-family="Onest,Liberation Sans,DejaVu Sans,sans-serif"'
-         ' font-size="47.9322" font-weight="800" letter-spacing="0em">'
-         '<tspan x="65.4" y="316">recipient_name</tspan></text>'),
+         ' font-size="36" font-weight="800" letter-spacing="0em">'
+         '<tspan x="65.4" y="314">recipient_name</tspan></text>'),
         ("issue_date",
          '<text id="issue_date" fill="#00457C"'
          ' style="white-space: pre" xml:space="preserve"'
