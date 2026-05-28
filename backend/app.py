@@ -364,20 +364,20 @@ def _inject_firma_yorleny(svg_text: str) -> str:
 
 def _embed_fonts(svg_text: str) -> str:
     """
-    Embebe las fuentes como base64 en el SVG para garantizar
-    que cairosvg renderice correctamente sin depender del sistema.
-    Prioriza Onest ExtraBold y Outfit Regular (instaladas via Dockerfile).
-    Fallback a Liberation Sans si no están disponibles.
+    Embebe Onest ExtraBold y Outfit Regular como base64 en el SVG.
+    Busca primero en backend/fonts/ (incluido en el repo),
+    luego en el sistema como fallback.
     """
     import base64, os
+
+    base_dir = os.path.dirname(os.path.abspath(__file__))
 
     font_map = {
         "Onest": {
             "weight": "800",
             "paths": [
-                "/usr/local/share/fonts/custom/Onest.ttf",          # Dockerfile
-                "/usr/local/share/fonts/custom/Onest-ExtraBold.ttf",
-                "/usr/share/fonts/truetype/onest/Onest-ExtraBold.ttf",
+                os.path.join(base_dir, "fonts", "Onest.ttf"),          # en el repo
+                "/usr/local/share/fonts/custom/Onest.ttf",
                 "/usr/share/fonts/truetype/liberation/LiberationSans-Bold.ttf",
                 "/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf",
             ],
@@ -385,9 +385,8 @@ def _embed_fonts(svg_text: str) -> str:
         "Outfit": {
             "weight": "400",
             "paths": [
-                "/usr/local/share/fonts/custom/Outfit.ttf",          # Dockerfile
-                "/usr/local/share/fonts/custom/Outfit-Regular.ttf",
-                "/usr/share/fonts/truetype/outfit/Outfit-Regular.ttf",
+                os.path.join(base_dir, "fonts", "Outfit.ttf"),          # en el repo
+                "/usr/local/share/fonts/custom/Outfit.ttf",
                 "/usr/share/fonts/truetype/liberation/LiberationSans-Regular.ttf",
                 "/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf",
             ],
@@ -415,6 +414,7 @@ def _embed_fonts(svg_text: str) -> str:
     font_block = "<defs><style>" + "\n".join(styles) + "</style></defs>"
     import re as _re
     return _re.sub(r"(<svg\b[^>]*>)", lambda m: m.group(1) + font_block, svg_text, count=1)
+
 
 
 def _load_template(template_name: str):
