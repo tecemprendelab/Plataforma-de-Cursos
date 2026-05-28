@@ -227,23 +227,59 @@ def _fix_outlined_text(svg_text: str) -> str:
 def _fix_image_patterns(svg_text: str) -> str:
     """
     Figma exporta logos via <pattern> + <rect fill="url(#patternX)">.
-    cairosvg no renderiza bien estos patterns con imágenes escaladas.
-    Reemplaza cada rect con un <image> directo preservando coordenadas y tamaño.
+    El pattern contiene un <use href="#imageId"> que apunta a un <image>
+    en <defs> con el base64 real. cairosvg no renderiza esto correctamente.
+    Reemplaza cada rect con un <image> directo con el base64 real.
     """
     import re as _re
+    from xml.etree import ElementTree as _ET
 
-    # Mapear id de pattern -> href de la imagen que contiene
+    try:
+        root = _ET.fromstring(svg_text)
+    except _ET.ParseError:
+        return svg_text
+
+    XLINK = 'http://www.w3.org/1999/xlink'
+
+    # 1. Construir mapa id → href para todos los <image> en el SVG
+    image_hrefs = {}
+    for el in root.iter():
+        tag = el.tag.split('}')[-1] if '}' in el.tag else el.tag
+        if tag == 'image':
+            eid = el.get('id')
+            href = el.get(f'{{{XLINK}}}href') or el.get('href', '')
+            if eid and href.startswith('data:'):
+                image_hrefs[eid] = href
+
+    if not image_hrefs:
+        return svg_text
+
+    # 2. Para cada <pattern>, resolver qué imagen usa
     pattern_images = {}
-    for pm in _re.finditer(
-        r'<pattern[^>]+id=["\']([^"\']+)["\'][^>]*>[\s\S]*?'
-        r'href=["\']([^"\']+)["\'][\s\S]*?</pattern>',
-        svg_text
-    ):
-        pattern_images[pm.group(1)] = pm.group(2)
+    for el in root.iter():
+        tag = el.tag.split('}')[-1] if '}' in el.tag else el.tag
+        if tag != 'pattern':
+            continue
+        pat_id = el.get('id')
+        if not pat_id:
+            continue
+        # Buscar <use> o <image> hijo con href
+        for child in el.iter():
+            ctag = child.tag.split('}')[-1] if '}' in child.tag else child.tag
+            href = child.get(f'{{{XLINK}}}href') or child.get('href', '')
+            if href.startswith('#'):
+                ref_id = href[1:]
+                if ref_id in image_hrefs:
+                    pattern_images[pat_id] = image_hrefs[ref_id]
+                    break
+            elif href.startswith('data:'):
+                pattern_images[pat_id] = href
+                break
 
     if not pattern_images:
         return svg_text
 
+    # 3. Reemplazar cada <rect fill="url(#patternX)"> por <image> directo
     result = svg_text
     for pat_id, img_href in pattern_images.items():
         safe_id = _re.escape(pat_id)
@@ -252,8 +288,8 @@ def _fix_image_patterns(svg_text: str) -> str:
             result
         ):
             attrs = rm.group(1)
-            def attr(name, default):
-                m = _re.search(r'\b' + name + r'=["\']([^"\']+)["\']', attrs)
+            def attr(name, default, a=attrs):
+                m = _re.search(r'\b' + name + r'=["\']([^"\']+)["\']', a)
                 return m.group(1) if m else default
             new_tag = (
                 f'<image x="{attr("x","0")}" y="{attr("y","0")}"'
@@ -264,6 +300,7 @@ def _fix_image_patterns(svg_text: str) -> str:
             )
             result = result.replace(rm.group(0), new_tag, 1)
     return result
+
 
 
 def _embed_fonts(svg_text: str) -> str:
