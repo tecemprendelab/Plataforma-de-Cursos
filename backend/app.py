@@ -118,7 +118,7 @@ def _fill_svg(svg_text: str, fields: dict) -> str:
     Para recipient_name con 4+ palabras, divide en dos tspan.
     """
     result = svg_text
-    LINE_HEIGHT = 45  # acorde a font-size=36
+    LINE_HEIGHT = 58  # acorde a font-size=47.9322
 
     for field_id, value in fields.items():
         if not field_id or value is None:
@@ -207,7 +207,7 @@ def _fix_outlined_text(svg_text: str) -> str:
          '<text id="recipient_name" fill="#00457C"'
          ' style="white-space: pre" xml:space="preserve"'
          ' font-family="Onest,Liberation Sans,DejaVu Sans,sans-serif"'
-         ' font-size="36" font-weight="800" letter-spacing="0em">'
+         ' font-size="47.9322" font-weight="800" letter-spacing="0em">'
          '<tspan x="65.4" y="316">recipient_name</tspan></text>'),
         ("issue_date",
          '<text id="issue_date" fill="#00457C"'
@@ -303,51 +303,51 @@ def _fix_image_patterns(svg_text: str) -> str:
 
 
 
+
 def _embed_fonts(svg_text: str) -> str:
     """
-    Embebe las fuentes del sistema como base64 en el SVG.
-    Garantiza que cairosvg renderice el texto correctamente
-    sin depender de las fuentes instaladas en el servidor.
-    Mapea Onest → LiberationSans-Bold, Outfit → LiberationSans-Regular.
+    Embebe las fuentes como base64 en el SVG para garantizar
+    que cairosvg renderice correctamente sin depender del sistema.
+    Prioriza Onest ExtraBold y Outfit Regular (instaladas via Dockerfile).
+    Fallback a Liberation Sans si no están disponibles.
     """
     import base64, os
 
     font_map = {
-        "Onest":   ("/usr/share/fonts/truetype/liberation/LiberationSans-Bold.ttf",    "800"),
-        "Outfit":  ("/usr/share/fonts/truetype/liberation/LiberationSans-Regular.ttf", "400"),
+        "Onest": {
+            "weight": "800",
+            "paths": [
+                "/usr/local/share/fonts/custom/Onest.ttf",          # Dockerfile
+                "/usr/local/share/fonts/custom/Onest-ExtraBold.ttf",
+                "/usr/share/fonts/truetype/onest/Onest-ExtraBold.ttf",
+                "/usr/share/fonts/truetype/liberation/LiberationSans-Bold.ttf",
+                "/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf",
+            ],
+        },
+        "Outfit": {
+            "weight": "400",
+            "paths": [
+                "/usr/local/share/fonts/custom/Outfit.ttf",          # Dockerfile
+                "/usr/local/share/fonts/custom/Outfit-Regular.ttf",
+                "/usr/share/fonts/truetype/outfit/Outfit-Regular.ttf",
+                "/usr/share/fonts/truetype/liberation/LiberationSans-Regular.ttf",
+                "/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf",
+            ],
+        },
     }
 
-    # Buscar fuentes alternativas si Liberation no está disponible
-    fallbacks = [
-        "/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf",
-        "/usr/share/fonts/truetype/freefont/FreeSansBold.ttf",
-    ]
-    fallbacks_regular = [
-        "/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf",
-        "/usr/share/fonts/truetype/freefont/FreeSans.ttf",
-    ]
-
-    def find_font(primary, alts):
-        if os.path.exists(primary):
-            return primary
-        for a in alts:
-            if os.path.exists(a):
-                return a
-        return None
-
     styles = []
-    for family, (path, weight) in font_map.items():
-        alts = fallbacks if weight == "800" else fallbacks_regular
-        real_path = find_font(path, alts)
-        if not real_path:
+    for family, cfg in font_map.items():
+        font_path = next((p for p in cfg["paths"] if os.path.exists(p)), None)
+        if not font_path:
             continue
-        with open(real_path, "rb") as f:
+        with open(font_path, "rb") as f:
             b64 = base64.b64encode(f.read()).decode("utf-8")
         styles.append(
             f"@font-face {{\n"
-            f"  font-family: \'{family}\';\n"
-            f"  font-weight: {weight};\n"
-            f"  src: url(\'data:font/truetype;base64,{b64}\') format(\'truetype\');\n"
+            f"  font-family: '{family}';\n"
+            f"  font-weight: {cfg['weight']};\n"
+            f"  src: url('data:font/truetype;base64,{b64}') format('truetype');\n"
             f"}}"
         )
 
@@ -355,9 +355,8 @@ def _embed_fonts(svg_text: str) -> str:
         return svg_text
 
     font_block = "<defs><style>" + "\n".join(styles) + "</style></defs>"
-    # Insertar justo después del tag <svg ...>
     import re as _re
-    return _re.sub(r"(<svg\b[^>]*>)", r"\1" + font_block, svg_text, count=1)
+    return _re.sub(r"(<svg\b[^>]*>)", lambda m: m.group(1) + font_block, svg_text, count=1)
 
 
 def _load_template(template_name: str):
