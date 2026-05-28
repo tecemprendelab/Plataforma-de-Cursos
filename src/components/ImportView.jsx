@@ -108,23 +108,64 @@ export default function ImportView({ participants, courses = [], onImport, onBul
   const [bulkAccess,      setBulkAccess]      = useState('none')   // 'on' | 'off' | 'none'
   const [bulkAccessFecha, setBulkAccessFecha] = useState(todayISO())
   const [bulkApplying,    setBulkApplying]    = useState(false)
+  const [enriching,       setEnriching]       = useState(false)
+  const [enrichStats,     setEnrichStats]     = useState(null)
 
   const fileRef = useRef()
+
+  const enrichWithTSE = async (rows) => {
+    const conCedula = rows.filter(r => r.cedula)
+    if (!conCedula.length) return { rows, found: 0, corrected: 0 }
+    let found = 0, corrected = 0
+    const enriched = [...rows]
+    for (const row of conCedula) {
+      const ced = row.cedula.replace(/[-. ]/g, '')
+      try {
+        const res = await fetch(
+          `https://api.hacienda.go.cr/fe/ae?identificacion=${ced}`,
+          { signal: AbortSignal.timeout(8000) }
+        )
+        if (res.ok) {
+          const data = await res.json()
+          const nombre = (data.nombre || '').trim().toUpperCase()
+          if (nombre) {
+            found++
+            const idx = enriched.indexOf(row)
+            if (nombre !== row.name.trim().toUpperCase()) corrected++
+            enriched[idx] = { ...row, name: nombre }
+          }
+        }
+      } catch { /* API no disponible, dejamos el nombre del CSV */ }
+    }
+    return { rows: enriched, found, corrected }
+  }
 
   const processFile = (file) => {
     if (!file) return
     setDone(false); setMatchRes(null); setParseRes(null); setSelected(new Set())
-    setRowFechas({})
+    setRowFechas({}); setEnrichStats(null)
     const reader = new FileReader()
-    reader.onload = (ev) => {
+    reader.onload = async (ev) => {
       const text = ev.target.result
       setCsvText(text)
       const parsed = parseCsv(text)
-      setParseRes(parsed)
-      const m = matchExisting(parsed.rows, participants)
+
+      // Consultar TSE para enriquecer nombres con cédula
+      let rows = parsed.rows
+      if (parsed.rows.some(r => r.cedula)) {
+        setEnriching(true)
+        try {
+          const result = await enrichWithTSE(parsed.rows)
+          rows = result.rows
+          setEnrichStats({ found: result.found, corrected: result.corrected, total: parsed.rows.filter(r => r.cedula).length })
+        } catch { /* silencioso */ }
+        finally { setEnriching(false) }
+      }
+
+      setParseRes({ ...parsed, rows })
+      const m = matchExisting(rows, participants)
       setMatchRes(m)
       setSelected(new Set(m.nuevos.map((_, i) => i)))
-      // inicializa fechas por fila a hoy
       const fechas = {}
       m.nuevos.forEach((_, i) => { fechas[i] = todayISO() })
       setRowFechas(fechas)
@@ -353,6 +394,24 @@ export default function ImportView({ participants, courses = [], onImport, onBul
             </div>
           )}
         </>
+      )}
+
+      {enriching && (
+        <div style={{ margin:'16px 0', padding:'12px 16px', borderRadius:10,
+          background:'#eff6ff', border:'1px solid #bfdbfe', display:'flex', alignItems:'center', gap:10 }}>
+          <span style={{ fontSize:18, animation:'spin 1s linear infinite', display:'inline-block' }}>⟳</span>
+          <span style={{ fontSize:13, color:'#1d4ed8' }}>Consultando el Registro Civil para corregir nombres...</span>
+        </div>
+      )}
+
+      {enrichStats && (
+        <div style={{ margin:'0 0 12px', padding:'10px 14px', borderRadius:10,
+          background:'#f0fdf4', border:'1px solid #bbf7d0', fontSize:13, color:'#15803d' }}>
+          <i className="ti ti-id-badge"/> Registro Civil: {enrichStats.found}/{enrichStats.total} encontrados
+          {enrichStats.corrected > 0
+            ? <> · <strong>{enrichStats.corrected} nombre{enrichStats.corrected !== 1 ? 's' : ''} corregido{enrichStats.corrected !== 1 ? 's' : ''}</strong></>
+            : <> · Todos los nombres coinciden</>}
+        </div>
       )}
 
       {matchRes && (
