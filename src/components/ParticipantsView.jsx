@@ -65,7 +65,9 @@ export default function ParticipantsView({
   }
 
   const applyUpdate = (id, nombre) => {
-    onUpdate(id, { name: nombre })
+    // Buscar el participante completo y solo cambiar el nombre
+    const p = participants.find(p => p.id === id)
+    if (p) onUpdate(id, { ...p, name: nombre })
     setVerifyResult(prev => ({ ...prev, updates: prev.updates.filter(u => u.id !== id) }))
   }
 
