@@ -223,6 +223,49 @@ def _fix_outlined_text(svg_text: str) -> str:
             svg_text = _re.sub(pat, replacement, svg_text)
     return svg_text
 
+
+def _fix_image_patterns(svg_text: str) -> str:
+    """
+    Figma exporta logos via <pattern> + <rect fill="url(#patternX)">.
+    cairosvg no renderiza bien estos patterns con imágenes escaladas.
+    Reemplaza cada rect con un <image> directo preservando coordenadas y tamaño.
+    """
+    import re as _re
+
+    # Mapear id de pattern -> href de la imagen que contiene
+    pattern_images = {}
+    for pm in _re.finditer(
+        r'<pattern[^>]+id=["\']([^"\']+)["\'][^>]*>[\s\S]*?'
+        r'href=["\']([^"\']+)["\'][\s\S]*?</pattern>',
+        svg_text
+    ):
+        pattern_images[pm.group(1)] = pm.group(2)
+
+    if not pattern_images:
+        return svg_text
+
+    result = svg_text
+    for pat_id, img_href in pattern_images.items():
+        safe_id = _re.escape(pat_id)
+        for rm in _re.finditer(
+            r'<rect([^>]+)fill=["\']url\(#' + safe_id + r'\)["\'][^/]*/>',
+            result
+        ):
+            attrs = rm.group(1)
+            def attr(name, default):
+                m = _re.search(r'\b' + name + r'=["\']([^"\']+)["\']', attrs)
+                return m.group(1) if m else default
+            new_tag = (
+                f'<image x="{attr("x","0")}" y="{attr("y","0")}"'
+                f' width="{attr("width","10")}" height="{attr("height","10")}"'
+                f' preserveAspectRatio="xMidYMid meet"'
+                f' xmlns:xlink="http://www.w3.org/1999/xlink"'
+                f' xlink:href="{img_href}"/>'
+            )
+            result = result.replace(rm.group(0), new_tag, 1)
+    return result
+
+
 def _embed_fonts(svg_text: str) -> str:
     """
     Embebe las fuentes del sistema como base64 en el SVG.
@@ -371,11 +414,11 @@ def list_templates():
 def analyze():
     svg_text = None
     if "file" in request.files:
-        svg_text = _fix_outlined_text(request.files["file"].read().decode("utf-8", errors="replace"))
+        svg_text = _fix_image_patterns(_fix_outlined_text(request.files["file"].read().decode("utf-8", errors="replace")))
     else:
         tname = request.form.get("template_name") or (request.get_json(silent=True) or {}).get("template_name")
         if tname:
-            svg_text = _fix_outlined_text(_load_template(tname))
+            svg_text = _fix_image_patterns(_fix_outlined_text(_load_template(tname)))
     if not svg_text:
         return jsonify({"error": "no SVG proporcionado"}), 400
     return jsonify({"elements": _detect_elements(svg_text)})
@@ -385,11 +428,11 @@ def analyze():
 def preview():
     svg_text = None
     if "file" in request.files:
-        svg_text = _fix_outlined_text(request.files["file"].read().decode("utf-8", errors="replace"))
+        svg_text = _fix_image_patterns(_fix_outlined_text(request.files["file"].read().decode("utf-8", errors="replace")))
     else:
         tname = request.form.get("template_name") or (request.get_json(silent=True) or {}).get("template_name")
         if tname:
-            svg_text = _fix_outlined_text(_load_template(tname))
+            svg_text = _fix_image_patterns(_fix_outlined_text(_load_template(tname)))
     if not svg_text:
         return jsonify({"error": "no SVG proporcionado"}), 400
 
@@ -419,7 +462,7 @@ def generate():
         fields  = data.get("fields", {})
         tname   = data.get("template_name")
         if tname:
-            svg_text = _fix_outlined_text(_load_template(tname))
+            svg_text = _fix_image_patterns(_fix_outlined_text(_load_template(tname)))
     else:
         fmt = (request.form.get("format") or request.form.get("output_format", "pdf")).lower()
         try:
@@ -428,11 +471,11 @@ def generate():
             fields = {}
 
         if "file" in request.files:
-            svg_text = _fix_outlined_text(request.files["file"].read().decode("utf-8", errors="replace"))
+            svg_text = _fix_image_patterns(_fix_outlined_text(request.files["file"].read().decode("utf-8", errors="replace")))
         else:
             tname = request.form.get("template_name")
             if tname:
-                svg_text = _fix_outlined_text(_load_template(tname))
+                svg_text = _fix_image_patterns(_fix_outlined_text(_load_template(tname)))
 
         if not fields:
             name_id  = request.form.get("name_field_id", "recipient_name")
@@ -473,11 +516,11 @@ def generate_batch():
     # Cargar SVG
     svg_text = None
     if "file" in request.files:
-        svg_text = _fix_outlined_text(request.files["file"].read().decode("utf-8", errors="replace"))
+        svg_text = _fix_image_patterns(_fix_outlined_text(request.files["file"].read().decode("utf-8", errors="replace")))
     else:
         tname = request.form.get("template_name")
         if tname:
-            svg_text = _fix_outlined_text(_load_template(tname))
+            svg_text = _fix_image_patterns(_fix_outlined_text(_load_template(tname)))
 
     if not svg_text:
         return jsonify({"error": "No se proporcionó plantilla SVG"}), 400
@@ -548,7 +591,7 @@ def ai_mapeo():
         return jsonify({"error": "IA no disponible — configurá ANTHROPIC_API_KEY"}), 503
 
     if "file" in request.files:
-        svg_text = _fix_outlined_text(request.files["file"].read().decode("utf-8", errors="replace"))
+        svg_text = _fix_image_patterns(_fix_outlined_text(request.files["file"].read().decode("utf-8", errors="replace")))
         elements = _detect_elements(svg_text)
     else:
         data     = request.get_json(silent=True) or {}
