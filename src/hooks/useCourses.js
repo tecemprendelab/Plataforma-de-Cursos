@@ -29,7 +29,7 @@ function fromDb(row) {
     modalidad:   row.modalidad ?? 'Asincrónico',
     code:        row.code ?? '',
     description: row.description ?? '',
-    active:      row.active,
+    active:      row.active ?? true,
     accessDays:  row.access_days != null ? Number(row.access_days) : 45,
   }
 }
