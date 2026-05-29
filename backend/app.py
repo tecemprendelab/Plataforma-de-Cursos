@@ -103,9 +103,6 @@ TEMPLATES_DIR = Path(__file__).parent / "templates"
 # Cache para no llamar la API dos veces con el mismo nombre
 _tildes_cache: dict = {}
 
-# Cache para no llamar la API dos veces con el mismo nombre
-_tildes_cache: dict = {}
-
 # Diccionario de nombres propios comunes con tildes correctas
 _NOMBRES_TILDES = {
     # Masculinos
@@ -214,12 +211,14 @@ def _split_name_lines(name: str) -> tuple:
 
 def _build_mixed_line(parts, x, y, fill, font_family, font_size):
     spans = ""
-    for i, (txt, bold) in enumerate(parts):
+    first = True
+    for txt, bold in parts:
         if not txt:
             continue
         fw = "700" if bold else "400"
-        if i == 0:
+        if first:
             spans += f'<tspan x="{x}" y="{y}" font-weight="{fw}">{txt}</tspan>'
+            first = False
         else:
             spans += f'<tspan font-weight="{fw}">{txt}</tspan>'
     return (
@@ -298,11 +297,17 @@ def _fill_svg(svg_text: str, fields: dict) -> str:
                 safe_id = _re.escape(field_id)
                 def make_two_line(l1, l2, lh):
                     def _r(m):
+                        tag   = m.group(1)
                         inner = m.group(2)
                         xm = _re.search(r'<tspan[^>]+x=["\']([^"\']*)["\']', inner)
                         ym = _re.search(r'<tspan[^>]+y=["\']([^"\']*)["\']', inner)
-                        x_val = xm.group(1) if xm else "421"
-                        y_val = float(ym.group(1)) if ym else 218.0
+                        # Fallback: leer x/y del elemento <text> cuando no hay tspan
+                        if not xm:
+                            xm = _re.search(r'\bx=["\']([^"\']*)["\']', tag)
+                        if not ym:
+                            ym = _re.search(r'\by=["\']([^"\']*)["\']', tag)
+                        x_val = xm.group(1) if xm else "600"
+                        y_val = float(ym.group(1)) if ym else 400.0
                         y1 = y_val - lh * 0.5
                         new_inner = (
                             f'<tspan x="{x_val}" y="{y1:.1f}">{l1}</tspan>'
@@ -1102,11 +1107,6 @@ Responde SOLO con JSON, sin texto adicional:
         return jsonify({"error": str(e)}), 500
 
 
-if __name__ == "__main__":
-    port = int(os.getenv("PORT", 5050))
-    app.run(host="0.0.0.0", port=port, debug=False)
-
-
 @app.post("/api/cedulas/lookup")
 def cedulas_lookup():
     """
@@ -1129,4 +1129,9 @@ def cedulas_lookup():
         })
 
     return jsonify({"results": results})
+
+
+if __name__ == "__main__":
+    port = int(os.getenv("PORT", 5050))
+    app.run(host="0.0.0.0", port=port, debug=False)
 
