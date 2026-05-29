@@ -106,8 +106,16 @@ function AuthenticatedApp({ user, onSignOut, theme, toggleTheme }) {
   }
 
   // ── Wrappers cursos ───────────────────────────────────────
-  const handleAddCourse    = form    => { addCourse(form);              toast('Programa creado ✓')          }
-  const handleUpdateCourse = (id,f)  => { updateCourse(id,f);           toast('Programa actualizado ✓')     }
+  const handleAddCourse    = async (form)   => {
+    const result = await addCourse(form)
+    if (result === null) toast('Error al crear el programa — revisá la consola')
+    else toast('Programa creado ✓')
+  }
+  const handleUpdateCourse = async (id, f) => {
+    const result = await updateCourse(id, f)
+    if (result === null) toast('Error al actualizar — revisá la consola')
+    else toast('Programa actualizado ✓')
+  }
   const handleDeleteCourse = id      => {
     const c = courses.find(x => x.id === id)
     if (!confirm(`¿Eliminar "${c?.name}"? Se quitará de todos los participantes.`)) return

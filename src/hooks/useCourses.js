@@ -122,9 +122,10 @@ export function useCourses() {
     }
     const { data, error } = await supabase.from('courses')
       .update(toDb(form)).eq('id', id).select('*').single()
-    if (error) { console.error('[useCourses] update', error); return }
+    if (error) { console.error('[useCourses] update', error); return null }
     const mapped = fromDb(data)
     setCourses(prev => prev.map(c => c.id === id ? mapped : c))
+    return mapped
   }, [])
 
   /** Elimina el curso. En modo Supabase el FK cascade limpia
