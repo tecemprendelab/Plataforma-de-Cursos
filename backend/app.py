@@ -350,73 +350,36 @@ def _fill_svg(svg_text: str, fields: dict) -> str:
 def _remove_paths_by_id_keywords(svg_text: str, keywords: list) -> str:
     """
     Elimina <path .../> cuyo id contiene alguna keyword.
-    Usa lxml con recover=True como método primario (maneja SVG/XML
-    malformado de Figma). Si falla, aplica parser carácter a carácter
-    como fallback.
+
+    Estrategia: buscar id="...keyword..." con regex (solo sobre el
+    atributo id, no sobre el d="" completo), luego localizar el inicio
+    del <path con rfind y el cierre /> con find. Funciona incluso cuando
+    el atributo d="" tiene '>' sin escapar (exportación de Figma).
     """
     import re as _re
+    result = svg_text
 
-    # ── Método 1: lxml DOM ────────────────────────────────────────
-    try:
-        from lxml import etree
-        SVG_NS = 'http://www.w3.org/2000/svg'
-        parser = etree.XMLParser(recover=True, remove_comments=False)
-        root = etree.fromstring(svg_text.encode('utf-8'), parser=parser)
-
-        to_remove = []
-        for el in root.iter():
-            local = el.tag.split('}')[-1] if '}' in el.tag else el.tag
-            if local == 'path':
-                eid = el.get('id', '')
-                if any(kw in eid for kw in keywords):
-                    to_remove.append(el)
-
-        for el in to_remove:
-            parent = el.getparent()
-            if parent is not None:
-                parent.remove(el)
-
-        # Serializar preservando declaración XML y namespaces
-        result = etree.tostring(root, encoding='unicode',
-                                xml_declaration=False,
-                                pretty_print=False)
-        return result
-
-    except Exception:
-        pass  # lxml falló → usar fallback
-
-    # ── Método 2: parser carácter a carácter (fallback) ──────────
-    def _get_id(tag):
-        m = _re.search(r'\bid\s*=\s*["\']([^"\']*)["\']', tag)
-        return m.group(1) if m else ''
-
-    out = []
-    i = 0
-    n = len(svg_text)
-    while i < n:
-        if svg_text[i:i+6] in ('<path ', '<path\t', '<path\n'):
-            j = i + 5
-            in_q = False
-            q_char = ''
-            end = -1
-            while j < n:
-                c = svg_text[j]
-                if in_q:
-                    if c == q_char:
-                        in_q = False
-                elif c in '"\'':
-                    in_q = True
-                    q_char = c
-                elif c == '/' and j + 1 < n and svg_text[j + 1] == '>':
-                    end = j + 2
-                    break
-                elif c == '>' and not in_q:
-                    end = j + 1
-                    break
-                j += 1
-            if end == -1:
-                out.append(svg_text[i:])
+    for kw in keywords:
+        escaped = _re.escape(kw)
+        id_pat  = _re.compile(r'id=["\'][^"\']*' + escaped + r'[^"\']*["\']')
+        # Iterar hasta no encontrar más ocurrencias (puede haber varias)
+        while True:
+            m = id_pat.search(result)
+            if not m:
                 break
+            # Inicio del elemento <path que contiene este id
+            path_start = result.rfind('<path', 0, m.start())
+            if path_start == -1:
+                break
+            # Fin del elemento: primer /> después del id
+            # Los comandos SVG de <path> nunca contienen '/>',
+            # por lo que el primer /> encontrado es siempre el cierre real.
+            close = result.find('/>', m.end())
+            if close == -1:
+                break
+            result = result[:path_start] + result[close + 2:]
+
+    return result
             tag = svg_text[i:end]
             if not any(kw in _get_id(tag) for kw in keywords):
                 out.append(tag)
