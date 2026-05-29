@@ -40,7 +40,8 @@ function ExtraFieldInput({ id, value, onChange, size = 'sm', courses = [] }) {
       <select value={value} onChange={e => onChange(e.target.value)} className={cls}>
         <option value="">— Seleccionar curso/taller —</option>
         {certCourses.map(c => {
-          const label = `${TIPO_PREFIX[c.type] || 'Curso de'} ${c.name}`
+          const prefix = TIPO_PREFIX[c.type] || 'Curso de'
+          const label = c.name.startsWith(prefix) ? c.name : `${prefix} ${c.name}`
           return <option key={c.id} value={label}>{label}</option>
         })}
       </select>
@@ -524,7 +525,8 @@ function CertBatch({ participants = [], courses = [] }) {
       const next = { ...prev }
       Object.keys(next).forEach(id => {
         if (/line_curso|tipo_curso/i.test(id)) {
-          next[id] = `${TIPO_PREFIX[course.type] || 'Curso de'} ${course.name}`
+          const _prefix = TIPO_PREFIX[course.type] || 'Curso de'
+          next[id] = course.name.startsWith(_prefix) ? course.name : `${_prefix} ${course.name}`
         }
         if (/line_fechas|fecha_rango|date_range/i.test(id)) {
           const s = fmtDateEs(course.start), e = fmtDateEs(course.end)

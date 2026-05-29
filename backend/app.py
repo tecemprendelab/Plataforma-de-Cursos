@@ -375,6 +375,7 @@ def _fix_cursos_svg(svg_text: str) -> str:
         'course_name_2',
         'impartidas',
         'desde el',
+        'al',
         'date_issue_1',
         'date_issue_2',
         'Otorgado en la ciudad',
