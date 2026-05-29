@@ -22,16 +22,22 @@ const fmtDateEs = iso => {
   return `${d} de ${MESES_ES[m-1]} de ${y}`
 }
 
-const TIPO_CURSO_OPTIONS = ['Taller de','Curso de','Seminario de','Bootcamp de','Charla sobre']
+const TIPO_PREFIX = { taller:'Taller de', curso:'Curso de', seminario:'Seminario de', bootcamp:'Bootcamp de', charla:'Charla sobre' }
 
-function ExtraFieldInput({ id, value, onChange, size = 'sm' }) {
+function ExtraFieldInput({ id, value, onChange, size = 'sm', courses = [] }) {
   const isTipo = /line_curso|tipo_curso/i.test(id)
   const cls = `w-full border border-stone-200 rounded-lg px-3 py-2 text-${size} bg-amber-50 focus:outline-none focus:ring-2 focus:ring-orange-400`
   if (isTipo) {
+    const certCourses = courses.some(c => c.certEnabled)
+      ? courses.filter(c => c.active && c.certEnabled)
+      : courses.filter(c => c.active)
     return (
       <select value={value} onChange={e => onChange(e.target.value)} className={cls}>
-        <option value="">— Seleccionar tipo —</option>
-        {TIPO_CURSO_OPTIONS.map(o => <option key={o} value={o}>{o}</option>)}
+        <option value="">— Seleccionar curso/taller —</option>
+        {certCourses.map(c => {
+          const label = `${TIPO_PREFIX[c.type] || 'Curso de'} ${c.name}`
+          return <option key={c.id} value={label}>{label}</option>
+        })}
       </select>
     )
   }
@@ -145,7 +151,7 @@ function ConfidenceBadge({ level }) {
 
 /* ── Pestaña Individual ─────────────────────────────────────── */
 
-function CertIndividual({ participants, galleryTplPick, onGalleryConsumed }) {
+function CertIndividual({ participants, courses = [], galleryTplPick, onGalleryConsumed }) {
   const { templates, loadSvgContent } = useTemplates()
   const [templateName,    setTemplateName]    = useState('template_classic.svg')
   const [svgFile,         setSvgFile]         = useState(null)
@@ -374,7 +380,7 @@ function CertIndividual({ participants, galleryTplPick, onGalleryConsumed }) {
               {extraIds.map(({id}) => (
                 <div key={id}>
                   <label className="block text-xs text-stone-500 mb-1 font-mono">{id}</label>
-                  <ExtraFieldInput id={id}
+                  <ExtraFieldInput id={id} courses={courses}
                     value={extraFieldValues[id] ?? ''}
                     onChange={v => setExtraFieldValues(prev => ({...prev, [id]: v}))} />
                 </div>
@@ -481,8 +487,7 @@ function CertBatch({ participants = [], courses = [] }) {
       const next = { ...prev }
       Object.keys(next).forEach(id => {
         if (/line_curso|tipo_curso/i.test(id)) {
-          const prefix = { taller:'Taller de', curso:'Curso de', seminario:'Seminario de', bootcamp:'Bootcamp de', charla:'Charla sobre' }
-          next[id] = prefix[course.type] ?? next[id]
+          next[id] = `${TIPO_PREFIX[course.type] || 'Curso de'} ${course.name}`
         }
         if (/line_fechas|fecha_rango|date_range/i.test(id)) {
           const s = fmtDateEs(course.start), e = fmtDateEs(course.end)
@@ -728,7 +733,7 @@ function CertBatch({ participants = [], courses = [] }) {
               {extraIds.map(({id}) => (
                 <div key={id}>
                   <label className="block text-xs text-stone-500 mb-1 font-mono">{id}</label>
-                  <ExtraFieldInput id={id} size="xs"
+                  <ExtraFieldInput id={id} size="xs" courses={courses}
                     value={extraFieldValues[id] ?? ''}
                     onChange={v => setExtraFieldValues(prev => ({...prev, [id]: v}))} />
                 </div>
@@ -1108,7 +1113,7 @@ export default function CertificatesView({ participants, courses = [], galleryTp
 
       <CertFieldsReference />
 
-      {certTab === 'individual' && <CertIndividual participants={participants} galleryTplPick={galleryTplPick} onGalleryConsumed={onGalleryConsumed} />}
+      {certTab === 'individual' && <CertIndividual participants={participants} courses={courses} galleryTplPick={galleryTplPick} onGalleryConsumed={onGalleryConsumed} />}
       {certTab === 'batch'      && <CertBatch participants={participants} courses={courses} />}
       {certTab === 'analyze'    && <CertAnalyze aiAvailable={aiAvailable} />}
     </div>
