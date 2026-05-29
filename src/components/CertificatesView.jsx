@@ -129,11 +129,24 @@ function CertIndividual({ participants, galleryTplPick, onGalleryConsumed }) {
   const [date,            setDate]            = useState(TODAY_ES)
   const [fmt,             setFmt]             = useState('pdf')
   const [detectedIds,     setDetectedIds]     = useState([])
+  const [extraFieldValues,setExtraFieldValues]= useState({})
   const [loading,         setLoading]         = useState(false)
   const [alert,           setAlert]           = useState(null)
   const [previewSvg,      setPreviewSvg]      = useState(null)
   const [previewLoading,  setPreviewLoading]  = useState(false)
   const [errors,          setErrors]          = useState({})
+
+  // IDs detectados que no son nombre ni fecha
+  const extraIds = detectedIds.filter(({id}) => id !== nameId && id !== dateId)
+
+  // Construye el objeto fields completo para enviar al backend
+  const buildFields = (rcp, dt, nId, dId, extra) => {
+    const fields = {}
+    if (rcp && nId) fields[nId] = rcp
+    if (dt  && dId) fields[dId] = dt
+    Object.entries(extra || {}).forEach(([k, v]) => { if (v) fields[k] = v })
+    return fields
+  }
 
   useEffect(() => {
     if (!galleryTplPick) return
@@ -149,12 +162,12 @@ function CertIndividual({ participants, galleryTplPick, onGalleryConsumed }) {
     if (onGalleryConsumed) onGalleryConsumed()
   }, [galleryTplPick])
 
-  const doPreview = useCallback(async (tpl, file, rcp, dt, nId, dId) => {
+  const doPreview = useCallback(async (tpl, file, rcp, dt, nId, dId, extra) => {
     if (!tpl && !file) return
     const form = new FormData()
     if (file) form.append('file', file); else form.append('template_name', tpl)
-    if (rcp) form.append('recipient_name', rcp)
-    if (dt)  form.append('issue_date', dt)
+    const fields = buildFields(rcp, dt, nId, dId, extra)
+    if (Object.keys(fields).length) form.append('fields', JSON.stringify(fields))
     if (nId) form.append('name_field_id', nId)
     if (dId) form.append('date_field_id', dId)
     setPreviewLoading(true)
@@ -166,14 +179,20 @@ function CertIndividual({ participants, galleryTplPick, onGalleryConsumed }) {
   }, [])
 
   const debouncedPreview = useDebounce(doPreview, 380)
-  useEffect(() => { debouncedPreview(templateName, svgFile, recipient, date, nameId, dateId) },
-    [templateName, svgFile, recipient, date, nameId, dateId])
+  useEffect(() => { debouncedPreview(templateName, svgFile, recipient, date, nameId, dateId, extraFieldValues) },
+    [templateName, svgFile, recipient, date, nameId, dateId, extraFieldValues])
 
   const parseIds = async (file) => {
     const doc = new DOMParser().parseFromString(await file.text(), 'image/svg+xml')
-    setDetectedIds(Array.from(doc.querySelectorAll('text[id]')).map(el => ({
+    const ids = Array.from(doc.querySelectorAll('text[id]')).map(el => ({
       id: el.getAttribute('id'), text: el.textContent.trim().slice(0, 30),
-    })))
+    }))
+    setDetectedIds(ids)
+    setExtraFieldValues(prev => {
+      const next = {}
+      ids.forEach(({id}) => { next[id] = prev[id] ?? '' })
+      return next
+    })
   }
 
   const selectTemplate = async (val) => {
@@ -218,8 +237,8 @@ function CertIndividual({ participants, galleryTplPick, onGalleryConsumed }) {
     setLoading(true); setAlert(null)
     const form = new FormData()
     if (svgFile) form.append('file', svgFile); else form.append('template_name', templateName)
-    form.append('recipient_name', recipient.trim())
-    form.append('issue_date', date.trim())
+    const fields = buildFields(recipient.trim(), date.trim(), nameId.trim(), dateId.trim(), extraFieldValues)
+    form.append('fields', JSON.stringify(fields))
     form.append('name_field_id', nameId.trim())
     form.append('date_field_id', dateId.trim())
     form.append('output_format', fmt)
@@ -323,6 +342,21 @@ function CertIndividual({ participants, galleryTplPick, onGalleryConsumed }) {
                 ${errors.date ? 'border-red-400' : 'border-stone-200'}`} />
             {errors.date && <p className="text-xs text-red-500 mt-1">{errors.date}</p>}
           </div>
+          {extraIds.length > 0 && (
+            <div className="pt-1 border-t border-stone-100 space-y-2">
+              <p className="text-xs font-semibold uppercase tracking-wider text-stone-400">Campos adicionales</p>
+              {extraIds.map(({id}) => (
+                <div key={id}>
+                  <label className="block text-xs text-stone-500 mb-1 font-mono">{id}</label>
+                  <input
+                    value={extraFieldValues[id] ?? ''}
+                    onChange={e => setExtraFieldValues(prev => ({...prev, [id]: e.target.value}))}
+                    placeholder={`Valor para ${id}`}
+                    className="w-full border border-stone-200 rounded-lg px-3 py-2 text-sm bg-amber-50 focus:outline-none focus:ring-2 focus:ring-orange-400" />
+                </div>
+              ))}
+            </div>
+          )}
           <div>
             <label className="block text-xs text-stone-500 mb-1.5">Formato</label>
             <CertFormatToggle value={fmt} onChange={setFmt} />
