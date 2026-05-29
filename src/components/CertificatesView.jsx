@@ -848,6 +848,66 @@ function CertAnalyze({ aiAvailable }) {
   )
 }
 
+/* ── Tabla de referencia de campos SVG ──────────────────────── */
+
+const FIELD_REFERENCE = [
+  { id:'recipient_name', csv:'nombre / cédula TSE', desc:'Nombre del participante' },
+  { id:'issue_date',     csv:'fecha',               desc:'Fecha de emisión' },
+  { id:'course_name_1',  csv:'tipo_curso',           desc:'"Taller de" / "Curso de"' },
+  { id:'course_name_2',  csv:'nombre_curso',         desc:'Nombre del curso/taller' },
+  { id:'hours_issue',    csv:'horas',                desc:'Total de horas' },
+  { id:'date_issue_1',   csv:'fecha_inicio',         desc:'Fecha de inicio' },
+  { id:'date_issue_2',   csv:'fecha_fin',            desc:'Fecha de fin' },
+]
+
+function CertFieldsReference() {
+  const [open, setOpen] = useState(false)
+  return (
+    <div className="mb-6 border border-stone-200 rounded-xl overflow-hidden bg-white">
+      <button
+        onClick={() => setOpen(o => !o)}
+        className="w-full flex items-center justify-between px-4 py-3 text-left hover:bg-stone-50 transition-colors">
+        <div className="flex items-center gap-2">
+          <span className="material-symbols-outlined text-orange-400" style={{fontSize:16}}>table_chart</span>
+          <span className="text-xs font-semibold uppercase tracking-wider text-stone-600">
+            Referencia de campos SVG
+          </span>
+          <span className="text-xs text-stone-400">— IDs que el backend reconoce y sus columnas CSV</span>
+        </div>
+        <span className="material-symbols-outlined text-stone-400 transition-transform"
+          style={{fontSize:16, transform: open ? 'rotate(180deg)' : 'rotate(0deg)'}}>
+          expand_more
+        </span>
+      </button>
+
+      {open && (
+        <div className="border-t border-stone-100 overflow-x-auto">
+          <table className="w-full text-left text-xs">
+            <thead className="bg-stone-50">
+              <tr>
+                {['Campo SVG (id=)', 'Columna CSV sugerida', 'Descripción'].map(h => (
+                  <th key={h} className="px-4 py-2.5 font-semibold uppercase tracking-wider text-stone-500">{h}</th>
+                ))}
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-stone-100">
+              {FIELD_REFERENCE.map((row, i) => (
+                <tr key={row.id} className={i % 2 === 0 ? 'bg-white' : 'bg-stone-50/40'}>
+                  <td className="px-4 py-2.5">
+                    <code className="font-mono font-semibold text-orange-700 bg-orange-50 px-1.5 py-0.5 rounded">{row.id}</code>
+                  </td>
+                  <td className="px-4 py-2.5 font-mono text-stone-600">{row.csv}</td>
+                  <td className="px-4 py-2.5 text-stone-500">{row.desc}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      )}
+    </div>
+  )
+}
+
 /* ── Vista principal ────────────────────────────────────────── */
 
 export default function CertificatesView({ participants, courses = [], galleryTplPick, onGalleryConsumed }) {
@@ -915,6 +975,8 @@ export default function CertificatesView({ participants, courses = [], galleryTp
           </button>
         ))}
       </div>
+
+      <CertFieldsReference />
 
       {certTab === 'individual' && <CertIndividual participants={participants} galleryTplPick={galleryTplPick} onGalleryConsumed={onGalleryConsumed} />}
       {certTab === 'batch'      && <CertBatch participants={participants} courses={courses} />}
