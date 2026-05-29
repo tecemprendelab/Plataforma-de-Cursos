@@ -380,15 +380,6 @@ def _remove_paths_by_id_keywords(svg_text: str, keywords: list) -> str:
             result = result[:path_start] + result[close + 2:]
 
     return result
-            tag = svg_text[i:end]
-            if not any(kw in _get_id(tag) for kw in keywords):
-                out.append(tag)
-            i = end
-        else:
-            out.append(svg_text[i])
-            i += 1
-    return ''.join(out)
-    return ''.join(out)
 
 
 def _fix_cursos_svg(svg_text: str) -> str:
