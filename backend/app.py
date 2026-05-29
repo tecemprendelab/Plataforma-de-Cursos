@@ -213,167 +213,6 @@ def _split_name_lines(name: str) -> tuple:
 
 
 def _build_mixed_line(parts, x, y, fill, font_family, font_size):
-    """
-    Construye un <text> centrado con partes mixtas (regular + bold).
-    parts = [("texto ", False), ("BOLD", True), (" más texto", False)]
-    Usa text-anchor="middle" para centrar automáticamente en x.
-    """
-    spans = ""
-    for i, (txt, bold) in enumerate(parts):
-        if not txt:
-            continue
-        fw = "700" if bold else "400"
-        if i == 0:
-            spans += f'<tspan x="{x}" y="{y}" font-weight="{fw}">{txt}</tspan>'
-        else:
-            spans += f'<tspan font-weight="{fw}">{txt}</tspan>'
-    return (
-        f'<text fill="{fill}" font-family="{font_family}" font-size="{font_size}" '
-        f'text-anchor="middle" style="white-space:pre" xml:space="preserve">'
-        f'{spans}</text>'
-    )
-
-
-def _fill_svg(svg_text: str, fields: dict) -> str:
-    """Replace text content of SVG <text> elements by id.
-    Para recipient_name con 2+ palabras, divide en dos tspan.
-    Maneja line_curso, line_horas, line_fechas como líneas mixtas centradas.
-    """
-    import re as _re
-    result = svg_text
-    LINE_HEIGHT = 44  # acorde a font-size=36
-
-    # Campos para líneas mixtas del certificado de cursos
-    MIXED_LINES = {
-        "line_curso": lambda f: [
-            ("Por haber concluido con éxito el ", False),
-            (f.get("course_name_1", ""), True),
-        ],
-        "line_horas": lambda f: [
-            (f.get("course_name_2", ""), True),
-            (" con un total de ", False),
-            (f.get("hours_issue", ""), True),
-            (" impartidas", False),
-        ],
-        "line_fechas": lambda f: [
-            ("desde el ", False),
-            (f.get("date_issue_1", ""), True),
-            (" al ", False),
-            (f.get("date_issue_2", ""), True),
-        ],
-    }
-
-    for line_id, parts_fn in MIXED_LINES.items():
-        if line_id not in result:
-            continue
-        parts = parts_fn(fields)
-        if not any(v for _, v in [(p, p[0]) for p in parts] if _):
-            continue
-
-        fill_m = _re.search(r'<text[^>]*id="' + line_id + r'"[^>]*fill="([^"]+)"', result)
-        ff_m   = _re.search(r'<text[^>]*id="' + line_id + r'"[^>]*font-family="([^"]+)"', result)
-        fs_m   = _re.search(r'<text[^>]*id="' + line_id + r'"[^>]*font-size="([^"]+)"', result)
-        x_m    = _re.search(r'<text[^>]*id="' + line_id + r'"[\s\S]*?<tspan[^>]*x="([^"]+)"', result)
-        y_m    = _re.search(r'<text[^>]*id="' + line_id + r'"[\s\S]*?<tspan[^>]*y="([^"]+)"', result)
-
-        fill = fill_m.group(1) if fill_m else "#666666"
-        ff   = ff_m.group(1) if ff_m else "Sen,sans-serif"
-        fs   = fs_m.group(1) if fs_m else "11"
-        x    = x_m.group(1) if x_m else "421"
-        y    = y_m.group(1) if y_m else "283"
-
-        # Escapar HTML en los valores
-        safe_parts = [
-            (txt.replace("&","&amp;").replace("<","&lt;").replace(">","&gt;"), bold)
-            for txt, bold in parts
-        ]
-        new_tag = _build_mixed_line(safe_parts, x, y, fill, ff, fs)
-
-        result = _re.sub(
-            r'<text[^>]*id="' + line_id + r'"[\s\S]*?</text>',
-            new_tag, result, count=1
-        )
-
-    for field_id, value in fields.items():
-        if not field_id or value is None:
-            continue
-
-        raw_val = str(value)
-
-        # Corregir tildes en el nombre del participante
-        if field_id == "recipient_name":
-            raw_val = _fix_tildes(raw_val)
-
-        # Nombre con 2+ palabras -> dos lineas
-        if field_id == "recipient_name":
-            linea1, linea2 = _split_name_lines(raw_val)
-            safe_l1 = linea1.replace("&", "&amp;").replace("<", "&lt;").replace(">", "&gt;")
-            if linea2:
-                safe_l2 = linea2.replace("&", "&amp;").replace("<", "&lt;").replace(">", "&gt;")
-                safe_id = _re.escape(field_id)
-
-                def make_two_line(l1, l2, lh):
-                    def _r(m):
-                        inner = m.group(2)
-                        xm = _re.search(r'<tspan[^>]+x=["\']([^"\']*)["\']', inner)
-                        ym = _re.search(r'<tspan[^>]+y=["\']([^"\']*)["\']', inner)
-                        x_val = xm.group(1) if xm else "421"
-                        y_val = float(ym.group(1)) if ym else 218.0
-                        y1 = y_val - lh * 0.5
-                        new_inner = (
-                            f'<tspan x="{x_val}" y="{y1:.1f}">{l1}</tspan>'
-                            f'<tspan x="{x_val}" dy="{lh}">{l2}</tspan>'
-                        )
-                        return m.group(1) + new_inner + m.group(3)
-                    return _r
-
-                result = _re.sub(
-                    r'(<text\b[^>]*\bid=["\']' + safe_id + r'["\'][^>]*>)'
-                    r'([\s\S]*?)'
-                    r'(</text>)',
-                    make_two_line(safe_l1, safe_l2, LINE_HEIGHT),
-                    result, flags=_re.IGNORECASE
-                )
-                continue
-
-        safe_id  = _re.escape(str(field_id))
-        safe_val = raw_val.replace("&", "&amp;").replace("<", "&lt;").replace(">", "&gt;")
-
-        def make_replacer(val):
-            def _replacer(m):
-                open_tag  = m.group(1)
-                inner     = m.group(2)
-                close_tag = m.group(3)
-                if _re.search(r'<tspan\b', inner, _re.IGNORECASE):
-                    def _tspan(tm):
-                        return tm.group(1) + val + tm.group(2)
-                    new_inner = _re.sub(
-                        r'(<tspan\b[^>]*>)[^<]*(</tspan>)',
-                        _tspan, inner, count=1, flags=_re.IGNORECASE
-                    )
-                else:
-                    new_inner = val
-                return open_tag + new_inner + close_tag
-            return _replacer
-
-        result = _re.sub(
-            r'(<text\b[^>]*\bid=["\']' + safe_id + r'["\'][^>]*>)'
-            r'([\s\S]*?)'
-            r'(</text>)',
-            make_replacer(safe_val),
-            result, flags=_re.IGNORECASE
-        )
-        result = _re.sub(
-            r'(<tspan\b[^>]*\bid=["\']' + safe_id + r'["\'][^>]*>)'
-            r'[^<]*'
-            r'(</tspan>)',
-            lambda m, v=safe_val: m.group(1) + v + m.group(2),
-            result, flags=_re.IGNORECASE
-        )
-    return result
-
-
-def _build_mixed_line(parts, x, y, fill, font_family, font_size):
     spans = ""
     for i, (txt, bold) in enumerate(parts):
         if not txt:
@@ -501,6 +340,51 @@ def _fill_svg(svg_text: str, fields: dict) -> str:
     return result
 
 
+
+
+def _fix_cursos_svg(svg_text: str) -> str:
+    """
+    Detecta SVGs de certificado de cursos (tienen line_curso/line_horas/line_fechas
+    o course_name_1/course_name_2) y elimina los paths vectorizados originales
+    que se superponen con los campos dinámicos.
+    """
+    import re as _re
+
+    # Solo actuar si es una plantilla de cursos
+    is_cursos = (
+        'line_curso' in svg_text or
+        'line_horas' in svg_text or
+        ('course_name_1' in svg_text and 'course_name_2' in svg_text)
+    )
+    if not is_cursos:
+        return svg_text
+
+    # Eliminar paths vectorizados del cuerpo dinámico
+    paths_to_remove = [
+        'Por haber concluido con',
+        'course_name_1',
+        'con un total de',
+        'hours_issue',
+        'course_name_2',
+        'impartidas',
+        'desde el',
+        'date_issue_1',
+        r'id="al"',
+        'date_issue_2',
+        'Otorgado en la ciudad de Cartago, el',
+        'date_issue',
+        'participant_name',
+    ]
+
+    result = svg_text
+    for eid in paths_to_remove:
+        if eid.startswith('id='):
+            pat = r'<path\s[^>]*' + _re.escape(eid) + r'[^/]*/>'
+        else:
+            pat = r'<path\s[^>]*id="' + _re.escape(eid) + r'[^"]*"[^/]*/>'
+        result = _re.sub(pat, '', result, count=1, flags=_re.DOTALL)
+
+    return result
 
 
 def _fix_outlined_text(svg_text: str) -> str:
@@ -924,11 +808,11 @@ def list_templates():
 def analyze():
     svg_text = None
     if "file" in request.files:
-        svg_text = _inject_firma_yorleny(_fix_image_patterns(_fix_outlined_text(request.files["file"].read().decode("utf-8", errors="replace"))))
+        svg_text = _inject_firma_yorleny(_fix_image_patterns(_fix_outlined_text(_fix_cursos_svg(request.files["file"].read().decode("utf-8", errors="replace")))))
     else:
         tname = request.form.get("template_name") or (request.get_json(silent=True) or {}).get("template_name")
         if tname:
-            svg_text = _inject_firma_yorleny(_fix_image_patterns(_fix_outlined_text(_load_template(tname))))
+            svg_text = _inject_firma_yorleny(_fix_image_patterns(_fix_outlined_text(_fix_cursos_svg(_load_template(tname)))))
     if not svg_text:
         return jsonify({"error": "no SVG proporcionado"}), 400
     return jsonify({"elements": _detect_elements(svg_text)})
@@ -938,11 +822,11 @@ def analyze():
 def preview():
     svg_text = None
     if "file" in request.files:
-        svg_text = _inject_firma_yorleny(_fix_image_patterns(_fix_outlined_text(request.files["file"].read().decode("utf-8", errors="replace"))))
+        svg_text = _inject_firma_yorleny(_fix_image_patterns(_fix_outlined_text(_fix_cursos_svg(request.files["file"].read().decode("utf-8", errors="replace")))))
     else:
         tname = request.form.get("template_name") or (request.get_json(silent=True) or {}).get("template_name")
         if tname:
-            svg_text = _inject_firma_yorleny(_fix_image_patterns(_fix_outlined_text(_load_template(tname))))
+            svg_text = _inject_firma_yorleny(_fix_image_patterns(_fix_outlined_text(_fix_cursos_svg(_load_template(tname)))))
     if not svg_text:
         return jsonify({"error": "no SVG proporcionado"}), 400
 
@@ -977,7 +861,7 @@ def generate():
         fields  = data.get("fields", {})
         tname   = data.get("template_name")
         if tname:
-            svg_text = _inject_firma_yorleny(_fix_image_patterns(_fix_outlined_text(_load_template(tname))))
+            svg_text = _inject_firma_yorleny(_fix_image_patterns(_fix_outlined_text(_fix_cursos_svg(_load_template(tname)))))
     else:
         fmt = (request.form.get("format") or request.form.get("output_format", "pdf")).lower()
         try:
@@ -986,11 +870,11 @@ def generate():
             fields = {}
 
         if "file" in request.files:
-            svg_text = _inject_firma_yorleny(_fix_image_patterns(_fix_outlined_text(request.files["file"].read().decode("utf-8", errors="replace"))))
+            svg_text = _inject_firma_yorleny(_fix_image_patterns(_fix_outlined_text(_fix_cursos_svg(request.files["file"].read().decode("utf-8", errors="replace")))))
         else:
             tname = request.form.get("template_name")
             if tname:
-                svg_text = _inject_firma_yorleny(_fix_image_patterns(_fix_outlined_text(_load_template(tname))))
+                svg_text = _inject_firma_yorleny(_fix_image_patterns(_fix_outlined_text(_fix_cursos_svg(_load_template(tname)))))
 
         if not fields:
             name_id  = request.form.get("name_field_id", "recipient_name")
@@ -1036,11 +920,11 @@ def generate_batch():
     # Cargar SVG
     svg_text = None
     if "file" in request.files:
-        svg_text = _inject_firma_yorleny(_fix_image_patterns(_fix_outlined_text(request.files["file"].read().decode("utf-8", errors="replace"))))
+        svg_text = _inject_firma_yorleny(_fix_image_patterns(_fix_outlined_text(_fix_cursos_svg(request.files["file"].read().decode("utf-8", errors="replace")))))
     else:
         tname = request.form.get("template_name")
         if tname:
-            svg_text = _inject_firma_yorleny(_fix_image_patterns(_fix_outlined_text(_load_template(tname))))
+            svg_text = _inject_firma_yorleny(_fix_image_patterns(_fix_outlined_text(_fix_cursos_svg(_load_template(tname)))))
 
     if not svg_text:
         return jsonify({"error": "No se proporcionó plantilla SVG"}), 400
@@ -1115,7 +999,7 @@ def ai_mapeo():
         return jsonify({"error": "IA no disponible — configurá ANTHROPIC_API_KEY"}), 503
 
     if "file" in request.files:
-        svg_text = _inject_firma_yorleny(_fix_image_patterns(_fix_outlined_text(request.files["file"].read().decode("utf-8", errors="replace"))))
+        svg_text = _inject_firma_yorleny(_fix_image_patterns(_fix_outlined_text(_fix_cursos_svg(request.files["file"].read().decode("utf-8", errors="replace")))))
         elements = _detect_elements(svg_text)
     else:
         data     = request.get_json(silent=True) or {}
