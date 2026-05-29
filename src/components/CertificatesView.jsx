@@ -468,7 +468,10 @@ function CertBatch({ participants = [], courses = [] }) {
                 <select value={filterCourse} onChange={e => setFilterCourse(e.target.value)}
                   className="w-full border border-stone-200 rounded-lg px-2 py-1.5 text-xs bg-amber-50 focus:outline-none focus:ring-2 focus:ring-orange-400">
                   <option value="">Todos</option>
-                  {courses.filter(c => c.active && c.certEnabled).map(c => (
+                  {(courses.some(c => c.certEnabled)
+                    ? courses.filter(c => c.active && c.certEnabled)
+                    : courses.filter(c => c.active)
+                  ).map(c => (
                     <option key={c.id} value={c.id}>{c.short || c.name}</option>
                   ))}
                 </select>
