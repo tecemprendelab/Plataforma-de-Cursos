@@ -345,12 +345,10 @@ def _fill_svg(svg_text: str, fields: dict) -> str:
 def _fix_cursos_svg(svg_text: str) -> str:
     """
     Detecta SVGs de certificado de cursos y reconstruye el cuerpo dinámico.
-    Elimina CUALQUIER path que tenga id con palabras clave del cuerpo,
-    independientemente del encoding o variaciones en el texto.
+    Elimina paths vectorizados originales (que pueden tener > en el atributo d).
     """
     import re as _re
 
-    # Detectar si es plantilla de cursos
     is_cursos = any(k in svg_text for k in [
         'line_curso', 'line_horas', 'line_fechas',
         'course_name_1', 'course_name_2',
@@ -362,34 +360,40 @@ def _fix_cursos_svg(svg_text: str) -> str:
 
     result = svg_text
 
-    # Eliminar paths con estas palabras clave en su id (regex permisivo)
-    keyword_patterns = [
-        r'Por haber',
-        r'course_name_1',
-        r'con un total',
-        r'hours_issue',
-        r'course_name_2',
-        r'impartidas',
-        r'desde el',
-        r'date_issue_1',
-        r'"al"',
-        r'date_issue_2',
-        r'Otorgado en la ciudad',
-        r'date_issue(?!_)',  # date_issue pero no date_issue_1 ni date_issue_2
-        r'participant_name',
+    # Regex correcto: usa id="...keyword..." seguido de [\s\S]*?/>
+    # para manejar paths que tienen > dentro del atributo d=""
+    paths_keywords = [
+        'Por haber',
+        'course_name_1',
+        'con un total',
+        'hours_issue',
+        'course_name_2',
+        'impartidas',
+        'desde el',
+        'date_issue_1',
+        'date_issue_2',
+        'Otorgado en la ciudad',
+        'participant_name',
     ]
-    for pat in keyword_patterns:
+    for kw in paths_keywords:
         result = _re.sub(
-            r'<path[^>]*id="[^"]*' + pat + r'[^"]*"[^/]*/?>',
-            '', result, count=1, flags=_re.DOTALL | _re.IGNORECASE
+            r'<path id="[^"]*' + _re.escape(kw) + r'[^"]*"[\s\S]*?/>',
+            '', result, count=1, flags=_re.DOTALL
+        )
+
+    # date_issue exacto (sin _1 ni _2)
+    result = _re.sub(r'<path id="date_issue"[\s\S]*?/>', '', result, count=1, flags=_re.DOTALL)
+    # Variante con d antes del id
+    for kw in paths_keywords + ['date_issue']:
+        result = _re.sub(
+            r'<path\s[^"]*id="[^"]*' + _re.escape(kw) + r'[^"]*"[\s\S]*?/>',
+            '', result, count=1, flags=_re.DOTALL
         )
 
     fill = '#666666'
     ff   = 'Sen,Liberation Sans,DejaVu Sans,sans-serif'
 
-    # Agregar elementos de texto si no existen
     insertions = []
-
     if 'id="recipient_name"' not in result:
         insertions.append(
             f'<text id="recipient_name" fill="{fill}" font-family="{ff}" '
@@ -773,53 +777,46 @@ def _lookup_cedula(cedula: str) -> str | None:
 
 def _resolve_fields(row: dict, name_id: str, date_id: str) -> dict:
     """Map CSV row to SVG field ids, trying common column name aliases.
-    Si hay columna de cédula, consulta la API del TSE para obtener el nombre oficial.
-    """
-    raw    = {k.strip(): v.strip() for k, v in row.items()}
-    fields = dict(raw)
-
-    # Intentar obtener nombre desde cédula (tiene prioridad sobre columna nombre)
-    cedula = None
-    for col in ("cedula", "cédula", "id", "identificacion", "identificación",
-                "num_cedula", "numero_cedula", "dni", "Cedula", "Cédula"):
-        if col in raw and raw[col]:
-            cedula = raw[col]
-            break
-
-    nombre_from_api = None
-    if cedula:
-        nombre_from_api = _lookup_cedula(cedula)
-
-    if nombre_from_api:
-        fields[name_id] = nombre_from_api
-    else:
-        # Fallback: columna nombre del CSV
-        for col in ("nombre", "name", "participante", "recipient_name", "Nombre"):
-            if col in raw and raw[col]:
-                fields[name_id] = raw[col]
-                break
-
-    for col in ("fecha", "date", "issue_date", "Fecha"):
-        if col in raw and raw[col]:
-            fields[date_id] = raw[col]
-            break
-
-    return fields
-
-
-def _resolve_fields(row: dict, name_id: str, date_id: str) -> dict:
-    """Map CSV row to SVG field ids, trying common column name aliases."""
+    También mapea columnas de certificado de cursos."""
     raw    = {k.strip(): v.strip() for k, v in row.items()}
     fields = dict(raw)  # pass all columns through as-is
 
+    # Nombre del participante
     for col in ("nombre", "name", "participante", "recipient_name", "Nombre"):
         if col in raw and raw[col]:
             fields[name_id] = raw[col]
             break
 
-    for col in ("fecha", "date", "issue_date", "Fecha"):
+    # Fecha de otorgación
+    for col in ("fecha", "date", "issue_date", "Fecha", "fecha_otorgacion"):
         if col in raw and raw[col]:
             fields[date_id] = raw[col]
+            break
+
+    # Campos de certificado de cursos
+    for col in ("tipo_curso", "course_name_1", "tipo"):
+        if col in raw and raw[col]:
+            fields["course_name_1"] = raw[col]
+            break
+
+    for col in ("nombre_curso", "course_name_2", "curso"):
+        if col in raw and raw[col]:
+            fields["course_name_2"] = raw[col]
+            break
+
+    for col in ("horas", "hours_issue", "total_horas", "duracion"):
+        if col in raw and raw[col]:
+            fields["hours_issue"] = raw[col]
+            break
+
+    for col in ("fecha_inicio", "date_issue_1", "inicio"):
+        if col in raw and raw[col]:
+            fields["date_issue_1"] = raw[col]
+            break
+
+    for col in ("fecha_fin", "date_issue_2", "fin"):
+        if col in raw and raw[col]:
+            fields["date_issue_2"] = raw[col]
             break
 
     return fields
