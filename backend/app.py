@@ -390,6 +390,18 @@ def _build_mixed_line(parts, x, y, fill, font_family, font_size):
     )
 
 
+def _fechas_parts(f):
+    d1 = f.get("date_issue_1", "")
+    d2 = f.get("date_issue_2", "")
+    if not d1 and not d2:
+        raw = f.get("line_fechas", "")
+        if raw:
+            m = re.match(r'^Del?\s+(.+?)\s+al\s+(.+)$', raw, re.IGNORECASE)
+            if m:
+                d1, d2 = m.group(1).strip(), m.group(2).strip()
+    return [("desde el ", False), (d1, True), (" al ", False), (d2, True)]
+
+
 def _fill_svg(svg_text: str, fields: dict) -> str:
     import re as _re
     result = svg_text
@@ -398,20 +410,15 @@ def _fill_svg(svg_text: str, fields: dict) -> str:
     MIXED_LINES = {
         "line_curso": lambda f: [
             ("Por haber concluido con exito el ", False),
-            (f.get("course_name_1", ""), True),
+            (f.get("course_name_1") or f.get("line_curso", ""), True),
         ],
         "line_horas": lambda f: [
             (f.get("course_name_2", ""), True),
             (" con un total de ", False),
-            (f.get("hours_issue", ""), True),
+            (f.get("hours_issue") or f.get("line_horas", ""), True),
             (" impartidas", False),
         ],
-        "line_fechas": lambda f: [
-            ("desde el ", False),
-            (f.get("date_issue_1", ""), True),
-            (" al ", False),
-            (f.get("date_issue_2", ""), True),
-        ],
+        "line_fechas": _fechas_parts,
     }
 
     for line_id, parts_fn in MIXED_LINES.items():
@@ -939,14 +946,19 @@ def preview():
     if not svg_text:
         return jsonify({"error": "no SVG proporcionado"}), 400
 
-    # Rellenar con valores de vista previa si se proveen
-    name_id  = request.form.get("name_field_id", "recipient_name")
-    date_id  = request.form.get("date_field_id", "issue_date")
-    name_val = request.form.get("recipient_name", "")
-    date_val = request.form.get("issue_date", "")
-    fields   = {}
-    if name_val: fields[name_id] = name_val
-    if date_val: fields[date_id] = date_val
+    try:
+        fields = json.loads(request.form.get("fields", "{}"))
+    except (json.JSONDecodeError, ValueError):
+        fields = {}
+
+    if not fields:
+        name_id  = request.form.get("name_field_id", "recipient_name")
+        date_id  = request.form.get("date_field_id", "issue_date")
+        name_val = request.form.get("recipient_name", "")
+        date_val = request.form.get("issue_date", "")
+        if name_val: fields[name_id] = name_val
+        if date_val: fields[date_id] = date_val
+
     if fields:
         svg_text = _fill_svg(svg_text, fields)
 

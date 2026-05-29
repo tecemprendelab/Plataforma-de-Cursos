@@ -1023,13 +1023,15 @@ function CertAnalyze({ aiAvailable }) {
 /* ── Tabla de referencia de campos SVG ──────────────────────── */
 
 const FIELD_REFERENCE = [
-  { id:'recipient_name', csv:'nombre / cédula TSE', desc:'Nombre del participante' },
-  { id:'issue_date',     csv:'fecha',               desc:'Fecha de emisión' },
-  { id:'course_name_1',  csv:'tipo_curso',           desc:'"Taller de" / "Curso de"' },
-  { id:'course_name_2',  csv:'nombre_curso',         desc:'Nombre del curso/taller' },
-  { id:'hours_issue',    csv:'horas',                desc:'Total de horas' },
-  { id:'date_issue_1',   csv:'fecha_inicio',         desc:'Fecha de inicio' },
-  { id:'date_issue_2',   csv:'fecha_fin',            desc:'Fecha de fin' },
+  { id:'recipient_name', csv:'nombre / name', desc:'Nombre completo del participante' },
+  { id:'issue_date',     csv:'fecha / date',  desc:'Fecha de emisión del certificado' },
+  { id:'line_curso',     csv:'—',             desc:'Nombre del curso/taller (se muestra en bold después de "...el")' },
+  { id:'line_horas',     csv:'horas',         desc:'Horas del curso (ej: "40" → aparece en "con un total de 40 impartidas")' },
+  { id:'line_fechas',    csv:'—',             desc:'Rango de fechas del curso — se completa con los dos calendarios' },
+  { id:'course_name_1',  csv:'tipo_curso',    desc:'Prefijo del tipo: "Taller de" / "Curso de" (plantillas antiguas)' },
+  { id:'course_name_2',  csv:'nombre_curso',  desc:'Nombre del curso sin prefijo (plantillas antiguas)' },
+  { id:'date_issue_1',   csv:'fecha_inicio',  desc:'Fecha de inicio por separado (plantillas antiguas)' },
+  { id:'date_issue_2',   csv:'fecha_fin',     desc:'Fecha de fin por separado (plantillas antiguas)' },
 ]
 
 function CertFieldsReference() {
