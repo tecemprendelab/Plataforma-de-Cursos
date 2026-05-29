@@ -462,10 +462,10 @@ def _fix_cursos_svg(svg_text: str) -> str:
     if insertions:
         # Rectángulo blanco que cubre el área de texto dinámico para
         # tapar cualquier path vectorial estático que no se haya eliminado.
-        # El área es toda blanca en el diseño, por lo que no altera lo visual.
-        cover = (
-            '<rect x="95" y="175" width="635" height="215" fill="white"/>'
-        )
+        # Empieza en y=260 (después del nombre del participante ~y=255)
+        # hasta y=410 (cubre line_curso y=283, line_horas y=302,
+        # line_fechas y=321, Otorgado y=360, issue_date y=379).
+        cover = '<rect x="95" y="260" width="640" height="155" fill="white" opacity="1"/>'
         result = result.replace('</svg>', cover + '\n' + '\n'.join(insertions) + '\n</svg>')
 
     return result
