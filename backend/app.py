@@ -217,10 +217,10 @@ def _build_mixed_line(parts, x, y, fill, font_family, font_size):
             continue
         fw = "700" if bold else "400"
         if first:
-            spans += f'<tspan x="{x}" y="{y}" font-weight="{fw}">{txt}</tspan>'
+            spans += f'<tspan x="{x}" y="{y}" font-weight="{fw}" xml:space="preserve">{txt}</tspan>'
             first = False
         else:
-            spans += f'<tspan font-weight="{fw}">{txt}</tspan>'
+            spans += f'<tspan font-weight="{fw}" xml:space="preserve">{txt}</tspan>'
     return (
         f'<text fill="{fill}" font-family="{font_family}" font-size="{font_size}" '
         f'text-anchor="middle" style="white-space:pre" xml:space="preserve">'
@@ -460,7 +460,13 @@ def _fix_cursos_svg(svg_text: str) -> str:
         )
 
     if insertions:
-        result = result.replace('</svg>', '\n'.join(insertions) + '\n</svg>')
+        # Rectángulo blanco que cubre el área de texto dinámico para
+        # tapar cualquier path vectorial estático que no se haya eliminado.
+        # El área es toda blanca en el diseño, por lo que no altera lo visual.
+        cover = (
+            '<rect x="95" y="175" width="635" height="215" fill="white"/>'
+        )
+        result = result.replace('</svg>', cover + '\n' + '\n'.join(insertions) + '\n</svg>')
 
     return result
 
