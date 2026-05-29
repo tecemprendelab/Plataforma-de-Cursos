@@ -12,7 +12,7 @@ import {
 const EMPTY = {
   name:'', short:'', type:'curso', platform:'TEC Digital',
   start:'', end:'', capacity:'30', price:'', modalidad:'Asincrónico',
-  code:'', description:'', active:true, accessDays:'45',
+  code:'', description:'', active:true, accessDays:'45', certEnabled:false,
 }
 
 function genCode(name, type) {
@@ -25,7 +25,7 @@ function genCode(name, type) {
 }
 
 export default function CourseModal({ course, onSave, onClose }) {
-  const [form, setForm]     = useState(course ? { ...course, capacity: String(course.capacity), accessDays: String(course.accessDays ?? 45) } : { ...EMPTY })
+  const [form, setForm]     = useState(course ? { ...course, capacity: String(course.capacity), accessDays: String(course.accessDays ?? 45), certEnabled: course.certEnabled ?? false } : { ...EMPTY })
   const [errors, setErrors] = useState({})
 
   const f = (key, val) => setForm(prev => ({ ...prev, [key]: val }))
@@ -185,15 +185,27 @@ export default function CourseModal({ course, onSave, onClose }) {
           placeholder="Breve descripción del contenido y objetivos..."/>
       </div>
 
-      {/* Estado activo */}
-      <div style={{ display:'flex', alignItems:'center', gap:10, marginBottom:4,
-        padding:'10px 12px', background:'var(--cream-2)', borderRadius:8 }}>
-        <input type="checkbox" id="active-check" checked={form.active}
-          onChange={e => f('active', e.target.checked)}
-          style={{ width:14, height:14, cursor:'pointer' }}/>
-        <label htmlFor="active-check" style={{ fontSize:12, cursor:'pointer' }}>
-          Curso activo — visible para inscripciones y asignaciones
-        </label>
+      {/* Estado activo + certificados */}
+      <div style={{ display:'flex', flexDirection:'column', gap:8, marginBottom:4 }}>
+        <div style={{ display:'flex', alignItems:'center', gap:10,
+          padding:'10px 12px', background:'var(--cream-2)', borderRadius:8 }}>
+          <input type="checkbox" id="active-check" checked={form.active}
+            onChange={e => f('active', e.target.checked)}
+            style={{ width:14, height:14, cursor:'pointer' }}/>
+          <label htmlFor="active-check" style={{ fontSize:12, cursor:'pointer' }}>
+            Curso activo — visible para inscripciones y asignaciones
+          </label>
+        </div>
+        <div style={{ display:'flex', alignItems:'center', gap:10,
+          padding:'10px 12px', background:'var(--cream-2)', borderRadius:8 }}>
+          <input type="checkbox" id="cert-check" checked={form.certEnabled}
+            onChange={e => f('certEnabled', e.target.checked)}
+            style={{ width:14, height:14, cursor:'pointer' }}/>
+          <label htmlFor="cert-check" style={{ fontSize:12, cursor:'pointer' }}>
+            <i className="ti ti-certificate" style={{ marginRight:5, color:'var(--orange)' }}/>
+            Habilitado para generación de certificados
+          </label>
+        </div>
       </div>
 
       <div className="modal-foot">

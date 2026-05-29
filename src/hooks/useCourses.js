@@ -29,8 +29,9 @@ function fromDb(row) {
     modalidad:   row.modalidad ?? 'Asincrónico',
     code:        row.code ?? '',
     description: row.description ?? '',
-    active:      row.active ?? true,
-    accessDays:  row.access_days != null ? Number(row.access_days) : 45,
+    active:       row.active ?? true,
+    accessDays:   row.access_days != null ? Number(row.access_days) : 45,
+    certEnabled:  row.cert_enabled ?? false,
   }
 }
 
@@ -47,8 +48,9 @@ function toDb(form) {
     modalidad:   form.modalidad ?? null,
     code:        form.code || null,
     description: form.description ?? null,
-    active:      form.active ?? true,
-    access_days: form.accessDays != null ? Number(form.accessDays) : 45,
+    active:       form.active ?? true,
+    access_days:  form.accessDays != null ? Number(form.accessDays) : 45,
+    cert_enabled: form.certEnabled ?? false,
   }
 }
 
@@ -101,6 +103,7 @@ export function useCourses() {
         description: form.description || '',
         active:      true,
         accessDays:  Number(form.accessDays) || 45,
+        certEnabled: form.certEnabled ?? false,
       }
       setCourses(prev => [...prev, newCourse])
       return newCourse
