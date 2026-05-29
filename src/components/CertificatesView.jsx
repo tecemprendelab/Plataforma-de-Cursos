@@ -25,8 +25,13 @@ const fmtDateEs = iso => {
 const TIPO_PREFIX = { taller:'Taller de', curso:'Curso de', seminario:'Seminario de', bootcamp:'Bootcamp de', charla:'Charla sobre' }
 
 function ExtraFieldInput({ id, value, onChange, size = 'sm', courses = [] }) {
-  const isTipo = /line_curso|tipo_curso/i.test(id)
+  const isTipo      = /line_curso|tipo_curso/i.test(id)
+  const isDateRange = /line_fechas|fecha_rango|date_range/i.test(id)
+  const [startIso, setStartIso] = useState('')
+  const [endIso,   setEndIso]   = useState('')
+
   const cls = `w-full border border-stone-200 rounded-lg px-3 py-2 text-${size} bg-amber-50 focus:outline-none focus:ring-2 focus:ring-orange-400`
+
   if (isTipo) {
     const certCourses = courses.some(c => c.certEnabled)
       ? courses.filter(c => c.active && c.certEnabled)
@@ -41,6 +46,38 @@ function ExtraFieldInput({ id, value, onChange, size = 'sm', courses = [] }) {
       </select>
     )
   }
+
+  if (isDateRange) {
+    const emit = (s, e) => {
+      const sf = fmtDateEs(s), ef = fmtDateEs(e)
+      onChange(sf && ef ? `Del ${sf} al ${ef}` : sf || ef || '')
+    }
+    return (
+      <div className="space-y-1.5">
+        <div className="grid grid-cols-2 gap-2">
+          <div>
+            <p className="text-xs text-stone-400 mb-1">Fecha inicio</p>
+            <input type="date" value={startIso}
+              onChange={e => { setStartIso(e.target.value); emit(e.target.value, endIso) }}
+              className={cls} />
+          </div>
+          <div>
+            <p className="text-xs text-stone-400 mb-1">Fecha fin</p>
+            <input type="date" value={endIso}
+              onChange={e => { setEndIso(e.target.value); emit(startIso, e.target.value) }}
+              className={cls} />
+          </div>
+        </div>
+        {value && (
+          <p className="text-xs text-stone-500 italic px-1">
+            <span className="material-symbols-outlined align-middle mr-1" style={{fontSize:12}}>event</span>
+            {value}
+          </p>
+        )}
+      </div>
+    )
+  }
+
   return (
     <input value={value} onChange={e => onChange(e.target.value)}
       placeholder={`Valor para ${id}`} className={cls} />
