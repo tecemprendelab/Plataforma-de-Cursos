@@ -15,6 +15,32 @@ const TODAY_ES = (() => {
   return `${d.getDate()} de ${m[d.getMonth()]} de ${d.getFullYear()}`
 })()
 
+const MESES_ES = ['enero','febrero','marzo','abril','mayo','junio','julio','agosto','septiembre','octubre','noviembre','diciembre']
+const fmtDateEs = iso => {
+  if (!iso) return ''
+  const [y, m, d] = iso.split('-').map(Number)
+  return `${d} de ${MESES_ES[m-1]} de ${y}`
+}
+
+const TIPO_CURSO_OPTIONS = ['Taller de','Curso de','Seminario de','Bootcamp de','Charla sobre']
+
+function ExtraFieldInput({ id, value, onChange, size = 'sm' }) {
+  const isTipo = /line_curso|tipo_curso/i.test(id)
+  const cls = `w-full border border-stone-200 rounded-lg px-3 py-2 text-${size} bg-amber-50 focus:outline-none focus:ring-2 focus:ring-orange-400`
+  if (isTipo) {
+    return (
+      <select value={value} onChange={e => onChange(e.target.value)} className={cls}>
+        <option value="">— Seleccionar tipo —</option>
+        {TIPO_CURSO_OPTIONS.map(o => <option key={o} value={o}>{o}</option>)}
+      </select>
+    )
+  }
+  return (
+    <input value={value} onChange={e => onChange(e.target.value)}
+      placeholder={`Valor para ${id}`} className={cls} />
+  )
+}
+
 const BUILT_IN_TEMPLATES = [
   { id: 'classic', file: 'template_classic.svg', name: 'Clásico' },
   { id: 'modern',  file: 'template_modern.svg',  name: 'Moderno' },
@@ -348,11 +374,9 @@ function CertIndividual({ participants, galleryTplPick, onGalleryConsumed }) {
               {extraIds.map(({id}) => (
                 <div key={id}>
                   <label className="block text-xs text-stone-500 mb-1 font-mono">{id}</label>
-                  <input
+                  <ExtraFieldInput id={id}
                     value={extraFieldValues[id] ?? ''}
-                    onChange={e => setExtraFieldValues(prev => ({...prev, [id]: e.target.value}))}
-                    placeholder={`Valor para ${id}`}
-                    className="w-full border border-stone-200 rounded-lg px-3 py-2 text-sm bg-amber-50 focus:outline-none focus:ring-2 focus:ring-orange-400" />
+                    onChange={v => setExtraFieldValues(prev => ({...prev, [id]: v}))} />
                 </div>
               ))}
             </div>
@@ -447,6 +471,31 @@ function CertBatch({ participants = [], courses = [] }) {
     const blob = new Blob([lines.join('\n')], { type: 'text/csv;charset=utf-8' })
     handleCsvFile(new File([blob], 'participantes_filtrados.csv', { type: 'text/csv' }))
   }
+
+  // Auto-rellenar campos de fecha y tipo desde el curso seleccionado
+  useEffect(() => {
+    if (!filterCourse) return
+    const course = courses.find(c => c.id === filterCourse)
+    if (!course) return
+    setExtraFieldValues(prev => {
+      const next = { ...prev }
+      Object.keys(next).forEach(id => {
+        if (/line_curso|tipo_curso/i.test(id)) {
+          const prefix = { taller:'Taller de', curso:'Curso de', seminario:'Seminario de', bootcamp:'Bootcamp de', charla:'Charla sobre' }
+          next[id] = prefix[course.type] ?? next[id]
+        }
+        if (/line_fechas|fecha_rango|date_range/i.test(id)) {
+          const s = fmtDateEs(course.start), e = fmtDateEs(course.end)
+          if (s || e) next[id] = s && e ? `Del ${s} al ${e}` : s || e
+        }
+        if (/date_issue_1|fecha_inicio/i.test(id) && course.start)
+          next[id] = fmtDateEs(course.start)
+        if (/date_issue_2|fecha_fin/i.test(id) && course.end)
+          next[id] = fmtDateEs(course.end)
+      })
+      return next
+    })
+  }, [filterCourse, courses])
 
   const handleCsvFile = async (file) => {
     if (!file) { setCsvFile(null); setCsvMeta(null); return }
@@ -679,10 +728,9 @@ function CertBatch({ participants = [], courses = [] }) {
               {extraIds.map(({id}) => (
                 <div key={id}>
                   <label className="block text-xs text-stone-500 mb-1 font-mono">{id}</label>
-                  <input value={extraFieldValues[id] ?? ''}
-                    onChange={e => setExtraFieldValues(prev => ({...prev, [id]: e.target.value}))}
-                    placeholder={`Valor para ${id}`}
-                    className="w-full border border-stone-200 rounded-lg px-3 py-2 text-xs bg-amber-50 focus:outline-none focus:ring-2 focus:ring-orange-400" />
+                  <ExtraFieldInput id={id} size="xs"
+                    value={extraFieldValues[id] ?? ''}
+                    onChange={v => setExtraFieldValues(prev => ({...prev, [id]: v}))} />
                 </div>
               ))}
             </div>
