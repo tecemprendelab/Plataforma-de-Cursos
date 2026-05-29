@@ -1016,6 +1016,10 @@ def generate_batch():
     name_id     = request.form.get("name_field_id", "recipient_name")
     date_id     = request.form.get("date_field_id", "issue_date")
     global_date = request.form.get("global_date", "").strip()
+    try:
+        extra_fields = json.loads(request.form.get("extra_fields", "{}"))
+    except (json.JSONDecodeError, ValueError):
+        extra_fields = {}
 
     # Cargar SVG
     svg_text = None
@@ -1062,6 +1066,8 @@ def generate_batch():
             fields    = _resolve_fields(row, name_id, date_id)
             if global_date:
                 fields[date_id] = global_date
+            if extra_fields:
+                fields.update(extra_fields)
             filled    = _fill_svg(svg_text, fields)
             name_hint = fields.get(name_id) or str(i + 1)
             safe_hint = re.sub(r"[^\w\- ]", "", name_hint).strip()[:60] or str(i + 1)

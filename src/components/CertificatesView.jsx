@@ -415,6 +415,24 @@ function CertBatch({ participants = [], courses = [] }) {
   const [filterPayment,  setFilterPayment]  = useState('pagado')
   const [certDate,       setCertDate]       = useState(TODAY_ES)
   const [globalDate,     setGlobalDate]     = useState('')
+  const [detectedIds,    setDetectedIds]    = useState([])
+  const [extraFieldValues, setExtraFieldValues] = useState({})
+
+  const extraIds = detectedIds.filter(({id}) => id !== nameId && id !== dateId)
+
+  const parseIdsSvg = async (svgTextOrFile) => {
+    const text = typeof svgTextOrFile === 'string' ? svgTextOrFile : await svgTextOrFile.text()
+    const doc = new DOMParser().parseFromString(text, 'image/svg+xml')
+    const ids = Array.from(doc.querySelectorAll('text[id]')).map(el => ({
+      id: el.getAttribute('id'), text: el.textContent.trim().slice(0, 30),
+    }))
+    setDetectedIds(ids)
+    setExtraFieldValues(prev => {
+      const next = {}
+      ids.forEach(({id}) => { next[id] = prev[id] ?? '' })
+      return next
+    })
+  }
 
   const filteredParticipants = participants.filter(p => {
     const matchCourse  = !filterCourse  || (p.courses || []).includes(filterCourse)
@@ -455,6 +473,9 @@ function CertBatch({ participants = [], courses = [] }) {
     form.append('date_field_id', dateId.trim())
     form.append('output_format', fmt)
     if (globalDate.trim()) form.append('global_date', globalDate.trim())
+    const extraFields = {}
+    extraIds.forEach(({id}) => { if (extraFieldValues[id]?.trim()) extraFields[id] = extraFieldValues[id].trim() })
+    if (Object.keys(extraFields).length) form.append('extra_fields', JSON.stringify(extraFields))
     try {
       setProgress(30)
       const r = await fetch(`${CERT_API}/api/generate/batch`, { method:'POST', body:form })
@@ -589,17 +610,25 @@ function CertBatch({ participants = [], courses = [] }) {
           <p className="text-xs font-semibold uppercase tracking-wider text-stone-500 mb-3">Plantilla SVG</p>
           <select value={templateName||''} onChange={async e => {
               const val = e.target.value
-              if (!val) { setTemplateName(null); setSvgFile(null); return }
+              if (!val) { setTemplateName(null); setSvgFile(null); setDetectedIds([]); return }
               // Plantilla built-in
               const builtin = BUILT_IN_TEMPLATES.find(t => t.file === val)
-              if (builtin) { setTemplateName(val); setSvgFile(null); return }
+              if (builtin) {
+                setTemplateName(val); setSvgFile(null)
+                try {
+                  const r = await fetch(`${CERT_API}/api/templates/${val}`)
+                  if (r.ok) parseIdsSvg(await r.text())
+                } catch(_) {}
+                return
+              }
               // Plantilla custom de Supabase — cargar SVG como File
               const tpl = templates.find(t => t.id === val)
               if (tpl) {
                 const svgText = await loadSvgContent(tpl)
                 if (svgText) {
-                  setSvgFile(new File([svgText], tpl.file_name, { type: 'image/svg+xml' }))
-                  setTemplateName(null)
+                  const f = new File([svgText], tpl.file_name, { type: 'image/svg+xml' })
+                  setSvgFile(f); setTemplateName(null)
+                  parseIdsSvg(svgText)
                 }
               }
             }}
@@ -617,7 +646,9 @@ function CertBatch({ participants = [], courses = [] }) {
             )}
           </select>
           <CertDropZone accept=".svg" title="O subir SVG propio" subtitle="Opcional"
-            icon="upload_file" file={svgFile} onFile={f => { setSvgFile(f); if (f) setTemplateName(null) }} />
+            icon="upload_file" file={svgFile} onFile={f => {
+              setSvgFile(f); if (f) { setTemplateName(null); parseIdsSvg(f) } else setDetectedIds([])
+            }} />
         </div>
 
         <div className="bg-white border border-stone-200 rounded-xl p-4">
@@ -642,6 +673,20 @@ function CertBatch({ participants = [], courses = [] }) {
               placeholder={`Ej: ${TODAY_ES}`}
               className="w-full border border-stone-200 rounded-lg px-3 py-2 text-xs bg-amber-50 focus:outline-none focus:ring-2 focus:ring-orange-400" />
           </div>
+          {extraIds.length > 0 && (
+            <div className="pt-2 border-t border-stone-100 space-y-2">
+              <p className="text-xs font-semibold uppercase tracking-wider text-stone-400">Campos adicionales</p>
+              {extraIds.map(({id}) => (
+                <div key={id}>
+                  <label className="block text-xs text-stone-500 mb-1 font-mono">{id}</label>
+                  <input value={extraFieldValues[id] ?? ''}
+                    onChange={e => setExtraFieldValues(prev => ({...prev, [id]: e.target.value}))}
+                    placeholder={`Valor para ${id}`}
+                    className="w-full border border-stone-200 rounded-lg px-3 py-2 text-xs bg-amber-50 focus:outline-none focus:ring-2 focus:ring-orange-400" />
+                </div>
+              ))}
+            </div>
+          )}
           <label className="block text-xs text-stone-500 mb-1.5">Formato</label>
           <CertFormatToggle value={fmt} onChange={setFmt} />
         </div>
