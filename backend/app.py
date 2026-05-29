@@ -212,12 +212,87 @@ def _split_name_lines(name: str) -> tuple:
     return (" ".join(words[:mid]), " ".join(words[mid:]))
 
 
+def _build_mixed_line(parts, x, y, fill, font_family, font_size):
+    """
+    Construye un <text> centrado con partes mixtas (regular + bold).
+    parts = [("texto ", False), ("BOLD", True), (" más texto", False)]
+    Usa text-anchor="middle" para centrar automáticamente en x.
+    """
+    spans = ""
+    for i, (txt, bold) in enumerate(parts):
+        if not txt:
+            continue
+        fw = "700" if bold else "400"
+        if i == 0:
+            spans += f'<tspan x="{x}" y="{y}" font-weight="{fw}">{txt}</tspan>'
+        else:
+            spans += f'<tspan font-weight="{fw}">{txt}</tspan>'
+    return (
+        f'<text fill="{fill}" font-family="{font_family}" font-size="{font_size}" '
+        f'text-anchor="middle" style="white-space:pre" xml:space="preserve">'
+        f'{spans}</text>'
+    )
+
+
 def _fill_svg(svg_text: str, fields: dict) -> str:
     """Replace text content of SVG <text> elements by id.
-    Para recipient_name con 4+ palabras, divide en dos tspan.
+    Para recipient_name con 2+ palabras, divide en dos tspan.
+    Maneja line_curso, line_horas, line_fechas como líneas mixtas centradas.
     """
+    import re as _re
     result = svg_text
-    LINE_HEIGHT = 44  # acorde a font-size=47.9322
+    LINE_HEIGHT = 44  # acorde a font-size=36
+
+    # Campos para líneas mixtas del certificado de cursos
+    MIXED_LINES = {
+        "line_curso": lambda f: [
+            ("Por haber concluido con éxito el ", False),
+            (f.get("course_name_1", ""), True),
+        ],
+        "line_horas": lambda f: [
+            (f.get("course_name_2", ""), True),
+            (" con un total de ", False),
+            (f.get("hours_issue", ""), True),
+            (" impartidas", False),
+        ],
+        "line_fechas": lambda f: [
+            ("desde el ", False),
+            (f.get("date_issue_1", ""), True),
+            (" al ", False),
+            (f.get("date_issue_2", ""), True),
+        ],
+    }
+
+    for line_id, parts_fn in MIXED_LINES.items():
+        if line_id not in result:
+            continue
+        parts = parts_fn(fields)
+        if not any(v for _, v in [(p, p[0]) for p in parts] if _):
+            continue
+
+        fill_m = _re.search(r'<text[^>]*id="' + line_id + r'"[^>]*fill="([^"]+)"', result)
+        ff_m   = _re.search(r'<text[^>]*id="' + line_id + r'"[^>]*font-family="([^"]+)"', result)
+        fs_m   = _re.search(r'<text[^>]*id="' + line_id + r'"[^>]*font-size="([^"]+)"', result)
+        x_m    = _re.search(r'<text[^>]*id="' + line_id + r'"[\s\S]*?<tspan[^>]*x="([^"]+)"', result)
+        y_m    = _re.search(r'<text[^>]*id="' + line_id + r'"[\s\S]*?<tspan[^>]*y="([^"]+)"', result)
+
+        fill = fill_m.group(1) if fill_m else "#666666"
+        ff   = ff_m.group(1) if ff_m else "Sen,sans-serif"
+        fs   = fs_m.group(1) if fs_m else "11"
+        x    = x_m.group(1) if x_m else "421"
+        y    = y_m.group(1) if y_m else "283"
+
+        # Escapar HTML en los valores
+        safe_parts = [
+            (txt.replace("&","&amp;").replace("<","&lt;").replace(">","&gt;"), bold)
+            for txt, bold in parts
+        ]
+        new_tag = _build_mixed_line(safe_parts, x, y, fill, ff, fs)
+
+        result = _re.sub(
+            r'<text[^>]*id="' + line_id + r'"[\s\S]*?</text>',
+            new_tag, result, count=1
+        )
 
     for field_id, value in fields.items():
         if not field_id or value is None:
@@ -225,25 +300,25 @@ def _fill_svg(svg_text: str, fields: dict) -> str:
 
         raw_val = str(value)
 
-        # Corregir tildes en nombre del participante
+        # Corregir tildes en el nombre del participante
         if field_id == "recipient_name":
             raw_val = _fix_tildes(raw_val)
 
-        # Nombre con 4+ palabras -> dos lineas
+        # Nombre con 2+ palabras -> dos lineas
         if field_id == "recipient_name":
             linea1, linea2 = _split_name_lines(raw_val)
             safe_l1 = linea1.replace("&", "&amp;").replace("<", "&lt;").replace(">", "&gt;")
             if linea2:
                 safe_l2 = linea2.replace("&", "&amp;").replace("<", "&lt;").replace(">", "&gt;")
-                safe_id = re.escape(field_id)
+                safe_id = _re.escape(field_id)
 
                 def make_two_line(l1, l2, lh):
                     def _r(m):
                         inner = m.group(2)
-                        xm = re.search(r'<tspan[^>]+x=["\']([^"\'][^"\']*)["\']', inner)
-                        ym = re.search(r'<tspan[^>]+y=["\']([^"\'][^"\']*)["\']', inner)
-                        x_val = xm.group(1) if xm else "65.4"
-                        y_val = float(ym.group(1)) if ym else 316.0
+                        xm = _re.search(r'<tspan[^>]+x=["\']([^"\']*)["\']', inner)
+                        ym = _re.search(r'<tspan[^>]+y=["\']([^"\']*)["\']', inner)
+                        x_val = xm.group(1) if xm else "421"
+                        y_val = float(ym.group(1)) if ym else 218.0
                         y1 = y_val - lh * 0.5
                         new_inner = (
                             f'<tspan x="{x_val}" y="{y1:.1f}">{l1}</tspan>'
@@ -252,16 +327,16 @@ def _fill_svg(svg_text: str, fields: dict) -> str:
                         return m.group(1) + new_inner + m.group(3)
                     return _r
 
-                result = re.sub(
+                result = _re.sub(
                     r'(<text\b[^>]*\bid=["\']' + safe_id + r'["\'][^>]*>)'
                     r'([\s\S]*?)'
                     r'(</text>)',
                     make_two_line(safe_l1, safe_l2, LINE_HEIGHT),
-                    result, flags=re.IGNORECASE
+                    result, flags=_re.IGNORECASE
                 )
                 continue
 
-        safe_id  = re.escape(str(field_id))
+        safe_id  = _re.escape(str(field_id))
         safe_val = raw_val.replace("&", "&amp;").replace("<", "&lt;").replace(">", "&gt;")
 
         def make_replacer(val):
@@ -269,33 +344,156 @@ def _fill_svg(svg_text: str, fields: dict) -> str:
                 open_tag  = m.group(1)
                 inner     = m.group(2)
                 close_tag = m.group(3)
-                if re.search(r'<tspan\b', inner, re.IGNORECASE):
+                if _re.search(r'<tspan\b', inner, _re.IGNORECASE):
                     def _tspan(tm):
                         return tm.group(1) + val + tm.group(2)
-                    new_inner = re.sub(
+                    new_inner = _re.sub(
                         r'(<tspan\b[^>]*>)[^<]*(</tspan>)',
-                        _tspan, inner, count=1, flags=re.IGNORECASE
+                        _tspan, inner, count=1, flags=_re.IGNORECASE
                     )
                 else:
                     new_inner = val
                 return open_tag + new_inner + close_tag
             return _replacer
 
-        result = re.sub(
+        result = _re.sub(
             r'(<text\b[^>]*\bid=["\']' + safe_id + r'["\'][^>]*>)'
             r'([\s\S]*?)'
             r'(</text>)',
             make_replacer(safe_val),
-            result, flags=re.IGNORECASE
+            result, flags=_re.IGNORECASE
         )
-        result = re.sub(
+        result = _re.sub(
             r'(<tspan\b[^>]*\bid=["\']' + safe_id + r'["\'][^>]*>)'
             r'[^<]*'
             r'(</tspan>)',
             lambda m, v=safe_val: m.group(1) + v + m.group(2),
-            result, flags=re.IGNORECASE
+            result, flags=_re.IGNORECASE
         )
     return result
+
+
+def _build_mixed_line(parts, x, y, fill, font_family, font_size):
+    spans = ""
+    for i, (txt, bold) in enumerate(parts):
+        if not txt:
+            continue
+        fw = "700" if bold else "400"
+        if i == 0:
+            spans += f'<tspan x="{x}" y="{y}" font-weight="{fw}">{txt}</tspan>'
+        else:
+            spans += f'<tspan font-weight="{fw}">{txt}</tspan>'
+    return (
+        f'<text fill="{fill}" font-family="{font_family}" font-size="{font_size}" '
+        f'text-anchor="middle" style="white-space:pre" xml:space="preserve">'
+        f'{spans}</text>'
+    )
+
+
+def _fill_svg(svg_text: str, fields: dict) -> str:
+    import re as _re
+    result = svg_text
+    LINE_HEIGHT = 44
+
+    MIXED_LINES = {
+        "line_curso": lambda f: [
+            ("Por haber concluido con exito el ", False),
+            (f.get("course_name_1", ""), True),
+        ],
+        "line_horas": lambda f: [
+            (f.get("course_name_2", ""), True),
+            (" con un total de ", False),
+            (f.get("hours_issue", ""), True),
+            (" impartidas", False),
+        ],
+        "line_fechas": lambda f: [
+            ("desde el ", False),
+            (f.get("date_issue_1", ""), True),
+            (" al ", False),
+            (f.get("date_issue_2", ""), True),
+        ],
+    }
+
+    for line_id, parts_fn in MIXED_LINES.items():
+        pat = r'<text[^>]*id="' + _re.escape(line_id) + r'"[\s\S]*?</text>'
+        m = _re.search(pat, result)
+        if not m:
+            continue
+        tag = m.group(0)
+        fill_m = _re.search(r'fill="([^"]+)"', tag)
+        ff_m   = _re.search(r'font-family="([^"]+)"', tag)
+        fs_m   = _re.search(r'font-size="([^"]+)"', tag)
+        x_m    = _re.search(r'<tspan[^>]*x="([^"]+)"', tag)
+        y_m    = _re.search(r'<tspan[^>]*y="([^"]+)"', tag)
+        fill = fill_m.group(1) if fill_m else "#666666"
+        ff   = ff_m.group(1) if ff_m else "Sen,sans-serif"
+        fs   = fs_m.group(1) if fs_m else "11"
+        x    = x_m.group(1) if x_m else "421"
+        y    = y_m.group(1) if y_m else "283"
+        parts = parts_fn(fields)
+        safe_parts = [
+            (txt.replace("&","&amp;").replace("<","&lt;").replace(">","&gt;"), bold)
+            for txt, bold in parts
+        ]
+        new_tag = _build_mixed_line(safe_parts, x, y, fill, ff, fs)
+        result = result.replace(tag, new_tag, 1)
+
+    for field_id, value in fields.items():
+        if not field_id or value is None:
+            continue
+        raw_val = str(value)
+        if field_id == "recipient_name":
+            raw_val = _fix_tildes(raw_val)
+        if field_id == "recipient_name":
+            linea1, linea2 = _split_name_lines(raw_val)
+            safe_l1 = linea1.replace("&","&amp;").replace("<","&lt;").replace(">","&gt;")
+            if linea2:
+                safe_l2 = linea2.replace("&","&amp;").replace("<","&lt;").replace(">","&gt;")
+                safe_id = _re.escape(field_id)
+                def make_two_line(l1, l2, lh):
+                    def _r(m):
+                        inner = m.group(2)
+                        xm = _re.search(r'<tspan[^>]+x=["\']([^"\']*)["\']', inner)
+                        ym = _re.search(r'<tspan[^>]+y=["\']([^"\']*)["\']', inner)
+                        x_val = xm.group(1) if xm else "421"
+                        y_val = float(ym.group(1)) if ym else 218.0
+                        y1 = y_val - lh * 0.5
+                        new_inner = (
+                            f'<tspan x="{x_val}" y="{y1:.1f}">{l1}</tspan>'
+                            f'<tspan x="{x_val}" dy="{lh}">{l2}</tspan>'
+                        )
+                        return m.group(1) + new_inner + m.group(3)
+                    return _r
+                result = _re.sub(
+                    r'(<text\b[^>]*\bid=["\']' + safe_id + r'["\'][^>]*>)([\s\S]*?)(</text>)',
+                    make_two_line(safe_l1, safe_l2, LINE_HEIGHT),
+                    result, flags=_re.IGNORECASE
+                )
+                continue
+        safe_id  = _re.escape(str(field_id))
+        safe_val = raw_val.replace("&","&amp;").replace("<","&lt;").replace(">","&gt;")
+        def make_replacer(val):
+            def _replacer(m):
+                inner = m.group(2)
+                if _re.search(r'<tspan\b', inner, _re.IGNORECASE):
+                    def _tspan(tm): return tm.group(1) + val + tm.group(2)
+                    new_inner = _re.sub(r'(<tspan\b[^>]*>)[^<]*(</tspan>)', _tspan, inner, count=1, flags=_re.IGNORECASE)
+                else:
+                    new_inner = val
+                return m.group(1) + new_inner + m.group(3)
+            return _replacer
+        result = _re.sub(
+            r'(<text\b[^>]*\bid=["\']' + safe_id + r'["\'][^>]*>)([\s\S]*?)(</text>)',
+            make_replacer(safe_val), result, flags=_re.IGNORECASE
+        )
+        result = _re.sub(
+            r'(<tspan\b[^>]*\bid=["\']' + safe_id + r'["\'][^>]*>)[^<]*(</tspan>)',
+            lambda m, v=safe_val: m.group(1) + v + m.group(2),
+            result, flags=_re.IGNORECASE
+        )
+    return result
+
+
 
 
 def _fix_outlined_text(svg_text: str) -> str:
@@ -494,6 +692,14 @@ def _embed_fonts(svg_text: str) -> str:
                 "/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf",
             ],
         },
+        "Sen": {
+            "weight": "400 700",
+            "paths": [
+                os.path.join(base_dir, "fonts", "Sen.ttf"),              # en el repo
+                "/usr/local/share/fonts/custom/Sen.ttf",
+                "/usr/share/fonts/truetype/liberation/LiberationSans-Regular.ttf",
+            ],
+        },
     }
 
     styles = []
@@ -503,13 +709,25 @@ def _embed_fonts(svg_text: str) -> str:
             continue
         with open(font_path, "rb") as f:
             b64 = base64.b64encode(f.read()).decode("utf-8")
-        styles.append(
-            f"@font-face {{\n"
-            f"  font-family: '{family}';\n"
-            f"  font-weight: {cfg['weight']};\n"
-            f"  src: url('data:font/truetype;base64,{b64}') format('truetype');\n"
-            f"}}"
-        )
+        weight_val = cfg["weight"]
+        # Sen es variable — registrar para regular y bold con el mismo archivo
+        if " " in str(weight_val):
+            for w in str(weight_val).split():
+                styles.append(
+                    f"@font-face {{\n"
+                    f"  font-family: '{family}';\n"
+                    f"  font-weight: {w};\n"
+                    f"  src: url('data:font/truetype;base64,{b64}') format('truetype');\n"
+                    f"}}"
+                )
+        else:
+            styles.append(
+                f"@font-face {{\n"
+                f"  font-family: '{family}';\n"
+                f"  font-weight: {weight_val};\n"
+                f"  src: url('data:font/truetype;base64,{b64}') format('truetype');\n"
+                f"}}"
+            )
 
     if not styles:
         return svg_text
