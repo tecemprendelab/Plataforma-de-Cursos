@@ -347,25 +347,54 @@ def _fill_svg(svg_text: str, fields: dict) -> str:
 
 
 
-def _extract_path_id(tag: str) -> str:
-    """Extrae el valor del atributo id de un tag <path>."""
-    import re as _re
-    m = _re.search(r'\bid\s*=\s*["\']([^"\']*)["\']', tag)
-    return m.group(1) if m else ''
-
-
 def _remove_paths_by_id_keywords(svg_text: str, keywords: list) -> str:
     """
-    Elimina elementos <path .../> cuyo id contiene alguna de las keywords.
-    Usa un parser carácter a carácter para manejar correctamente '>'
-    dentro del atributo d="" sin confundirlo con el fin del elemento.
+    Elimina <path .../> cuyo id contiene alguna keyword.
+    Usa lxml con recover=True como método primario (maneja SVG/XML
+    malformado de Figma). Si falla, aplica parser carácter a carácter
+    como fallback.
     """
+    import re as _re
+
+    # ── Método 1: lxml DOM ────────────────────────────────────────
+    try:
+        from lxml import etree
+        SVG_NS = 'http://www.w3.org/2000/svg'
+        parser = etree.XMLParser(recover=True, remove_comments=False)
+        root = etree.fromstring(svg_text.encode('utf-8'), parser=parser)
+
+        to_remove = []
+        for el in root.iter():
+            local = el.tag.split('}')[-1] if '}' in el.tag else el.tag
+            if local == 'path':
+                eid = el.get('id', '')
+                if any(kw in eid for kw in keywords):
+                    to_remove.append(el)
+
+        for el in to_remove:
+            parent = el.getparent()
+            if parent is not None:
+                parent.remove(el)
+
+        # Serializar preservando declaración XML y namespaces
+        result = etree.tostring(root, encoding='unicode',
+                                xml_declaration=False,
+                                pretty_print=False)
+        return result
+
+    except Exception:
+        pass  # lxml falló → usar fallback
+
+    # ── Método 2: parser carácter a carácter (fallback) ──────────
+    def _get_id(tag):
+        m = _re.search(r'\bid\s*=\s*["\']([^"\']*)["\']', tag)
+        return m.group(1) if m else ''
+
     out = []
     i = 0
     n = len(svg_text)
     while i < n:
-        if svg_text[i:i+6] == '<path ' or svg_text[i:i+6] == '<path\t' or svg_text[i:i+6] == '<path\n':
-            # Avanzar hasta encontrar el /> real, saltando valores de atributos
+        if svg_text[i:i+6] in ('<path ', '<path\t', '<path\n'):
             j = i + 5
             in_q = False
             q_char = ''
@@ -382,24 +411,20 @@ def _remove_paths_by_id_keywords(svg_text: str, keywords: list) -> str:
                     end = j + 2
                     break
                 elif c == '>' and not in_q:
-                    # Elemento no auto-cerrado (inesperado en <path>)
                     end = j + 1
                     break
                 j += 1
-
             if end == -1:
-                # No se encontró cierre — copiar el resto y terminar
                 out.append(svg_text[i:])
                 break
-
             tag = svg_text[i:end]
-            tag_id = _extract_path_id(tag)
-            if not any(kw in tag_id for kw in keywords):
+            if not any(kw in _get_id(tag) for kw in keywords):
                 out.append(tag)
             i = end
         else:
             out.append(svg_text[i])
             i += 1
+    return ''.join(out)
     return ''.join(out)
 
 
