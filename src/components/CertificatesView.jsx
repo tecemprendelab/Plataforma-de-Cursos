@@ -363,19 +363,37 @@ function CertIndividual({ participants, galleryTplPick, onGalleryConsumed }) {
 
 /* ── Pestaña Lote CSV ───────────────────────────────────────── */
 
-function CertBatch({ participants = [] }) {
+function CertBatch({ participants = [], courses = [] }) {
   const { templates, loadSvgContent } = useTemplates()
-  const [templateName, setTemplateName] = useState(null)
-  const [svgFile,      setSvgFile]      = useState(null)
-  const [csvFile,      setCsvFile]      = useState(null)
-  const [csvMeta,      setCsvMeta]      = useState(null)
-  const [nameId,       setNameId]       = useState('recipient_name')
-  const [dateId,       setDateId]       = useState('issue_date')
-  const [fmt,          setFmt]          = useState('pdf')
-  const [loading,      setLoading]      = useState(false)
-  const [progress,     setProgress]     = useState(0)
-  const [alert,        setAlert]        = useState(null)
-  const [result,       setResult]       = useState(null)
+  const [templateName,   setTemplateName]   = useState(null)
+  const [svgFile,        setSvgFile]        = useState(null)
+  const [csvFile,        setCsvFile]        = useState(null)
+  const [csvMeta,        setCsvMeta]        = useState(null)
+  const [nameId,         setNameId]         = useState('recipient_name')
+  const [dateId,         setDateId]         = useState('issue_date')
+  const [fmt,            setFmt]            = useState('pdf')
+  const [loading,        setLoading]        = useState(false)
+  const [progress,       setProgress]       = useState(0)
+  const [alert,          setAlert]          = useState(null)
+  const [result,         setResult]         = useState(null)
+  const [filterCourse,   setFilterCourse]   = useState('')
+  const [filterStatus,   setFilterStatus]   = useState('activo')
+  const [filterPayment,  setFilterPayment]  = useState('pagado')
+  const [certDate,       setCertDate]       = useState(TODAY_ES)
+
+  const filteredParticipants = participants.filter(p => {
+    const matchCourse  = !filterCourse  || (p.courses || []).includes(filterCourse)
+    const matchStatus  = !filterStatus  || p.status  === filterStatus
+    const matchPayment = !filterPayment || p.payment === filterPayment
+    return matchCourse && matchStatus && matchPayment
+  })
+
+  const applyFilters = () => {
+    if (!filteredParticipants.length) return
+    const lines = ['nombre,fecha', ...filteredParticipants.map(p => `"${p.name}","${certDate}"`)]
+    const blob = new Blob([lines.join('\n')], { type: 'text/csv;charset=utf-8' })
+    handleCsvFile(new File([blob], 'participantes_filtrados.csv', { type: 'text/csv' }))
+  }
 
   const handleCsvFile = async (file) => {
     if (!file) { setCsvFile(null); setCsvMeta(null); return }
@@ -439,20 +457,57 @@ function CertBatch({ participants = [] }) {
     <div className="grid grid-cols-12 gap-5">
       <div className="col-span-7 space-y-4">
         {participants.length > 0 && (
-          <div className="bg-white border border-stone-200 rounded-xl p-4">
-            <p className="text-xs font-semibold uppercase tracking-wider text-stone-500 mb-2">Generar CSV desde participantes activos</p>
-            <p className="text-xs text-stone-400 mb-3">Exporta los participantes con estado activo y pago confirmado como CSV listo para usar.</p>
-            <button onClick={() => {
-              const active = participants.filter(p => p.status === 'activo' && p.payment === 'pagado')
-              if (!active.length) return
-              const lines = ['nombre,fecha', ...active.map(p => `"${p.name}","${TODAY_ES}"`)]
-              const blob = new Blob([lines.join('\n')], {type:'text/csv;charset=utf-8'})
-              const f = new File([blob], 'participantes_activos.csv', {type:'text/csv'})
-              handleCsvFile(f)
-            }} className="flex items-center gap-1.5 text-xs font-medium px-3 py-2 bg-orange-500 text-white rounded-lg hover:bg-orange-600 transition-colors">
-              <span className="material-symbols-outlined" style={{fontSize:14}}>group</span>
-              Usar {participants.filter(p=>p.status==='activo'&&p.payment==='pagado').length} participantes activos
-            </button>
+          <div className="bg-white border border-stone-200 rounded-xl p-4 space-y-3">
+            <p className="text-xs font-semibold uppercase tracking-wider text-stone-500">Filtrar participantes</p>
+
+            <div className="grid grid-cols-3 gap-2">
+              <div>
+                <label className="block text-xs text-stone-400 mb-1">Curso / taller</label>
+                <select value={filterCourse} onChange={e => setFilterCourse(e.target.value)}
+                  className="w-full border border-stone-200 rounded-lg px-2 py-1.5 text-xs bg-amber-50 focus:outline-none focus:ring-2 focus:ring-orange-400">
+                  <option value="">Todos</option>
+                  {courses.filter(c => c.active).map(c => (
+                    <option key={c.id} value={c.id}>{c.short || c.name}</option>
+                  ))}
+                </select>
+              </div>
+              <div>
+                <label className="block text-xs text-stone-400 mb-1">Estado</label>
+                <select value={filterStatus} onChange={e => setFilterStatus(e.target.value)}
+                  className="w-full border border-stone-200 rounded-lg px-2 py-1.5 text-xs bg-amber-50 focus:outline-none focus:ring-2 focus:ring-orange-400">
+                  <option value="">Todos</option>
+                  <option value="activo">Activo</option>
+                  <option value="inactivo">Inactivo</option>
+                </select>
+              </div>
+              <div>
+                <label className="block text-xs text-stone-400 mb-1">Pago</label>
+                <select value={filterPayment} onChange={e => setFilterPayment(e.target.value)}
+                  className="w-full border border-stone-200 rounded-lg px-2 py-1.5 text-xs bg-amber-50 focus:outline-none focus:ring-2 focus:ring-orange-400">
+                  <option value="">Todos</option>
+                  <option value="pagado">Pagado</option>
+                  <option value="pendiente">Pendiente</option>
+                </select>
+              </div>
+            </div>
+
+            <div>
+              <label className="block text-xs text-stone-400 mb-1">Fecha del certificado</label>
+              <input value={certDate} onChange={e => setCertDate(e.target.value)}
+                className="w-full border border-stone-200 rounded-lg px-3 py-1.5 text-xs bg-amber-50 focus:outline-none focus:ring-2 focus:ring-orange-400"
+                placeholder="22 de mayo de 2026" />
+            </div>
+
+            <div className="flex items-center justify-between pt-1">
+              <span className={`text-xs font-semibold ${filteredParticipants.length ? 'text-gray-700' : 'text-stone-400'}`}>
+                {filteredParticipants.length} participante{filteredParticipants.length !== 1 ? 's' : ''} coinciden
+              </span>
+              <button onClick={applyFilters} disabled={!filteredParticipants.length}
+                className="flex items-center gap-1.5 text-xs font-medium px-3 py-2 bg-orange-500 text-white rounded-lg hover:bg-orange-600 disabled:opacity-40 transition-colors">
+                <span className="material-symbols-outlined" style={{fontSize:14}}>group</span>
+                Usar estos {filteredParticipants.length}
+              </button>
+            </div>
           </div>
         )}
         <CertDropZone accept=".csv" title="Arrastrá tu archivo CSV aquí"
@@ -785,7 +840,7 @@ function CertAnalyze({ aiAvailable }) {
 
 /* ── Vista principal ────────────────────────────────────────── */
 
-export default function CertificatesView({ participants, galleryTplPick, onGalleryConsumed }) {
+export default function CertificatesView({ participants, courses = [], galleryTplPick, onGalleryConsumed }) {
   const [certTab,     setCertTab]     = useState('individual')
   const [apiOk,       setApiOk]       = useState(null)
   const [aiAvailable, setAiAvailable] = useState(false)
@@ -852,7 +907,7 @@ export default function CertificatesView({ participants, galleryTplPick, onGalle
       </div>
 
       {certTab === 'individual' && <CertIndividual participants={participants} galleryTplPick={galleryTplPick} onGalleryConsumed={onGalleryConsumed} />}
-      {certTab === 'batch'      && <CertBatch participants={participants} />}
+      {certTab === 'batch'      && <CertBatch participants={participants} courses={courses} />}
       {certTab === 'analyze'    && <CertAnalyze aiAvailable={aiAvailable} />}
     </div>
   )

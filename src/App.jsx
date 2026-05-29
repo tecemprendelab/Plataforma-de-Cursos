@@ -175,7 +175,7 @@ function AuthenticatedApp({ user, onSignOut, theme, toggleTheme }) {
       return <ExportView participants={participants} courses={courses} tags={tags}/>
 
     if (view === 'certificates')
-      return <CertificatesView participants={participants}
+      return <CertificatesView participants={participants} courses={courses}
         galleryTplPick={galleryTplPick}
         onGalleryConsumed={() => setGalleryTplPick(null)} />
 
