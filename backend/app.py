@@ -794,9 +794,10 @@ def generate():
 
 @app.post("/api/generate/batch")
 def generate_batch():
-    fmt     = (request.form.get("format") or request.form.get("output_format", "pdf")).lower()
-    name_id = request.form.get("name_field_id", "recipient_name")
-    date_id = request.form.get("date_field_id", "issue_date")
+    fmt         = (request.form.get("format") or request.form.get("output_format", "pdf")).lower()
+    name_id     = request.form.get("name_field_id", "recipient_name")
+    date_id     = request.form.get("date_field_id", "issue_date")
+    global_date = request.form.get("global_date", "").strip()
 
     # Cargar SVG
     svg_text = None
@@ -841,6 +842,8 @@ def generate_batch():
     with zipfile.ZipFile(zip_buf, "w", zipfile.ZIP_DEFLATED) as zf:
         for i, row in enumerate(rows):
             fields    = _resolve_fields(row, name_id, date_id)
+            if global_date:
+                fields[date_id] = global_date
             filled    = _fill_svg(svg_text, fields)
             name_hint = fields.get(name_id) or str(i + 1)
             safe_hint = re.sub(r"[^\w\- ]", "", name_hint).strip()[:60] or str(i + 1)

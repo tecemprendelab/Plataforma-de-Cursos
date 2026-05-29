@@ -380,6 +380,7 @@ function CertBatch({ participants = [], courses = [] }) {
   const [filterStatus,   setFilterStatus]   = useState('activo')
   const [filterPayment,  setFilterPayment]  = useState('pagado')
   const [certDate,       setCertDate]       = useState(TODAY_ES)
+  const [globalDate,     setGlobalDate]     = useState('')
 
   const filteredParticipants = participants.filter(p => {
     const matchCourse  = !filterCourse  || (p.courses || []).includes(filterCourse)
@@ -419,6 +420,7 @@ function CertBatch({ participants = [], courses = [] }) {
     form.append('name_field_id', nameId.trim())
     form.append('date_field_id', dateId.trim())
     form.append('output_format', fmt)
+    if (globalDate.trim()) form.append('global_date', globalDate.trim())
     try {
       setProgress(30)
       const r = await fetch(`${CERT_API}/api/generate/batch`, { method:'POST', body:form })
@@ -594,6 +596,14 @@ function CertBatch({ participants = [], courses = [] }) {
               <input value={dateId} onChange={e => setDateId(e.target.value)}
                 className="w-full border border-stone-200 rounded-lg px-3 py-2 text-xs font-mono bg-amber-50 focus:outline-none focus:ring-2 focus:ring-orange-400" />
             </div>
+          </div>
+          <div className="mb-3">
+            <label className="block text-xs text-stone-500 mb-1">
+              Fecha para todos <span className="text-stone-400 font-normal">(sobreescribe la del CSV)</span>
+            </label>
+            <input value={globalDate} onChange={e => setGlobalDate(e.target.value)}
+              placeholder={`Ej: ${TODAY_ES}`}
+              className="w-full border border-stone-200 rounded-lg px-3 py-2 text-xs bg-amber-50 focus:outline-none focus:ring-2 focus:ring-orange-400" />
           </div>
           <label className="block text-xs text-stone-500 mb-1.5">Formato</label>
           <CertFormatToggle value={fmt} onChange={setFmt} />
