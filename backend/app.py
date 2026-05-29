@@ -347,10 +347,67 @@ def _fill_svg(svg_text: str, fields: dict) -> str:
 
 
 
+def _extract_path_id(tag: str) -> str:
+    """Extrae el valor del atributo id de un tag <path>."""
+    import re as _re
+    m = _re.search(r'\bid\s*=\s*["\']([^"\']*)["\']', tag)
+    return m.group(1) if m else ''
+
+
+def _remove_paths_by_id_keywords(svg_text: str, keywords: list) -> str:
+    """
+    Elimina elementos <path .../> cuyo id contiene alguna de las keywords.
+    Usa un parser carácter a carácter para manejar correctamente '>'
+    dentro del atributo d="" sin confundirlo con el fin del elemento.
+    """
+    out = []
+    i = 0
+    n = len(svg_text)
+    while i < n:
+        if svg_text[i:i+6] == '<path ' or svg_text[i:i+6] == '<path\t' or svg_text[i:i+6] == '<path\n':
+            # Avanzar hasta encontrar el /> real, saltando valores de atributos
+            j = i + 5
+            in_q = False
+            q_char = ''
+            end = -1
+            while j < n:
+                c = svg_text[j]
+                if in_q:
+                    if c == q_char:
+                        in_q = False
+                elif c in '"\'':
+                    in_q = True
+                    q_char = c
+                elif c == '/' and j + 1 < n and svg_text[j + 1] == '>':
+                    end = j + 2
+                    break
+                elif c == '>' and not in_q:
+                    # Elemento no auto-cerrado (inesperado en <path>)
+                    end = j + 1
+                    break
+                j += 1
+
+            if end == -1:
+                # No se encontró cierre — copiar el resto y terminar
+                out.append(svg_text[i:])
+                break
+
+            tag = svg_text[i:end]
+            tag_id = _extract_path_id(tag)
+            if not any(kw in tag_id for kw in keywords):
+                out.append(tag)
+            i = end
+        else:
+            out.append(svg_text[i])
+            i += 1
+    return ''.join(out)
+
+
 def _fix_cursos_svg(svg_text: str) -> str:
     """
     Detecta SVGs de certificado de cursos y reconstruye el cuerpo dinámico.
-    Elimina paths vectorizados originales (que pueden tener > en el atributo d).
+    Elimina paths vectorizados originales usando parser carácter a carácter
+    para manejar correctamente '>' dentro del atributo d="".
     """
     import re as _re
 
@@ -363,10 +420,6 @@ def _fix_cursos_svg(svg_text: str) -> str:
     if not is_cursos:
         return svg_text
 
-    result = svg_text
-
-    # Regex correcto: usa id="...keyword..." seguido de [\s\S]*?/>
-    # para manejar paths que tienen > dentro del atributo d=""
     paths_keywords = [
         'Por haber',
         'course_name_1',
@@ -378,23 +431,11 @@ def _fix_cursos_svg(svg_text: str) -> str:
         'al',
         'date_issue_1',
         'date_issue_2',
+        'date_issue',
         'Otorgado en la ciudad',
         'participant_name',
     ]
-    for kw in paths_keywords:
-        result = _re.sub(
-            r'<path id="[^"]*' + _re.escape(kw) + r'[^"]*"[\s\S]*?/>',
-            '', result, count=1, flags=_re.DOTALL
-        )
-
-    # date_issue exacto (sin _1 ni _2)
-    result = _re.sub(r'<path id="date_issue"[\s\S]*?/>', '', result, count=1, flags=_re.DOTALL)
-    # Variante con d antes del id
-    for kw in paths_keywords + ['date_issue']:
-        result = _re.sub(
-            r'<path\s[^"]*id="[^"]*' + _re.escape(kw) + r'[^"]*"[\s\S]*?/>',
-            '', result, count=1, flags=_re.DOTALL
-        )
+    result = _remove_paths_by_id_keywords(svg_text, paths_keywords)
 
     fill = '#666666'
     ff   = 'Sen,Liberation Sans,DejaVu Sans,sans-serif'
