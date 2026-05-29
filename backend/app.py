@@ -344,10 +344,9 @@ def _fill_svg(svg_text: str, fields: dict) -> str:
 
 def _fix_cursos_svg(svg_text: str) -> str:
     """
-    Detecta SVGs de certificado de cursos y:
-    1. Elimina los paths vectorizados originales
-    2. Agrega los elementos de texto editables si no existen
-    Funciona con cualquier versión del SVG subida a Supabase.
+    Detecta SVGs de certificado de cursos y reconstruye el cuerpo dinámico.
+    Elimina CUALQUIER path que tenga id con palabras clave del cuerpo,
+    independientemente del encoding o variaciones en el texto.
     """
     import re as _re
 
@@ -356,64 +355,82 @@ def _fix_cursos_svg(svg_text: str) -> str:
         'line_curso', 'line_horas', 'line_fechas',
         'course_name_1', 'course_name_2',
         'participant_name', 'con un total de', 'impartidas',
+        'Por haber concluido',
     ])
     if not is_cursos:
         return svg_text
 
     result = svg_text
 
-    # 1. Eliminar TODOS los paths vectorizados del cuerpo
-    paths_to_remove = [
-        'Por haber concluido con',
-        'course_name_1',
-        'con un total de',
-        'hours_issue',
-        'course_name_2',
-        'impartidas',
-        'desde el',
-        'date_issue_1',
-        'date_issue_2',
-        'Otorgado en la ciudad de Cartago, el',
-        'date_issue',
-        'participant_name',
+    # Eliminar paths con estas palabras clave en su id (regex permisivo)
+    keyword_patterns = [
+        r'Por haber',
+        r'course_name_1',
+        r'con un total',
+        r'hours_issue',
+        r'course_name_2',
+        r'impartidas',
+        r'desde el',
+        r'date_issue_1',
+        r'"al"',
+        r'date_issue_2',
+        r'Otorgado en la ciudad',
+        r'date_issue(?!_)',  # date_issue pero no date_issue_1 ni date_issue_2
+        r'participant_name',
     ]
-    for eid in paths_to_remove:
+    for pat in keyword_patterns:
         result = _re.sub(
-            r'<path\s[^>]*id="' + _re.escape(eid) + r'[^"]*"[^/]*/>', '',
-            result, count=1, flags=_re.DOTALL
+            r'<path[^>]*id="[^"]*' + pat + r'[^"]*"[^/]*/?>',
+            '', result, count=1, flags=_re.DOTALL | _re.IGNORECASE
         )
-    # Eliminar path id="al" exacto
-    result = _re.sub(r'<path\s[^>]*id="al"[^/]*/>', '', result, count=1, flags=_re.DOTALL)
 
     fill = '#666666'
     ff   = 'Sen,Liberation Sans,DejaVu Sans,sans-serif'
 
-    # 2. Agregar elementos de texto si no existen ya
-    def add_if_missing(svg, elem_id, tag):
-        if f'id="{elem_id}"' not in svg:
-            svg = svg.replace('</svg>', tag + '\n</svg>')
-        return svg
+    # Agregar elementos de texto si no existen
+    insertions = []
 
-    result = add_if_missing(result, 'recipient_name',
-        f'<text id="recipient_name" fill="{fill}" font-family="{ff}" '        f'font-size="32" font-weight="400" text-anchor="middle" '        f'style="white-space:pre" xml:space="preserve">'        f'<tspan x="421" y="218">recipient_name</tspan></text>'
-    )
-    result = add_if_missing(result, 'line_curso',
-        f'<text id="line_curso" fill="{fill}" font-family="{ff}" font-size="11" '        f'text-anchor="middle" style="white-space:pre" xml:space="preserve">'        f'<tspan x="421" y="283">line_curso</tspan></text>'
-    )
-    result = add_if_missing(result, 'line_horas',
-        f'<text id="line_horas" fill="{fill}" font-family="{ff}" font-size="11" '        f'text-anchor="middle" style="white-space:pre" xml:space="preserve">'        f'<tspan x="421" y="302">line_horas</tspan></text>'
-    )
-    result = add_if_missing(result, 'line_fechas',
-        f'<text id="line_fechas" fill="{fill}" font-family="{ff}" font-size="11" '        f'text-anchor="middle" style="white-space:pre" xml:space="preserve">'        f'<tspan x="421" y="321">line_fechas</tspan></text>'
-    )
-    result = add_if_missing(result, 'issue_date',
-        f'<text id="issue_date" fill="{fill}" font-family="{ff}" '        f'font-size="11" font-weight="700" text-anchor="middle" '        f'style="white-space:pre" xml:space="preserve">'        f'<tspan x="421" y="379">issue_date</tspan></text>'
-    )
-    # Agregar texto fijo Otorgado si no existe
-    if 'Otorgado en la ciudad' not in result:
-        result = result.replace('</svg>',
-            f'<text fill="{fill}" font-family="{ff}" font-size="11" font-weight="400" '            f'text-anchor="middle" style="white-space:pre" xml:space="preserve">'            f'<tspan x="421" y="360">Otorgado en la ciudad de Cartago, el</tspan></text>\n'            + '</svg>'
+    if 'id="recipient_name"' not in result:
+        insertions.append(
+            f'<text id="recipient_name" fill="{fill}" font-family="{ff}" '
+            f'font-size="32" font-weight="400" text-anchor="middle" '
+            f'style="white-space:pre" xml:space="preserve">'
+            f'<tspan x="421" y="218">recipient_name</tspan></text>'
         )
+    if 'id="line_curso"' not in result:
+        insertions.append(
+            f'<text id="line_curso" fill="{fill}" font-family="{ff}" font-size="11" '
+            f'text-anchor="middle" style="white-space:pre" xml:space="preserve">'
+            f'<tspan x="421" y="283">line_curso</tspan></text>'
+        )
+    if 'id="line_horas"' not in result:
+        insertions.append(
+            f'<text id="line_horas" fill="{fill}" font-family="{ff}" font-size="11" '
+            f'text-anchor="middle" style="white-space:pre" xml:space="preserve">'
+            f'<tspan x="421" y="302">line_horas</tspan></text>'
+        )
+    if 'id="line_fechas"' not in result:
+        insertions.append(
+            f'<text id="line_fechas" fill="{fill}" font-family="{ff}" font-size="11" '
+            f'text-anchor="middle" style="white-space:pre" xml:space="preserve">'
+            f'<tspan x="421" y="321">line_fechas</tspan></text>'
+        )
+    if 'id="issue_date"' not in result:
+        insertions.append(
+            f'<text id="issue_date" fill="{fill}" font-family="{ff}" '
+            f'font-size="11" font-weight="700" text-anchor="middle" '
+            f'style="white-space:pre" xml:space="preserve">'
+            f'<tspan x="421" y="379">issue_date</tspan></text>'
+        )
+    if 'Otorgado en la ciudad' not in result:
+        insertions.append(
+            f'<text fill="{fill}" font-family="{ff}" font-size="11" font-weight="400" '
+            f'text-anchor="middle" style="white-space:pre" xml:space="preserve">'
+            f'<tspan x="421" y="360">Otorgado en la ciudad de Cartago, el</tspan></text>'
+        )
+
+    if insertions:
+        result = result.replace('</svg>', '\n'.join(insertions) + '\n</svg>')
 
     return result
 
