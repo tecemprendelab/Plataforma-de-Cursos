@@ -460,9 +460,9 @@ def _fill_svg(svg_text: str, fields: dict) -> str:
         raw_val = str(value)
         if field_id == "recipient_name":
             raw_val = _fix_tildes(raw_val)
-            # Corbana: el nombre se capitaliza tipo título (Federico Ayuso
-            # Rodríguez) en lugar de ir todo en mayúsculas.
-            if _is_corbana:
+            # Corbana y Cursos: el nombre se capitaliza tipo título
+            # (Federico Ayuso Rodríguez) en lugar de ir todo en mayúsculas.
+            if _is_corbana or _is_cursos:
                 raw_val = _title_case_es(raw_val)
 
         # Nombre en dos líneas (nombres / apellidos). Aplica a FIDEIMAS
