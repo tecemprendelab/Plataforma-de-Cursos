@@ -92,6 +92,11 @@
   --green-l:     #202E10;   /* oliva oscuro */
   --blue-l:      #1A2030;   /* lavanda oscuro */
 
+  /* Naranja desaturado/aclarado para que el acento no "vibre" en oscuro */
+  --orange:      #ED7B4F;
+  --orange-l:    #F49A75;
+  --orange-d:    #D9612F;
+
   /* Sidebar queda oscuro siempre */
   --sidebar-bg:   #0D0B06;
   --sidebar-text: #FAF5EC;
