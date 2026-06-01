@@ -4,10 +4,26 @@
 
 import { useState }     from 'react'
 import { isExpired, isWarning, daysLeft, getAccessDays } from '../utils/time.js'
-import { TimerBadge, AccessBar, Avatar }  from './UI.jsx'
+import { AccessBar, Avatar }  from './UI.jsx'
 import { TagPill }      from './TagPill.jsx'
 import { getTagColor }  from '../data/tags.js'
 import ParticipantModal from './ParticipantModal.jsx'
+
+// Badge de estado del participante: punto de color + ícono + texto
+// (no depende solo del color — accesible a daltonismo, WCAG 1.4.1)
+function StatusBadge({ status }) {
+  const active = status === 'activo'
+  const color  = active ? 'var(--green)' : 'var(--gray)'
+  return (
+    <span style={{ display:'inline-flex', alignItems:'center', gap:6, fontSize:12, fontWeight:600, color }}>
+      <span style={{ width:7, height:7, borderRadius:'50%', background:color, flexShrink:0 }}/>
+      <span className="material-symbols-outlined" aria-hidden="true" style={{ fontSize:14 }}>
+        {active ? 'check_circle' : 'pause_circle'}
+      </span>
+      {active ? 'Activo' : 'Inactivo'}
+    </span>
+  )
+}
 
 export default function ParticipantsView({
   participants, courses, tags,
@@ -104,6 +120,17 @@ export default function ParticipantsView({
 
   const shortName = cid => courses.find(c => c.id === cid)?.short || cid
 
+  const filtersActive = search !== '' || filterCourse !== 'all' || filterStatus !== 'all'
+    || filterTag !== 'all' || sortBy !== 'fecha_desc'
+  const clearFilters = () => {
+    setSearch(''); setFilterCourse('all'); setFilterStatus('all'); setFilterTag('all'); setSortBy('fecha_desc')
+  }
+
+  // Métricas reales para la fila inferior
+  const totalActivos = participants.filter(p => p.status === 'activo').length
+  const conAcceso    = participants.filter(p => p.access).length
+  const porVencer    = participants.filter(p => p.access && isWarning(p.fecha, getAccessDays(p, courses))).length
+
   return (
     <div>
       {modalOpen && (
@@ -124,7 +151,7 @@ export default function ParticipantsView({
           </p>
         </div>
         <div style={{ display:'flex', gap:8 }}>
-          <button className="btn" style={{ background:'#f0f9ff', color:'#0369a1', border:'1px solid #bae6fd' }}
+          <button className="btn btn-ghost"
             onClick={verifyCedulas} disabled={verifying}>
             {verifying
               ? <><i className="ti ti-loader-2" style={{ animation:'spin 1s linear infinite' }}/> Verificando...</>
@@ -210,6 +237,13 @@ export default function ParticipantsView({
           <option value="nombre">Nombre A-Z</option>
           <option value="expiry">Por vencer primero</option>
         </select>
+        {filtersActive && (
+          <button onClick={clearFilters}
+            style={{ background:'none', border:'none', cursor:'pointer', color:'var(--orange)',
+              fontWeight:600, fontSize:13, fontFamily:'inherit', whiteSpace:'nowrap' }}>
+            <i className="ti ti-x" style={{ fontSize:12 }}/> Limpiar filtros
+          </button>
+        )}
       </div>
 
       {/* Chip de etiqueta activa */}
@@ -280,7 +314,7 @@ export default function ParticipantsView({
                       ? <div style={{ display:'flex', flexWrap:'wrap' }}>{ptags.map(t => <TagPill key={t.id} tag={t} small/>)}</div>
                       : <span className="text-xs text-muted">—</span>}
                   </td>
-                  <td><TimerBadge fecha={p.fecha} access={p.access} days={days}/></td>
+                  <td><StatusBadge status={p.status}/></td>
                   <td>
                     <div style={{ display:'flex', gap:4 }}>
                       <button className="btn-icon" onClick={() => openEdit(p)} title="Editar">
@@ -327,7 +361,7 @@ export default function ParticipantsView({
                   <div className="pname">{p.name}</div>
                   <div className="pemail">{p.email}</div>
                 </div>
-                <TimerBadge fecha={p.fecha} access={p.access} days={days}/>
+                <StatusBadge status={p.status}/>
               </div>
 
               {p.access && (
@@ -378,6 +412,27 @@ export default function ParticipantsView({
             No se encontraron participantes
           </div>
         )}
+      </div>
+
+      {/* Resumen real al pie */}
+      <div style={{ display:'grid', gridTemplateColumns:'repeat(auto-fit, minmax(180px, 1fr))', gap:12, marginTop:16 }}>
+        {[
+          { icon:'group',    label:'Total activos',   value: totalActivos, color:'var(--orange)' },
+          { icon:'key',      label:'Con acceso',      value: conAcceso,    color:'var(--green)' },
+          { icon:'schedule', label:'Expiran ≤7 días', value: porVencer,    color:'var(--orange-d)' },
+        ].map(s => (
+          <div key={s.label} className="card" style={{ padding:'14px 16px', display:'flex', alignItems:'center', gap:12 }}>
+            <div style={{ width:40, height:40, borderRadius:'var(--radius-md)', flexShrink:0,
+              display:'flex', alignItems:'center', justifyContent:'center',
+              background:'var(--cream-2)', color:s.color }}>
+              <span className="material-symbols-outlined" aria-hidden="true" style={{ fontSize:20 }}>{s.icon}</span>
+            </div>
+            <div>
+              <p className="text-xs text-muted" style={{ margin:0 }}>{s.label}</p>
+              <p style={{ margin:0, fontSize:22, fontWeight:700, color:'var(--black)' }}>{s.value}</p>
+            </div>
+          </div>
+        ))}
       </div>
     </div>
   )
