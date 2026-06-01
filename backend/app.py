@@ -291,6 +291,22 @@ def _fechas_parts(f):
         return [(d1, True), (" al ", False), (d2, True)]
 
 
+def _title_case_es(name: str) -> str:
+    """Capitaliza un nombre tipo título en español: primera letra de cada
+    palabra en mayúscula, resto en minúscula. Conserva en minúscula los
+    conectores (de, del, la, las, los, y, e) salvo si son la primera palabra."""
+    connectors = {"de", "del", "la", "las", "los", "y", "e", "da", "do"}
+    words = name.split()
+    out = []
+    for i, w in enumerate(words):
+        lw = w.lower()
+        if i > 0 and lw in connectors:
+            out.append(lw)
+        else:
+            out.append(lw[:1].upper() + lw[1:])
+    return " ".join(out)
+
+
 def _set_text_font(svg: str, field_id: str, family: str, size=None) -> str:
     """Fuerza font-family (y font-size opcional) en el <text> completo con
     id dado. Modifica el tag de apertura y limpia font-family/font-size de
@@ -408,6 +424,10 @@ def _fill_svg(svg_text: str, fields: dict) -> str:
         raw_val = str(value)
         if field_id == "recipient_name":
             raw_val = _fix_tildes(raw_val)
+            # Corbana: el nombre se capitaliza tipo título (Federico Ayuso
+            # Rodríguez) en lugar de ir todo en mayúsculas.
+            if _is_corbana:
+                raw_val = _title_case_es(raw_val)
 
         # Nombre en dos líneas (nombres / apellidos). Aplica a FIDEIMAS
         # (detectada por la palabra "fideimas") y al certificado de cursos
