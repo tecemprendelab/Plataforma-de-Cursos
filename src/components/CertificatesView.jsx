@@ -128,7 +128,10 @@ function TemplateCarousel({ templates, selectedValue, svgFile, onSelect, certApi
       if (thumbs[t.file]) return
       try {
         const r = await fetch(`${certApi}/api/templates/${t.file}`)
-        if (r.ok) setThumbs(prev => ({ ...prev, [t.file]: await r.text() }))
+        if (r.ok) {
+          const txt = await r.text()
+          setThumbs(prev => ({ ...prev, [t.file]: txt }))
+        }
       } catch(_) {}
     })
   }, [certApi])
