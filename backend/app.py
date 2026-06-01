@@ -819,7 +819,7 @@ def _embed_fonts(svg_text: str) -> str:
             ],
         },
         "MonteCarlo": {
-            "weight": "400",
+            "weight": "400 700",
             "paths": [
                 os.path.join(base_dir, "fonts", "MonteCarlo.ttf"),       # en el repo
                 "/usr/local/share/fonts/custom/MonteCarlo.ttf",
@@ -1128,6 +1128,11 @@ def preview():
 
     if fields:
         svg_text = _fill_svg(svg_text, fields)
+
+    # Embeber fuentes también en la vista previa para que el navegador
+    # muestre las tipografías reales (MonteCarlo, Poppins, etc.) tal como
+    # saldrán en el PDF, y no una fuente de respaldo del sistema.
+    svg_text = _embed_fonts(svg_text)
 
     return Response(svg_text, mimetype="image/svg+xml")
 
