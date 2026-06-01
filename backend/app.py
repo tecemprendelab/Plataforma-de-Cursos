@@ -266,10 +266,61 @@ def _fechas_parts(f):
         return [(d1, True), (" al ", False), (d2, True)]
 
 
+def _set_text_font(svg: str, field_id: str, family: str, size=None) -> str:
+    """Fuerza font-family (y font-size opcional) en el <text> completo con
+    id dado. Modifica el tag de apertura y limpia font-family/font-size de
+    los <tspan> hijos para que no sobrescriban los valores del <text>."""
+    import re as _re
+    elem_pat = _re.compile(
+        r'(<text\b[^>]*\bid=["\']' + _re.escape(field_id) + r'["\'][^>]*>)([\s\S]*?)(</text>)',
+        _re.IGNORECASE)
+
+    def repl(m):
+        open_tag, inner, close_tag = m.group(1), m.group(2), m.group(3)
+
+        # font-family en el tag de apertura
+        if _re.search(r'font-family=', open_tag, _re.IGNORECASE):
+            open_tag = _re.sub(r'font-family=["\'][^"\']*["\']',
+                               f'font-family="{family}"', open_tag, count=1, flags=_re.IGNORECASE)
+        else:
+            open_tag = open_tag[:-1] + f' font-family="{family}">'
+
+        if size is not None:
+            if _re.search(r'font-size=', open_tag, _re.IGNORECASE):
+                open_tag = _re.sub(r'font-size=["\'][^"\']*["\']',
+                                   f'font-size="{size}"', open_tag, count=1, flags=_re.IGNORECASE)
+            else:
+                open_tag = open_tag[:-1] + f' font-size="{size}">'
+
+        # Limpiar font-family/size de los tspans hijos para que herede del <text>
+        inner = _re.sub(r'\s*font-family=["\'][^"\']*["\']', '', inner, flags=_re.IGNORECASE)
+        inner = _re.sub(r'\s*font-size=["\'][^"\']*["\']',   '', inner, flags=_re.IGNORECASE)
+
+        return open_tag + inner + close_tag
+
+    return elem_pat.sub(repl, svg, count=1)
+
+
 def _fill_svg(svg_text: str, fields: dict) -> str:
     import re as _re
     result = svg_text
     DEFAULT_LINE_HEIGHT = 44
+
+    # ── Tipografía específica de Corbana ──────────────────────────
+    # recipient_name → MonteCarlo 45; fechas (line_fechas) y otorgación
+    # (issue_date) → Poppins 12. Solo aplica a la plantilla de Corbana,
+    # detectada por la palabra "corbana" o por tener line_fechas sin
+    # los marcadores del certificado de cursos.
+    _low = svg_text.lower()
+    _is_corbana = (
+        "corbana" in _low
+        or ("line_fechas" in _low and "line_curso" not in _low
+            and "line_horas" not in _low and "course_name" not in _low)
+    )
+    if _is_corbana:
+        result = _set_text_font(result, "recipient_name", "MonteCarlo", 45)
+        result = _set_text_font(result, "line_fechas",   "Poppins",    12)
+        result = _set_text_font(result, "issue_date",    "Poppins",    12)
 
     MIXED_LINES = {
         "line_curso": lambda f: [
@@ -739,6 +790,21 @@ def _embed_fonts(svg_text: str) -> str:
             "paths": [
                 os.path.join(base_dir, "fonts", "Sen.ttf"),              # en el repo
                 "/usr/local/share/fonts/custom/Sen.ttf",
+                "/usr/share/fonts/truetype/liberation/LiberationSans-Regular.ttf",
+            ],
+        },
+        "MonteCarlo": {
+            "weight": "400",
+            "paths": [
+                os.path.join(base_dir, "fonts", "MonteCarlo.ttf"),       # en el repo
+                "/usr/local/share/fonts/custom/MonteCarlo.ttf",
+            ],
+        },
+        "Poppins": {
+            "weight": "400 700",
+            "paths": [
+                os.path.join(base_dir, "fonts", "Poppins.ttf"),          # en el repo
+                "/usr/local/share/fonts/custom/Poppins.ttf",
                 "/usr/share/fonts/truetype/liberation/LiberationSans-Regular.ttf",
             ],
         },
