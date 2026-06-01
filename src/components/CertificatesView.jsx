@@ -410,21 +410,6 @@ function Stepper({ steps, current, onStep }) {
   )
 }
 
-function ConfidenceBadge({ level }) {
-  const map = {
-    alta:  { cls:'bg-green-100 text-green-800 border-green-300',   icon:'verified' },
-    media: { cls:'bg-yellow-100 text-yellow-800 border-yellow-300', icon:'help' },
-    baja:  { cls:'bg-red-100 text-red-700 border-red-300',          icon:'warning' },
-  }
-  const s = map[level] || map.media
-  return (
-    <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-semibold border ${s.cls}`}>
-      <span className="material-symbols-outlined" style={{fontSize:12}}>{s.icon}</span>
-      Confianza {level}
-    </span>
-  )
-}
-
 /* ── Helper: encabezado de sección ─────────────────────────── */
 
 function SectionHeader({ icon, label, action }) {
@@ -1248,215 +1233,6 @@ function CertBatch({ participants = [], courses = [] }) {
   )
 }
 
-/* ── Pestaña Analizar SVG ───────────────────────────────────── */
-
-function CertAnalyze({ aiAvailable }) {
-  const [file,      setFile]      = useState(null)
-  const [loading,   setLoading]   = useState(false)
-  const [aiLoading, setAiLoading] = useState(false)
-  const [alert,     setAlert]     = useState(null)
-  const [elements,  setElements]  = useState(null)
-  const [mapping,   setMapping]   = useState({ name:'', date:'' })
-  const [aiSug,     setAiSug]     = useState(null)
-  const [confirmed, setConfirmed] = useState(false)
-
-  const analyze = async () => {
-    if (!file) { setAlert({type:'error',msg:'Seleccioná un archivo SVG primero.'}); return }
-    setLoading(true); setAlert(null); setElements(null); setAiSug(null); setConfirmed(false)
-    const form = new FormData(); form.append('file', file)
-    try {
-      const r = await fetch(`${CERT_API}/api/analyze`, { method:'POST', body:form })
-      const d = await r.json()
-      if (!r.ok) { setAlert({type:'error',msg:d.error}); return }
-      setElements(d.elements)
-      if (d.elements.length > 0) setMapping({ name: d.elements[0]?.id||'', date: d.elements[1]?.id||d.elements[0]?.id||'' })
-      if (!d.elements.length) setAlert({type:'info',msg:'No se encontraron elementos <text> con id en este SVG.'})
-    } catch(e) { setAlert({type:'error',msg:e.message}) }
-    finally { setLoading(false) }
-  }
-
-  const suggestWithAI = async () => {
-    if (!file) return
-    setAiLoading(true); setAiSug(null); setAlert(null)
-    const form = new FormData(); form.append('file', file)
-    try {
-      const r = await fetch(`${CERT_API}/api/ai/mapeo`, { method:'POST', body:form })
-      const d = await r.json()
-      if (!r.ok) { setAlert({type:'error',msg:d.error}); return }
-      setAiSug(d); setMapping({ name:d.name_id, date:d.date_id })
-      setAlert({type:'success',msg:'Claude analizó la plantilla y sugirió el mapeo. Revisalo y confirmá.'})
-    } catch(e) { setAlert({type:'error',msg:e.message}) }
-    finally { setAiLoading(false) }
-  }
-
-  const idOptions = elements?.map(e => e.id) || []
-
-  return (
-    <div className="grid grid-cols-12 gap-5">
-      <div className="col-span-8 space-y-4">
-        <CertDropZone accept=".svg" title="Arrastrá tu archivo SVG aquí" subtitle="o hacé clic para seleccionar"
-          icon="cloud_upload" file={file}
-          onFile={f => { setFile(f); setElements(null); setAiSug(null); setConfirmed(false) }} />
-
-        <div className="flex flex-wrap gap-2">
-          <button onClick={analyze} disabled={!file||loading}
-            className="flex items-center gap-1.5 px-4 py-2 bg-gray-900 text-amber-50 text-sm font-semibold rounded-lg disabled:opacity-40 hover:bg-gray-800 transition-colors">
-            {loading
-              ? <><span className="material-symbols-outlined text-sm animate-spin" style={{fontSize:15}}>refresh</span>Analizando…</>
-              : <><span className="material-symbols-outlined text-sm" style={{fontSize:15}}>search</span>Analizar SVG</>}
-          </button>
-          {aiAvailable && (
-            <button onClick={suggestWithAI} disabled={!elements||aiLoading}
-              className="flex items-center gap-1.5 px-4 py-2 bg-gradient-to-r from-violet-600 to-indigo-600 text-white text-sm font-semibold rounded-lg disabled:opacity-40 hover:brightness-110 transition-all">
-              {aiLoading
-                ? <><span className="material-symbols-outlined animate-spin" style={{fontSize:15}}>refresh</span>Consultando Claude…</>
-                : <><span className="material-symbols-outlined" style={{fontSize:15}}>auto_awesome</span>Sugerir con IA</>}
-            </button>
-          )}
-          {!aiAvailable && elements && (
-            <div style={{ display:'flex', alignItems:'center', gap:6, padding:'8px 12px',
-              background:'var(--cream-2)', border:'1px solid var(--border)', borderRadius:'var(--radius-md)',
-              fontSize:12, color:'var(--gray)' }}>
-              <span className="material-symbols-outlined" style={{fontSize:14}}>key_off</span>
-              Configurá <code style={{ margin:'0 4px' }}>ANTHROPIC_API_KEY</code> para activar sugerencia IA
-            </div>
-          )}
-        </div>
-
-        <CertAlert type={alert?.type} msg={alert?.msg} onDismiss={() => setAlert(null)} />
-
-        {aiSug && (
-          <div className="bg-gradient-to-br from-violet-50 to-indigo-50 border border-violet-200 rounded-xl p-4">
-            <div className="flex items-center justify-between mb-3">
-              <div className="flex items-center gap-2">
-                <span className="material-symbols-outlined text-violet-600" style={{fontSize:18}}>auto_awesome</span>
-                <span className="text-sm font-bold text-violet-800">Sugerencia de Claude</span>
-              </div>
-              <ConfidenceBadge level={aiSug.confidence} />
-            </div>
-            <div className="grid grid-cols-2 gap-2 mb-3">
-              {[{l:'ID → Nombre',v:aiSug.name_id},{l:'ID → Fecha',v:aiSug.date_id}].map(x => (
-                <div key={x.l} className="bg-white rounded-lg p-2.5 border border-violet-200">
-                  <p className="text-xs text-violet-500 mb-0.5">{x.l}</p>
-                  <p className="font-mono text-sm font-bold text-violet-900">{x.v}</p>
-                </div>
-              ))}
-            </div>
-            <div className="flex items-start gap-2 bg-white/70 rounded-lg px-3 py-2 border border-violet-100">
-              <span className="material-symbols-outlined text-violet-400 shrink-0 mt-0.5" style={{fontSize:14}}>comment</span>
-              <p className="text-xs text-violet-700 leading-relaxed">{aiSug.justification}</p>
-            </div>
-          </div>
-        )}
-
-        {elements && elements.length > 0 && (
-          <div className="card" style={{ overflow:'hidden' }}>
-            <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between',
-              padding:'12px 16px', borderBottom:'1px solid var(--cream-3)' }}>
-              <span style={{ fontSize:13, fontWeight:600, color:'var(--black)' }}>Elementos detectados</span>
-              <span style={{ fontSize:11, background:'var(--alert-warm-bg)', color:'var(--orange-d)',
-                border:'1px solid var(--orange-l)', borderRadius:20, padding:'2px 10px', fontWeight:600 }}>
-                {elements.length} nodos &lt;text&gt;
-              </span>
-            </div>
-            <table className="ttable">
-              <thead>
-                <tr>
-                  {['ID Elemento','Contenido','X','Y','Tamaño'].map(h => (
-                    <th key={h}>{h}</th>
-                  ))}
-                </tr>
-              </thead>
-              <tbody>
-                {elements.map((el, i) => {
-                  const isName = aiSug?.name_id === el.id
-                  const isDate = aiSug?.date_id === el.id
-                  return (
-                    <tr key={el.id}>
-                      <td>
-                        <div style={{ display:'flex', alignItems:'center', gap:6 }}>
-                          <span style={{ fontFamily:'monospace', fontSize:12, fontWeight:600,
-                            color: isName || isDate ? '#7C3AED' : 'var(--black)' }}>{el.id}</span>
-                          {isName && <span style={{ fontSize:10, background:'#EDE9FE', color:'#5B21B6',
-                            padding:'2px 6px', borderRadius:4, fontWeight:600 }}>nombre ✨</span>}
-                          {isDate && <span style={{ fontSize:10, background:'#E0E7FF', color:'#3730A3',
-                            padding:'2px 6px', borderRadius:4, fontWeight:600 }}>fecha ✨</span>}
-                        </div>
-                      </td>
-                      <td style={{ fontStyle:'italic', maxWidth:120, overflow:'hidden',
-                        textOverflow:'ellipsis', whiteSpace:'nowrap' }}>{el.text||'—'}</td>
-                      <td>{el.x||'—'}</td>
-                      <td>{el.y||'—'}</td>
-                      <td>{el.font_size ? `${el.font_size}px` : '—'}</td>
-                    </tr>
-                  )
-                })}
-              </tbody>
-            </table>
-          </div>
-        )}
-      </div>
-
-      <div className="col-span-4 space-y-4">
-        <div className="card" style={{ padding:16, position:'sticky', top:16 }}>
-          <SectionHeader icon="alt_route" label="Mapeo de campos" />
-          <p style={{ fontSize:12, color:'var(--gray)', marginBottom:16, lineHeight:1.6 }}>
-            Asigná los IDs del SVG a los campos del sistema.
-            {aiSug && <span style={{ color:'#7C3AED', fontWeight:500 }}> Claude completó el mapeo.</span>}
-          </p>
-          <div style={{ display:'flex', flexDirection:'column', gap:12, marginBottom:16 }}>
-            {[{l:'Nombre del participante',k:'name'},{l:'Fecha de emisión',k:'date'}].map(({l, k}) => (
-              <div key={k}>
-                <label style={{ display:'block', fontSize:12, color:'var(--gray)', marginBottom:4 }}>{l}</label>
-                <select value={mapping[k]} onChange={e => setMapping(p => ({...p, [k]:e.target.value}))}
-                  className="finput"
-                  style={{ background:'var(--cream-2)', borderColor: aiSug?.[`${k}_id`] === mapping[k] ? '#7C3AED' : 'var(--border)' }}>
-                  <option value="">— Seleccionar ID —</option>
-                  {idOptions.map(id => <option key={id} value={id}>{id}</option>)}
-                </select>
-              </div>
-            ))}
-          </div>
-          <div style={{ paddingTop:14, borderTop:'1px solid var(--cream-3)' }}>
-            <button onClick={() => { if (mapping.name && mapping.date) setConfirmed(true) }}
-              disabled={!mapping.name || !mapping.date}
-              className="btn btn-black" style={{ width:'100%', justifyContent:'center' }}>
-              <span className="material-symbols-outlined" style={{fontSize:16}}>check_circle</span>
-              Confirmar mapeo
-            </button>
-            {confirmed && (
-              <div style={{ marginTop:12, padding:12, background:'var(--green-l)',
-                border:'1px solid var(--green)', borderRadius:'var(--radius-md)' }}>
-                <p style={{ fontSize:12, fontWeight:600, color:'var(--green)', display:'flex', alignItems:'center', gap:4, marginBottom:8 }}>
-                  <span className="material-symbols-outlined" style={{fontSize:14}}>task_alt</span>¡Mapeo confirmado!
-                </p>
-                <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:8 }}>
-                  {[{l:'Nombre',v:mapping.name},{l:'Fecha',v:mapping.date}].map(x => (
-                    <div key={x.l} style={{ background:'var(--white)', borderRadius:'var(--radius-sm)',
-                      padding:8, border:'1px solid var(--green)' }}>
-                      <p style={{ fontSize:10, color:'var(--gray)' }}>{x.l}</p>
-                      <p style={{ fontFamily:'monospace', fontSize:11, fontWeight:700, color:'var(--black)',
-                        overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}>{x.v}</p>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            )}
-          </div>
-        </div>
-        <div style={{ background:'var(--cream-2)', border:'1px solid var(--border)',
-          borderRadius:'var(--radius-lg)', padding:14, display:'flex', gap:10 }}>
-          <i className="ti ti-bulb" style={{ color:'var(--orange)', fontSize:14, flexShrink:0, marginTop:1 }} />
-          <div>
-            <p style={{ fontSize:12, fontWeight:600, color:'var(--black)', marginBottom:4 }}>Tip de diseño</p>
-            <p style={{ fontSize:12, color:'var(--gray)', lineHeight:1.6 }}>En Inkscape o Illustrator, asigná un ID único a cada texto desde el panel "Propiedades del objeto" (Ctrl+Shift+O).</p>
-          </div>
-        </div>
-      </div>
-    </div>
-  )
-}
-
 /* ── Tabla de referencia de campos SVG ──────────────────────── */
 
 const FIELD_REFERENCE = [
@@ -1541,7 +1317,6 @@ export default function CertificatesView({ participants, courses = [], galleryTp
   const tabs = [
     { id:'individual', icon:'person',      label:'Individual'   },
     { id:'batch',      icon:'upload_file', label:'Lote CSV'     },
-    { id:'analyze',    icon:'search',      label:'Analizar SVG' },
   ]
 
   const apiBadge = apiOk === true
@@ -1614,7 +1389,6 @@ export default function CertificatesView({ participants, courses = [], galleryTp
 
       {certTab === 'individual' && <CertIndividual participants={participants} courses={courses} galleryTplPick={galleryTplPick} onGalleryConsumed={onGalleryConsumed} />}
       {certTab === 'batch'      && <CertBatch participants={participants} courses={courses} />}
-      {certTab === 'analyze'    && <CertAnalyze aiAvailable={aiAvailable} />}
     </div>
   )
 }
