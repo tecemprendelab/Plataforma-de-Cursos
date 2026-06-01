@@ -34,11 +34,19 @@ export function Badge({ type = 'gray', children }) {
  * @param {boolean} access - Si el participante tiene acceso activo
  * @param {number}  [days] - Días de acceso del curso (por defecto ACCESS_DAYS global)
  */
+// Ícono semántico inline para acompañar el color (accesible a daltonismo, WCAG 1.4.1)
+function BadgeIcon({ name }) {
+  return (
+    <span className="material-symbols-outlined" aria-hidden="true"
+      style={{ fontSize:13, lineHeight:1, verticalAlign:'-2px', marginRight:3 }}>{name}</span>
+  )
+}
+
 export function TimerBadge({ fecha, access, days = ACCESS_DAYS }) {
-  if (!access)                  return <Badge type="gray">Sin acceso</Badge>
-  if (isExpired(fecha, days))   return <Badge type="red">Expirado</Badge>
-  if (isWarning(fecha, days))   return <Badge type="orange">{daysLeft(fecha, days)}d restantes</Badge>
-  return <Badge type="black">{daysLeft(fecha, days)}d restantes</Badge>
+  if (!access)                  return <Badge type="gray"><BadgeIcon name="lock"/>Sin acceso</Badge>
+  if (isExpired(fecha, days))   return <Badge type="red"><BadgeIcon name="cancel"/>Expirado</Badge>
+  if (isWarning(fecha, days))   return <Badge type="orange"><BadgeIcon name="schedule"/>{daysLeft(fecha, days)}d restantes</Badge>
+  return <Badge type="black"><BadgeIcon name="check_circle"/>{daysLeft(fecha, days)}d restantes</Badge>
 }
 
 // ── AccessBar ─────────────────────────────────────────────
@@ -58,12 +66,15 @@ export function AccessBar({ fecha, compact = false, days = ACCESS_DAYS }) {
   const bgColor  = exp ? '#FBE8E3' : warn ? '#FEF3EB' : 'var(--green-l)'
   const txtColor = exp ? 'var(--orange-d)' : warn ? 'var(--orange)' : 'var(--green)'
   const label    = exp ? 'Expirado' : warn ? `Expira en ${left}d` : `${left} días restantes`
+  const icon     = exp ? 'cancel' : warn ? 'schedule' : 'check_circle'
 
   return (
     <div>
       {!compact && (
         <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 3, fontSize: 11 }}>
-          <span style={{ color: txtColor, fontWeight: 500 }}>{label}</span>
+          <span style={{ color: txtColor, fontWeight: 500, display:'inline-flex', alignItems:'center', gap:3 }}>
+            <span className="material-symbols-outlined" aria-hidden="true" style={{ fontSize:13, lineHeight:1 }}>{icon}</span>
+            {label}</span>
           <span style={{ color: 'var(--gray)' }}>{pct}% de {days}d</span>
         </div>
       )}
