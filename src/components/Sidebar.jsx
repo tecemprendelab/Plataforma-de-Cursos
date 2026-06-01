@@ -62,7 +62,7 @@ export default function Sidebar({ view, setView, participants, courses = [], use
             </button>
           )}
         </div>
-        <div style={{ padding:'0 10px', flex:1 }}>
+        <nav aria-label="Navegación principal" style={{ padding:'0 10px', flex:1 }}>
           {NAV.map((item, i) => {
             if (item.section) return (
               <div key={i} style={{ padding:'8px 12px 4px', fontSize:10, fontWeight:600,
@@ -73,19 +73,21 @@ export default function Sidebar({ view, setView, participants, courses = [], use
             const isActive = activeBase === item.id
             const badge    = item.badge === 'exp' ? expCount : item.badge === 'remind' ? remindCount : 0
             return (
-              <div key={item.id} onClick={() => handleNav(item.id)}
+              <button key={item.id} onClick={() => handleNav(item.id)}
+                aria-current={isActive ? 'page' : undefined}
                 style={{ display:'flex', alignItems:'center', gap:10, padding:'9px 12px',
-                  borderRadius:8, cursor:'pointer', marginBottom:2,
+                  borderRadius:8, cursor:'pointer', marginBottom:2, width:'100%',
+                  textAlign:'left', border:'none', fontFamily:'inherit',
                   background: isActive ? 'var(--orange)' : 'transparent',
                   transition:'all .15s', color: isActive ? '#fff' : 'var(--gray)',
                   fontSize:13, fontWeight: isActive ? 500 : 400 }}>
-                <i className={`ti ${item.icon}`} style={{ fontSize:15 }}/>
+                <i className={`ti ${item.icon}`} style={{ fontSize:15 }} aria-hidden="true"/>
                 {item.label}
                 {badge > 0 && <span className="notif-dot">{badge}</span>}
-              </div>
+              </button>
             )
           })}
-        </div>
+        </nav>
         {userEmail && (
           <div style={{ padding:'12px 20px', borderTop:'1px solid #3A332B',
             display:'flex', alignItems:'center', gap:8 }}>

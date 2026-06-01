@@ -57,6 +57,9 @@ export default function Dashboard({ participants, courses, setView }) {
           const days = getAccessDays(p, courses)
           return (
             <div key={p.id} onClick={()=>setView(`profile_${p.id}`)}
+              role="button" tabIndex={0}
+              onKeyDown={e=>{ if(e.key==='Enter'||e.key===' '){ e.preventDefault(); setView(`profile_${p.id}`) } }}
+              aria-label={`Ver perfil de ${p.name}`}
               className="recent-row"
               style={{display:'flex',alignItems:'center',padding:'10px 16px',borderTop:i>0?'1px solid var(--cream-2)':'none',gap:12,cursor:'pointer',flexWrap:'wrap'}}>
               <Avatar name={p.name} variant={isExpired(p.fecha,days)?'red':isWarning(p.fecha,days)?'warn':'cream'}/>
