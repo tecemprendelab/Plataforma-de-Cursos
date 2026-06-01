@@ -777,11 +777,12 @@ def _svg_to_output(svg_text: str, fmt: str) -> bytes:
         raise RuntimeError("cairosvg no instalado en el servidor")
     svg_text = _embed_fonts(svg_text)
     enc = svg_text.encode("utf-8")
-    png_bytes = cairosvg.svg2png(bytestring=enc, scale=2)
+    scale = 3  # 3× = 216 DPI — calidad de impresión
+    png_bytes = cairosvg.svg2png(bytestring=enc, scale=scale)
     if fmt != "pdf":
         return png_bytes
-    # PDF = PNG renderizado a alta resolución y envuelto en PDF con Pillow.
-    # Produce salida idéntica a la vista previa del browser.
+    # PDF = PNG renderizado y envuelto con Pillow.
+    # resolution = scale * 72 mantiene el tamaño físico correcto (A4).
     from PIL import Image
     import io as _io
     img = Image.open(_io.BytesIO(png_bytes))
@@ -792,7 +793,7 @@ def _svg_to_output(svg_text: str, fmt: str) -> bytes:
     elif img.mode != "RGB":
         img = img.convert("RGB")
     pdf_buf = _io.BytesIO()
-    img.save(pdf_buf, format="PDF", resolution=150)
+    img.save(pdf_buf, format="PDF", resolution=scale * 72)
     return pdf_buf.getvalue()
 
 
