@@ -333,9 +333,17 @@ def _fill_svg(svg_text: str, fields: dict) -> str:
         if field_id == "recipient_name":
             raw_val = _fix_tildes(raw_val)
 
-        # FIDEIMAS: el nombre debe ir en dos líneas (nombres / apellidos).
-        # Solo aplica a esta plantilla, detectada por la palabra "fideimas".
-        if field_id == "recipient_name" and "fideimas" in svg_text.lower():
+        # Nombre en dos líneas (nombres / apellidos). Aplica a FIDEIMAS
+        # (detectada por la palabra "fideimas") y al certificado de cursos
+        # (detectado por line_curso / line_horas / course_name).
+        _low = svg_text.lower()
+        _split_name = (
+            "fideimas" in _low
+            or "line_curso" in _low
+            or "line_horas" in _low
+            or "course_name" in _low
+        )
+        if field_id == "recipient_name" and _split_name:
             linea1, linea2 = _split_name_lines(raw_val)
             if linea2:
                 safe_l1 = linea1.replace("&","&amp;").replace("<","&lt;").replace(">","&gt;")
