@@ -230,6 +230,66 @@ function useDebounce(fn, delay) {
   }, [fn, delay])
 }
 
+/* ── Confeti ────────────────────────────────────────────────── */
+// Animación de éxito ligera sobre <canvas>, sin dependencias externas.
+// Refuerzo psicológico tras una generación masiva exitosa.
+function ConfettiBurst({ trigger }) {
+  const canvasRef = useRef(null)
+  const rafRef = useRef(null)
+
+  useEffect(() => {
+    if (!trigger) return
+    const canvas = canvasRef.current
+    if (!canvas) return
+    const ctx = canvas.getContext('2d')
+    const W = canvas.width  = canvas.offsetWidth
+    const H = canvas.height = canvas.offsetHeight
+    const COLORS = ['#FE7210', '#FFA951', '#22c55e', '#3b82f6', '#eab308', '#ec4899']
+    const N = 140
+    const parts = Array.from({ length: N }, () => ({
+      x: W / 2 + (Math.random() - 0.5) * 120,
+      y: H / 3,
+      vx: (Math.random() - 0.5) * 12,
+      vy: Math.random() * -14 - 4,
+      size: Math.random() * 7 + 4,
+      color: COLORS[Math.floor(Math.random() * COLORS.length)],
+      rot: Math.random() * Math.PI,
+      vrot: (Math.random() - 0.5) * 0.3,
+      life: 1,
+    }))
+    let frame = 0
+    const draw = () => {
+      ctx.clearRect(0, 0, W, H)
+      frame++
+      parts.forEach(p => {
+        p.vy += 0.4            // gravedad
+        p.x += p.vx
+        p.y += p.vy
+        p.rot += p.vrot
+        p.life -= 0.008
+        ctx.save()
+        ctx.globalAlpha = Math.max(0, p.life)
+        ctx.translate(p.x, p.y)
+        ctx.rotate(p.rot)
+        ctx.fillStyle = p.color
+        ctx.fillRect(-p.size / 2, -p.size / 2, p.size, p.size * 0.6)
+        ctx.restore()
+      })
+      if (frame < 160) rafRef.current = requestAnimationFrame(draw)
+      else ctx.clearRect(0, 0, W, H)
+    }
+    draw()
+    return () => cancelAnimationFrame(rafRef.current)
+  }, [trigger])
+
+  if (!trigger) return null
+  return (
+    <canvas ref={canvasRef}
+      style={{ position:'fixed', inset:0, width:'100vw', height:'100vh',
+        pointerEvents:'none', zIndex:9999 }} />
+  )
+}
+
 /* ── Atoms ──────────────────────────────────────────────────── */
 
 function CertAlert({ type, msg, onDismiss }) {
@@ -670,6 +730,7 @@ function CertBatch({ participants = [], courses = [] }) {
   const [progress,       setProgress]       = useState(0)
   const [alert,          setAlert]          = useState(null)
   const [result,         setResult]         = useState(null)
+  const [confetti,       setConfetti]       = useState(0)
   const [filterCourse,   setFilterCourse]   = useState('')
   const [filterStatus,   setFilterStatus]   = useState('activo')
   const [filterPayment,  setFilterPayment]  = useState('pagado')
@@ -785,6 +846,7 @@ function CertBatch({ participants = [], courses = [] }) {
       setResult({generated, errors: errCount, total})
       const errNote = Number(errCount) > 0 ? ` (${errCount} con errores — incluidos en el ZIP como .txt)` : ''
       setAlert({type:'success',msg:`✓ ${generated} de ${total} certificados generados y descargados${errNote}.`})
+      if (Number(generated) > 0) setConfetti(c => c + 1)   // celebración 🎉
     } catch(e) {
       if (e.name === 'TypeError' && e.message.includes('fetch')) {
         setAlert({type:'error',msg:'No se puede conectar con el servidor. Verificá que esté activo.'})
@@ -799,6 +861,7 @@ function CertBatch({ participants = [], courses = [] }) {
 
   return (
     <div style={{ display:'grid', gridTemplateColumns:'1fr auto', gap:20 }}>
+      <ConfettiBurst trigger={confetti} />
       {/* Left: CSV + requisitos */}
       <div style={{ display:'flex', flexDirection:'column', gap:14 }}>
 

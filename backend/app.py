@@ -843,49 +843,82 @@ def _lookup_cedula(cedula: str) -> str | None:
     return None
 
 
+# Sinónimos conocidos por campo destino. La clave es el id del campo SVG,
+# el valor es la lista de alias (en minúsculas, sin acentos) que se aceptan.
+_FIELD_SYNONYMS = {
+    "__name__":      ["nombre", "name", "participante", "estudiante", "alumno",
+                       "full name", "fullname", "nombre completo", "recipient",
+                       "recipient name", "recipient_name", "nombre del participante"],
+    "__date__":      ["fecha", "date", "issue date", "issue_date", "fecha otorgacion",
+                       "fecha de otorgacion", "fecha emision", "fecha de emision"],
+    "course_name_1": ["tipo curso", "tipo_curso", "tipo", "course name 1", "course_name_1"],
+    "course_name_2": ["nombre curso", "nombre_curso", "curso", "course name 2", "course_name_2"],
+    "hours_issue":   ["horas", "hours", "hours_issue", "total horas", "total_horas",
+                       "duracion", "duración", "horas totales"],
+    "date_issue_1":  ["fecha inicio", "fecha_inicio", "inicio", "date_issue_1", "start"],
+    "date_issue_2":  ["fecha fin", "fecha_fin", "fin", "date_issue_2", "end"],
+}
+
+
+def _normalize_header(h: str) -> str:
+    """Minúsculas, sin acentos, sin espacios extra para comparar cabeceras."""
+    import unicodedata
+    h = h.strip().lower()
+    h = "".join(c for c in unicodedata.normalize("NFD", h)
+                if unicodedata.category(c) != "Mn")
+    return h
+
+
+def _best_column_match(headers: list, aliases: list, threshold: float = 0.78):
+    """
+    Devuelve la cabecera del CSV que mejor coincide con la lista de alias.
+    Primero busca coincidencia exacta normalizada; si no, usa similitud
+    aproximada (fuzzy) con difflib. Devuelve None si nada supera el umbral.
+    """
+    from difflib import SequenceMatcher
+    norm_aliases = [_normalize_header(a) for a in aliases]
+
+    # 1. Coincidencia exacta normalizada
+    for h in headers:
+        if _normalize_header(h) in norm_aliases:
+            return h
+
+    # 2. Coincidencia aproximada
+    best, best_score = None, 0.0
+    for h in headers:
+        nh = _normalize_header(h)
+        for na in norm_aliases:
+            score = SequenceMatcher(None, nh, na).ratio()
+            # Bonus si una contiene a la otra (ej. "nombre del alumno" vs "nombre")
+            if na in nh or nh in na:
+                score = max(score, 0.9)
+            if score > best_score:
+                best, best_score = h, score
+    return best if best_score >= threshold else None
+
+
 def _resolve_fields(row: dict, name_id: str, date_id: str) -> dict:
-    """Map CSV row to SVG field ids, trying common column name aliases.
-    También mapea columnas de certificado de cursos."""
-    raw    = {k.strip(): v.strip() for k, v in row.items()}
-    fields = dict(raw)  # pass all columns through as-is
+    """Mapea una fila CSV a los ids de campo del SVG usando fuzzy matching
+    sobre las cabeceras (tolera variantes como 'Full Name', 'Estudiante')."""
+    raw     = {k.strip(): v.strip() for k, v in row.items()}
+    fields  = dict(raw)  # pasa todas las columnas tal cual
+    headers = list(raw.keys())
 
-    # Nombre del participante
-    for col in ("nombre", "name", "participante", "recipient_name", "Nombre"):
-        if col in raw and raw[col]:
-            fields[name_id] = raw[col]
-            break
+    # Mapa de campo destino → id real en el SVG
+    targets = {
+        "__name__":      name_id,
+        "__date__":      date_id,
+        "course_name_1": "course_name_1",
+        "course_name_2": "course_name_2",
+        "hours_issue":   "hours_issue",
+        "date_issue_1":  "date_issue_1",
+        "date_issue_2":  "date_issue_2",
+    }
 
-    # Fecha de otorgación
-    for col in ("fecha", "date", "issue_date", "Fecha", "fecha_otorgacion"):
-        if col in raw and raw[col]:
-            fields[date_id] = raw[col]
-            break
-
-    # Campos de certificado de cursos
-    for col in ("tipo_curso", "course_name_1", "tipo"):
-        if col in raw and raw[col]:
-            fields["course_name_1"] = raw[col]
-            break
-
-    for col in ("nombre_curso", "course_name_2", "curso"):
-        if col in raw and raw[col]:
-            fields["course_name_2"] = raw[col]
-            break
-
-    for col in ("horas", "hours_issue", "total_horas", "duracion"):
-        if col in raw and raw[col]:
-            fields["hours_issue"] = raw[col]
-            break
-
-    for col in ("fecha_inicio", "date_issue_1", "inicio"):
-        if col in raw and raw[col]:
-            fields["date_issue_1"] = raw[col]
-            break
-
-    for col in ("fecha_fin", "date_issue_2", "fin"):
-        if col in raw and raw[col]:
-            fields["date_issue_2"] = raw[col]
-            break
+    for key, target_id in targets.items():
+        col = _best_column_match(headers, _FIELD_SYNONYMS[key])
+        if col and raw.get(col):
+            fields[target_id] = raw[col]
 
     return fields
 
@@ -1050,20 +1083,23 @@ def generate_batch():
         csv_text = request.form.get("csv_data", "")
 
     if not csv_text.strip():
-        return jsonify({"error": "No se proporcionó archivo CSV"}), 400
+        return jsonify({"error": "No adjuntaste ningún archivo CSV. Subí un archivo con al menos una columna de nombres y volvé a intentarlo."}), 400
 
     rows = list(csv.DictReader(io.StringIO(csv_text)))
     if not rows:
-        return jsonify({"error": "El CSV no contiene filas de datos"}), 400
+        return jsonify({"error": "El archivo se subió pero no tiene filas de datos. Revisá que debajo de los encabezados haya al menos una persona."}), 400
 
-    # Verificar columnas mínimas
+    # Verificar columna de nombre con fuzzy matching (mensaje amable)
     headers = [h.strip() for h in rows[0].keys()]
-    name_aliases = {"nombre", "name", "participante", "recipient_name"}
-    date_aliases = {"fecha", "date", "issue_date"}
-    has_name = any(h.lower() in name_aliases for h in headers)
-    has_date = any(h.lower() in date_aliases for h in headers)
-    if not has_name:
-        return jsonify({"error": f"El CSV debe tener una columna de nombre. Encontradas: {headers}"}), 400
+    name_col = _best_column_match(headers, _FIELD_SYNONYMS["__name__"])
+    if not name_col:
+        cols_txt = ", ".join(f'"{h}"' for h in headers) or "(ninguna)"
+        return jsonify({"error":
+            "No encontramos una columna con los nombres de los participantes. "
+            f"Tu archivo tiene estas columnas: {cols_txt}. "
+            "Renombrá una de ellas a \"nombre\" (también sirve \"name\", "
+            "\"participante\" o \"estudiante\") y volvé a subirlo."
+        }), 400
 
     # Generar ZIP
     zip_buf     = io.BytesIO()
