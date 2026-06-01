@@ -1,0 +1,526 @@
+<!DOCTYPE html>
+
+<html class="light" lang="es"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>TEC Emprende Lab - Generador de Certificados</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+<style>.material-symbols-outlined {
+    font-variation-settings: "FILL" 0, "wght" 400, "GRAD" 0, "opsz" 24
+    }
+.step-active {
+    @apply text-primary border-primary;
+    }
+.step-inactive {
+    @apply text-secondary-fixed-dim border-outline-variant;
+    }
+.glass-effect {
+    background: rgba(255, 255, 255, 0.7);
+    backdrop-filter: blur(8px)
+    }
+.template-card.active {
+    border-color: #a93200;
+    ring: 2px;
+    ring-color: #a93200
+    }
+/* Custom scrollbar for Arena theme */
+::-webkit-scrollbar {
+    width: 6px
+    }
+::-webkit-scrollbar-track {
+    background: #f2ede4
+    }
+::-webkit-scrollbar-thumb {
+    background: #cebf98;
+    border-radius: 10px
+    }
+.certificate-preview-container {
+    aspect-ratio: 1.414/1;
+    background-image: url(https://lh3.googleusercontent.com/aida-public/AB6AXuBaF4Qd-sEbXq-u7U3sVS0AmtOgRQhdiO8WJfyr_Uk1qT5djvw1d3VhV_DPqf9FI2QZSMMAI4OF2jO-JWPCDhdkMM1U5EqLA6vCBjx7CMkTTdXHSTaS-A2AaXGy9biB6VZDvYX9x8zTezyK2Mm89u5S5jigSHRfUQpu1hre4H8TvCK1sVWsNX-9uHs9PuuGR2yPFZufX0NJVOBSv_vjWhThXK-RaFWrImcEDCJy68hoJuwtH1jEJEDM6h1Wr7bLmzATx97V4FeN55Ni);
+    background-size: cover;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1)
+    }</style>
+<!-- Tailwind Configuration -->
+<script id="tailwind-config">
+        tailwind.config = {
+          darkMode: "class",
+          theme: {
+            extend: {
+              "colors": {
+                      "surface-tint": "#ad3300",
+                      "inverse-primary": "#ffb59e",
+                      "on-tertiary-fixed": "#1a1d00",
+                      "surface-variant": "#e7e2d9",
+                      "surface": "#fef9f0",
+                      "on-tertiary-container": "#feffdb",
+                      "secondary-container": "#e7ded7",
+                      "on-primary-container": "#fffbff",
+                      "on-primary-fixed": "#390b00",
+                      "on-primary-fixed-variant": "#842500",
+                      "surface-dim": "#ded9d1",
+                      "inverse-on-surface": "#f5f0e7",
+                      "on-secondary-fixed-variant": "#4b4641",
+                      "secondary-fixed": "#eae1da",
+                      "on-tertiary": "#ffffff",
+                      "secondary": "#645d58",
+                      "tertiary-container": "#727934",
+                      "surface-bright": "#fef9f0",
+                      "secondary-fixed-dim": "#cec5be",
+                      "on-surface-variant": "#5a4139",
+                      "on-background": "#1d1c16",
+                      "on-secondary-container": "#68615c",
+                      "surface-container-lowest": "#ffffff",
+                      "inverse-surface": "#32302b",
+                      "on-error-container": "#93000a",
+                      "on-tertiary-fixed-variant": "#444b07",
+                      "primary-fixed-dim": "#ffb59e",
+                      "tertiary-fixed-dim": "#c5cc7d",
+                      "primary-container": "#d24206",
+                      "error-container": "#ffdad6",
+                      "on-surface": "#1d1c16",
+                      "primary-fixed": "#ffdbd0",
+                      "surface-container-low": "#f8f3ea",
+                      "on-primary": "#ffffff",
+                      "outline": "#8e7067",
+                      "on-secondary": "#ffffff",
+                      "outline-variant": "#e3bfb4",
+                      "tertiary": "#5a601d",
+                      "on-error": "#ffffff",
+                      "on-secondary-fixed": "#1f1b17",
+                      "surface-container-highest": "#e7e2d9",
+                      "error": "#ba1a1a",
+                      "background": "#fef9f0",
+                      "tertiary-fixed": "#e1e996",
+                      "primary": "#a93200",
+                      "surface-container": "#f2ede4",
+                      "surface-container-high": "#ece8df"
+              },
+              "borderRadius": {
+                      "DEFAULT": "0.25rem",
+                      "lg": "0.5rem",
+                      "xl": "0.75rem",
+                      "full": "9999px"
+              },
+              "spacing": {
+                      "md": "12px",
+                      "gutter": "24px",
+                      "unit": "4px",
+                      "margin-desktop": "32px",
+                      "xs": "4px",
+                      "sm": "8px",
+                      "xl": "20px",
+                      "sidebar-width": "220px",
+                      "margin-mobile": "12px",
+                      "lg": "16px"
+              },
+              "fontFamily": {
+                      "helper-text": ["Poppins"],
+                      "label-caps": ["Poppins"],
+                      "body-base": ["Poppins"],
+                      "display-sm": ["Poppins"],
+                      "display-md": ["Poppins"],
+                      "display-lg": ["Poppins"],
+                      "body-bold": ["Poppins"]
+              },
+              "fontSize": {
+                      "helper-text": ["12px", {"lineHeight": "16px", "fontWeight": "400"}],
+                      "label-caps": ["11px", {"lineHeight": "16px", "letterSpacing": "0.6px", "fontWeight": "600"}],
+                      "body-base": ["14px", {"lineHeight": "22px", "fontWeight": "400"}],
+                      "display-sm": ["16px", {"lineHeight": "24px", "fontWeight": "600"}],
+                      "display-md": ["20px", {"lineHeight": "28px", "letterSpacing": "-0.2px", "fontWeight": "600"}],
+                      "display-lg": ["24px", {"lineHeight": "32px", "letterSpacing": "-0.3px", "fontWeight": "600"}],
+                      "body-bold": ["14px", {"lineHeight": "22px", "fontWeight": "600"}]
+              }
+            },
+          },
+        }
+    </script>
+</head>
+<body class="bg-background font-body-base text-on-background overflow-hidden">
+<!-- Sidebar (SideNavBar Anchor) -->
+<aside class="fixed left-0 top-0 h-screen w-[220px] bg-inverse-surface flex flex-col py-margin-desktop shadow-sm z-50">
+<div class="px-lg mb-xl">
+<h1 class="text-display-md font-display-md font-bold text-primary">TEC Emprende Lab</h1>
+<p class="text-helper-text text-secondary-fixed-dim opacity-70">Panel de Control</p>
+</div>
+<nav class="flex-1 px-sm space-y-xs">
+<a class="flex items-center gap-md px-lg py-md text-secondary-fixed-dim hover:bg-secondary-fixed/10 hover:text-secondary-fixed transition-colors active:scale-95 duration-150" href="#">
+<span class="material-symbols-outlined">dashboard</span>
+<span>Dashboard</span>
+</a>
+<a class="flex items-center gap-md px-lg py-md text-secondary-fixed-dim hover:bg-secondary-fixed/10 hover:text-secondary-fixed transition-colors active:scale-95 duration-150" href="#">
+<span class="material-symbols-outlined">groups</span>
+<span>Participantes</span>
+</a>
+<a class="flex items-center gap-md px-lg py-md text-secondary-fixed-dim hover:bg-secondary-fixed/10 hover:text-secondary-fixed transition-colors active:scale-95 duration-150" href="#">
+<span class="material-symbols-outlined">analytics</span>
+<span>Métricas</span>
+</a>
+<a class="flex items-center gap-md px-lg py-md text-on-primary-fixed bg-primary-container rounded-lg active:scale-95 duration-150" href="#">
+<span class="material-symbols-outlined">workspace_premium</span>
+<span>Certificados</span>
+</a>
+<a class="flex items-center gap-md px-lg py-md text-secondary-fixed-dim hover:bg-secondary-fixed/10 hover:text-secondary-fixed transition-colors active:scale-95 duration-150" href="#">
+<span class="material-symbols-outlined">upload_file</span>
+<span>Importación CSV</span>
+</a>
+<a class="flex items-center gap-md px-lg py-md text-secondary-fixed-dim hover:bg-secondary-fixed/10 hover:text-secondary-fixed transition-colors active:scale-95 duration-150" href="#">
+<span class="material-symbols-outlined">settings</span>
+<span>Configuración</span>
+</a>
+</nav>
+<div class="px-sm mt-auto">
+<button class="w-full mb-md bg-primary text-white py-sm rounded-lg font-body-bold hover:brightness-110 transition-all flex items-center justify-center gap-sm">
+<span class="material-symbols-outlined">add</span>
+<span>Nuevo Registro</span>
+</button>
+<a class="flex items-center gap-md px-lg py-md text-secondary-fixed-dim hover:text-error transition-colors" href="#">
+<span class="material-symbols-outlined">logout</span>
+<span>Cerrar Sesión</span>
+</a>
+</div>
+</aside>
+<!-- Main Content Area -->
+<main class="ml-[220px] h-screen flex flex-col relative">
+<!-- Top Navigation (TopNavBar Anchor) -->
+<header class="sticky top-0 right-0 flex justify-between items-center h-16 px-margin-desktop bg-surface border-b border-outline-variant z-40">
+<div class="flex items-center gap-lg flex-1">
+<div class="relative w-full max-w-md">
+<span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-on-surface-variant">search</span>
+<input class="w-full pl-10 pr-4 py-2 bg-surface-container-low border border-outline-variant rounded-full text-body-base focus:ring-2 focus:ring-primary focus:border-primary outline-none transition-all" placeholder="Buscar certificados..." type="text"/>
+</div>
+</div>
+<div class="flex items-center gap-xl">
+<button class="text-on-surface-variant hover:text-primary transition-all">
+<span class="material-symbols-outlined">notifications</span>
+</button>
+<button class="text-on-surface-variant hover:text-primary transition-all flex items-center gap-sm">
+<span class="material-symbols-outlined">account_circle</span>
+<span class="font-body-bold">Admin TEC</span>
+</button>
+</div>
+</header>
+<!-- Content Canvas -->
+<div class="flex-1 overflow-hidden p-margin-desktop bg-background flex gap-gutter">
+<!-- Left Side: Wizard Steps -->
+<section class="flex-1 flex flex-col gap-lg">
+<div class="flex items-center justify-between mb-sm">
+<h2 class="text-display-lg font-display-lg text-on-surface">Emisión de Certificados</h2>
+<div class="flex items-center gap-md px-md py-xs bg-surface-container-high rounded-full">
+<div class="w-6 h-6 rounded-full bg-primary text-white text-xs flex items-center justify-center font-bold" id="step-badge-1">1</div>
+<div class="h-[2px] w-8 bg-outline-variant"></div>
+<div class="w-6 h-6 rounded-full bg-surface-container text-on-surface-variant text-xs flex items-center justify-center font-bold" id="step-badge-2">2</div>
+<div class="h-[2px] w-8 bg-outline-variant"></div>
+<div class="w-6 h-6 rounded-full bg-surface-container text-on-surface-variant text-xs flex items-center justify-center font-bold" id="step-badge-3">3</div>
+</div>
+</div>
+<!-- Wizard Content Layers -->
+<div class="bg-surface-container-low border border-outline-variant rounded-xl p-lg flex-1 overflow-y-auto relative">
+<!-- STEP 1: Template Selection -->
+<div class="space-y-lg transition-all duration-300" id="step-1">
+<div>
+<h3 class="text-display-md text-on-surface mb-xs">Selecciona una Plantilla</h3>
+<p class="text-body-base text-on-surface-variant">Elige el diseño base para los certificados de este evento.</p>
+</div>
+<div class="grid grid-cols-2 gap-md overflow-x-auto pb-md">
+<div class="template-card active cursor-pointer group relative border-2 border-primary rounded-lg overflow-hidden bg-white shadow-sm transition-all" onclick="selectTemplate(1)">
+<img class="w-full aspect-[1.414/1] object-cover" data-alt="A clean, professional certificate template for an academic workshop, featuring a sophisticated border in warm sand tones and elegant serif typography. The layout is minimalist and formal, incorporating a subtle watermark of a laboratory flask icon in the background to represent innovation and research." src="https://lh3.googleusercontent.com/aida-public/AB6AXuC23hnvtC15bCnllNsQsJq0bax44lKceQYYyUPGd3zH_FrVZLvw6Oj6FLUz3fH_5hDZ5-B9lcmwMcgUxpzrxAseW3kwbuVU7S0ZugZU4r4PrFnCFtPHrqP2OYNMPD9nI9IjUqQXjaHkYtAnxacq_yu5ohQoTRNhx3pWmHwMYH7xOXO3ZgIg6T-XI0xtgwDF8LQc6KpmNCp8P07LoK8DepqYMr9ZrDHo0V-zOyfbEENuO20u4x4fRAoWalzAFMC4n7KlI-z82vLhcsyJ"/>
+<div class="p-sm flex justify-between items-center">
+<span class="font-body-bold">Taller Emprendedor</span>
+<span class="text-primary material-symbols-outlined">check_circle</span>
+</div>
+</div>
+<div class="template-card cursor-pointer group relative border border-outline-variant rounded-lg overflow-hidden bg-white hover:border-primary/50 transition-all" onclick="selectTemplate(2)">
+<img class="w-full aspect-[1.414/1] object-cover grayscale group-hover:grayscale-0 transition-all" data-alt="A vibrant, modern certificate template for a creative seminar, using bold orange accents and clean geometric shapes. The design feels dynamic and energetic, suitable for high-impact events. It features space for signatures and a QR code for digital verification, maintaining a sleek, corporate-meets-innovative aesthetic." src="https://lh3.googleusercontent.com/aida-public/AB6AXuACzgwydUW8pBcrUZ-Y8-uVpjuxHCCZebjBIFHPmEjdQBf9CfjOLVuknd08DE3JW35OUDWmUmcnV9DYNLIcrtoUZrtIykxcfLZZHX_bWkipHrH2-hit0rGyZJecIE-1OwS6Gv95s304JvWJ--uWZh4Nta1TbGQeRPGRZdKNGMROQmim3dSZLR_t3AJjYF2kSgR6AMNT_8DXIw9WIfuTuG3xo4wamXQGoSfVUdD6GhnbzCBGSRs8vLGW6qhYe-dMDavMQshCzbpQ-aoY"/>
+<div class="p-sm flex justify-between items-center">
+<span class="font-body-bold">Seminario Innovación</span>
+<span class="hidden text-primary material-symbols-outlined">check_circle</span>
+</div>
+</div>
+</div>
+</div>
+<!-- STEP 2: Data Input -->
+<div class="hidden space-y-lg transition-all duration-300" id="step-2">
+<div>
+<h3 class="text-display-md text-on-surface mb-xs">Información del Certificado</h3>
+<p class="text-body-base text-on-surface-variant">Define el destinatario y los detalles del curso.</p>
+</div>
+<div class="flex gap-md border-b border-outline-variant mb-md">
+<button class="pb-sm border-b-2 border-primary font-body-bold text-primary px-sm" id="tab-single" onclick="switchTab('single')">Individual</button>
+<button class="pb-sm border-b-2 border-transparent font-body-bold text-on-surface-variant px-sm hover:text-primary transition-all" id="tab-batch" onclick="switchTab('batch')">Carga Masiva (CSV)</button>
+</div>
+<div class="space-y-md" id="content-single">
+<div class="grid grid-cols-2 gap-md">
+<div class="space-y-xs">
+<label class="text-label-caps text-on-surface-variant uppercase">Nombre Completo</label>
+<input class="w-full px-md py-sm rounded-lg border border-outline-variant bg-surface focus:ring-2 focus:ring-primary focus:border-primary outline-none transition-all" id="cert-name" oninput="updatePreview()" type="text" value="Juan Pérez Ramírez"/>
+</div>
+<div class="space-y-xs">
+<label class="text-label-caps text-on-surface-variant uppercase">Nombre del Evento</label>
+<input class="w-full px-md py-sm rounded-lg border border-outline-variant bg-surface focus:ring-2 focus:ring-primary focus:border-primary outline-none transition-all" id="cert-event" oninput="updatePreview()" type="text" value="Design Thinking 101"/>
+</div>
+</div>
+<div class="grid grid-cols-2 gap-md">
+<div class="space-y-xs">
+<label class="text-label-caps text-on-surface-variant uppercase">Fecha de Emisión</label>
+<input class="w-full px-md py-sm rounded-lg border border-outline-variant bg-surface focus:ring-2 focus:ring-primary focus:border-primary outline-none transition-all" id="cert-date" type="date"/>
+</div>
+<div class="space-y-xs">
+<label class="text-label-caps text-on-surface-variant uppercase">Tipo de Actividad</label>
+<select class="w-full px-md py-sm rounded-lg border border-outline-variant bg-surface focus:ring-2 focus:ring-primary focus:border-primary outline-none transition-all">
+<option>Taller</option>
+<option>Curso</option>
+<option>Seminario</option>
+</select>
+</div>
+</div>
+</div>
+<div class="hidden" id="content-batch">
+<div class="border-2 border-dashed border-outline-variant rounded-xl p-xl flex flex-col items-center justify-center bg-surface-container-highest/30 hover:bg-surface-container-highest transition-all group">
+<span class="material-symbols-outlined text-display-lg text-primary mb-sm">cloud_upload</span>
+<p class="font-body-bold">Arrastra tu archivo CSV aquí</p>
+<p class="text-helper-text text-on-surface-variant mt-xs">O selecciona un archivo de tu equipo</p>
+<button class="mt-md px-lg py-sm bg-inverse-surface text-surface rounded-lg font-body-bold hover:brightness-125 transition-all">Examinar Archivos</button>
+</div>
+<div class="mt-md p-md bg-secondary-container rounded-lg flex items-start gap-md">
+<span class="material-symbols-outlined text-on-secondary-container">info</span>
+<p class="text-helper-text text-on-secondary-container">El archivo debe contener las columnas: Nombre Completo, Email, Nombre Evento, Fecha.</p>
+</div>
+</div>
+</div>
+<!-- STEP 3: Generation & Success -->
+<div class="hidden flex flex-col items-center justify-center h-full text-center py-xl" id="step-3">
+<div class="mb-lg" id="generating-anim">
+<div class="w-20 h-20 border-4 border-primary border-t-transparent rounded-full animate-spin"></div>
+</div>
+<div class="hidden" id="success-message">
+<div class="w-24 h-24 bg-tertiary-container text-on-tertiary-container rounded-full flex items-center justify-center mb-lg mx-auto animate-bounce">
+<span class="material-symbols-outlined text-[48px]" style="font-variation-settings: 'FILL' 1;">check_circle</span>
+</div>
+<h3 class="text-display-lg text-on-surface mb-sm">¡Certificado Generado!</h3>
+<p class="text-body-base text-on-surface-variant max-w-sm mx-auto">El certificado ha sido creado con éxito y está listo para ser enviado o descargado.</p>
+<div class="flex gap-md mt-xl justify-center">
+<button class="px-xl py-md bg-primary text-white rounded-lg font-body-bold hover:brightness-110 flex items-center gap-sm transition-all shadow-md">
+<span class="material-symbols-outlined">download</span>
+                                    Descargar PDF
+                                </button>
+<button class="px-xl py-md bg-secondary text-white rounded-lg font-body-bold hover:brightness-110 flex items-center gap-sm transition-all shadow-md">
+<span class="material-symbols-outlined">mail</span>
+                                    Enviar por Email
+                                </button>
+</div>
+</div>
+</div>
+</div>
+<!-- Footer Navigation -->
+<div class="flex justify-between items-center py-md">
+<button class="invisible px-lg py-sm border border-outline-variant rounded-lg font-body-bold text-on-surface hover:bg-surface-container-high transition-all flex items-center gap-sm" id="prev-btn" onclick="prevStep()">
+<span class="material-symbols-outlined">arrow_back</span>
+                        Anterior
+                    </button>
+<button class="px-xl py-md bg-primary text-white rounded-lg font-body-bold hover:brightness-110 transition-all flex items-center gap-sm shadow-md" id="next-btn" onclick="nextStep()">
+                        Siguiente
+                        <span class="material-symbols-outlined">arrow_forward</span>
+</button>
+</div>
+</section>
+<!-- Right Side: Real-time Preview -->
+<section class="w-[450px] flex flex-col">
+<div class="flex items-center gap-sm mb-lg">
+<span class="material-symbols-outlined text-primary">visibility</span>
+<h4 class="text-display-sm text-on-surface uppercase tracking-wider">Vista Previa</h4>
+</div>
+<div class="sticky top-margin-desktop space-y-lg">
+<div class="certificate-preview-container relative rounded-lg border border-outline-variant p-margin-mobile overflow-hidden flex flex-col items-center justify-center text-center">
+<!-- Preview Overlay Texts -->
+<div class="z-10 w-full px-lg py-xl bg-white/90 backdrop-blur-sm border border-arena-variant shadow-lg flex flex-col items-center">
+<img class="h-12 mb-lg object-contain opacity-80" data-alt="A formal institutional logo for TEC Emprende Lab, featuring professional typography and a minimalist emblem that suggests growth and scientific advancement. The logo is rendered in a high-contrast charcoal black, perfectly suited for an official certificate background." src="https://lh3.googleusercontent.com/aida-public/AB6AXuDLeGaMZlZXKqbgjLKTDxHLFN4WI-iRDb-e7gODd3CLg8h9T6tv7U8QF4vbk33rFGNnizs7DrAOM2NsGUQhJEG2TKqqTzCt2wjYvvVLwI-lqNAlRUjn0LyxKIeOeHHWrzehYWKN2558I_OGFUpYajmzFt0BnjA75Lo1YFeY3YtVKWnS_0MBNJQ38p9WuhU7sxyadqj6wRgvlUsO9uMobry1PSa5iTrBgYoSI97rSZ1wmxTrtwR7IWvLAPf6k72Rd8hppBjCpG2COYuC"/>
+<p class="text-label-caps text-secondary uppercase mb-xl tracking-[4px]">CERTIFICADO DE PARTICIPACIÓN</p>
+<p class="text-on-surface mb-sm italic">Otorga el presente a:</p>
+<h3 class="text-display-md text-primary font-bold mb-md" id="preview-name">Juan Pérez Ramírez</h3>
+<p class="text-on-surface mb-md">Por su valiosa participación en el evento:</p>
+<h4 class="text-body-bold text-inverse-surface mb-xl" id="preview-event">Design Thinking 101</h4>
+<div class="w-24 h-[1px] bg-outline-variant mb-sm"></div>
+<p class="text-helper-text text-secondary">Sello de Certificación TEC Emprende Lab</p>
+</div>
+<!-- Watermark -->
+<div class="absolute inset-0 flex items-center justify-center pointer-events-none opacity-[0.03]">
+<span class="material-symbols-outlined text-[200px]" style="font-variation-settings: 'FILL' 1;">workspace_premium</span>
+</div>
+</div>
+<div class="p-lg bg-surface-container-high rounded-xl border border-outline-variant">
+<div class="flex items-center justify-between mb-md">
+<span class="text-body-bold">Detalles de Validación</span>
+<span class="px-sm py-xs bg-tertiary-container text-on-tertiary-container text-xs rounded-full font-bold">Activo</span>
+</div>
+<ul class="space-y-sm text-helper-text">
+<li class="flex items-center gap-md">
+<span class="material-symbols-outlined text-sm">qr_code_2</span>
+<span>ID: TEC-2023-W001-A2</span>
+</li>
+<li class="flex items-center gap-md">
+<span class="material-symbols-outlined text-sm">event_available</span>
+<span id="preview-date-text">Fecha: 24 Oct, 2023</span>
+</li>
+</ul>
+</div>
+</div>
+</section>
+</div>
+</main>
+<script>
+        let currentStep = 1;
+
+        function updatePreview() {
+            const name = document.getElementById('cert-name').value;
+            const event = document.getElementById('cert-event').value;
+            const date = document.getElementById('cert-date').value;
+
+            document.getElementById('preview-name').innerText = name || 'Nombre del Destinatario';
+            document.getElementById('preview-event').innerText = event || 'Nombre del Evento';
+            
+            if(date) {
+                const options = { year: 'numeric', month: 'short', day: 'numeric' };
+                document.getElementById('preview-date-text').innerText = 'Fecha: ' + new Date(date).toLocaleDateString('es-ES', options);
+            }
+        }
+
+        function switchTab(type) {
+            const btnSingle = document.getElementById('tab-single');
+            const btnBatch = document.getElementById('tab-batch');
+            const contentSingle = document.getElementById('content-single');
+            const contentBatch = document.getElementById('content-batch');
+
+            if (type === 'single') {
+                btnSingle.classList.add('border-primary', 'text-primary');
+                btnSingle.classList.remove('border-transparent', 'text-on-surface-variant');
+                btnBatch.classList.remove('border-primary', 'text-primary');
+                btnBatch.classList.add('border-transparent', 'text-on-surface-variant');
+                contentSingle.classList.remove('hidden');
+                contentBatch.classList.add('hidden');
+            } else {
+                btnBatch.classList.add('border-primary', 'text-primary');
+                btnBatch.classList.remove('border-transparent', 'text-on-surface-variant');
+                btnSingle.classList.remove('border-primary', 'text-primary');
+                btnSingle.classList.add('border-transparent', 'text-on-surface-variant');
+                contentBatch.classList.remove('hidden');
+                contentSingle.classList.add('hidden');
+            }
+        }
+
+        function selectTemplate(id) {
+            document.querySelectorAll('.template-card').forEach((card, idx) => {
+                if (idx + 1 === id) {
+                    card.classList.add('border-primary', 'active');
+                    card.classList.remove('border-outline-variant');
+                    card.querySelector('span.material-symbols-outlined').classList.remove('hidden');
+                    card.querySelector('img').classList.remove('grayscale');
+                } else {
+                    card.classList.remove('border-primary', 'active');
+                    card.classList.add('border-outline-variant');
+                    card.querySelector('span.material-symbols-outlined').classList.add('hidden');
+                    card.querySelector('img').classList.add('grayscale');
+                }
+            });
+        }
+
+        function nextStep() {
+            if (currentStep < 3) {
+                document.getElementById(`step-${currentStep}`).classList.add('hidden');
+                currentStep++;
+                document.getElementById(`step-${currentStep}`).classList.remove('hidden');
+                
+                updateStepBadges();
+                
+                if (currentStep === 3) {
+                    processGeneration();
+                }
+            }
+            updateButtons();
+        }
+
+        function prevStep() {
+            if (currentStep > 1) {
+                document.getElementById(`step-${currentStep}`).classList.add('hidden');
+                currentStep--;
+                document.getElementById(`step-${currentStep}`).classList.remove('hidden');
+                updateStepBadges();
+            }
+            updateButtons();
+        }
+
+        function updateStepBadges() {
+            for(let i=1; i<=3; i++) {
+                const badge = document.getElementById(`step-badge-${i}`);
+                if (i <= currentStep) {
+                    badge.classList.remove('bg-surface-container', 'text-on-surface-variant');
+                    badge.classList.add('bg-primary', 'text-white');
+                } else {
+                    badge.classList.add('bg-surface-container', 'text-on-surface-variant');
+                    badge.classList.remove('bg-primary', 'text-white');
+                }
+            }
+        }
+
+        function updateButtons() {
+            const nextBtn = document.getElementById('next-btn');
+            const prevBtn = document.getElementById('prev-btn');
+
+            if (currentStep === 1) {
+                prevBtn.classList.add('invisible');
+            } else {
+                prevBtn.classList.remove('invisible');
+            }
+
+            if (currentStep === 3) {
+                nextBtn.classList.add('hidden');
+            } else {
+                nextBtn.classList.remove('hidden');
+            }
+        }
+
+        function processGeneration() {
+            const anim = document.getElementById('generating-anim');
+            const success = document.getElementById('success-message');
+            
+            anim.classList.remove('hidden');
+            success.classList.add('hidden');
+
+            setTimeout(() => {
+                anim.classList.add('hidden');
+                success.classList.remove('hidden');
+                launchConfetti();
+            }, 2000);
+        }
+
+        function launchConfetti() {
+            const count = 200;
+            const defaults = {
+                origin: { y: 0.7 },
+                colors: ['#a93200', '#cebf98', '#1d1c16']
+            };
+
+            function fire(particleRatio, opts) {
+                confetti({
+                    ...defaults,
+                    ...opts,
+                    particleCount: Math.floor(count * particleRatio)
+                });
+            }
+
+            fire(0.25, { spread: 26, startVelocity: 55 });
+            fire(0.2, { spread: 60 });
+            fire(0.35, { spread: 100, decay: 0.91, scalar: 0.8 });
+            fire(0.1, { spread: 120, startVelocity: 25, decay: 0.92, scalar: 1.2 });
+            fire(0.1, { spread: 120, startVelocity: 45 });
+        }
+
+        // Initialize date
+        document.getElementById('cert-date').valueAsDate = new Date();
+        updatePreview();
+    </script>
+</body></html>

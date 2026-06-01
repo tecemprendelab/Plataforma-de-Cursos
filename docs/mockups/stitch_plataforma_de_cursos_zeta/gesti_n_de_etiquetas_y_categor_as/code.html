@@ -1,0 +1,345 @@
+<!DOCTYPE html>
+
+<html class="light" lang="es"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Gestión de Etiquetas - TEC Emprende Lab</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            "colors": {
+                    "secondary-fixed-dim": "#cec5be",
+                    "tertiary-fixed-dim": "#c5cc7d",
+                    "surface-tint": "#ad3300",
+                    "tertiary-container": "#727934",
+                    "on-tertiary-container": "#feffdb",
+                    "on-secondary": "#ffffff",
+                    "surface-container-highest": "#e7e2d9",
+                    "surface-container-high": "#ece8df",
+                    "on-surface": "#1d1c16",
+                    "secondary-container": "#e7ded7",
+                    "on-secondary-fixed": "#1f1b17",
+                    "error": "#ba1a1a",
+                    "outline": "#8e7067",
+                    "on-primary-container": "#fffbff",
+                    "on-primary-fixed-variant": "#842500",
+                    "tertiary": "#5a601d",
+                    "secondary": "#645d58",
+                    "surface-bright": "#fef9f0",
+                    "error-container": "#ffdad6",
+                    "inverse-primary": "#ffb59e",
+                    "surface-container-lowest": "#ffffff",
+                    "on-primary": "#ffffff",
+                    "surface": "#fef9f0",
+                    "on-secondary-fixed-variant": "#4b4641",
+                    "background": "#fef9f0",
+                    "primary-fixed-dim": "#ffb59e",
+                    "primary-fixed": "#ffdbd0",
+                    "primary-container": "#d24206",
+                    "on-tertiary-fixed": "#1a1d00",
+                    "on-error-container": "#93000a",
+                    "on-surface-variant": "#5a4139",
+                    "outline-variant": "#e3bfb4",
+                    "tertiary-fixed": "#e1e996",
+                    "surface-container": "#f2ede4",
+                    "on-tertiary-fixed-variant": "#444b07",
+                    "on-tertiary": "#ffffff",
+                    "surface-variant": "#e7e2d9",
+                    "primary": "#a93200",
+                    "arena": "#CEBF98"
+            },
+            "borderRadius": {
+                    "DEFAULT": "0.25rem",
+                    "lg": "0.5rem",
+                    "xl": "0.75rem",
+                    "full": "9999px"
+            },
+            "spacing": {
+                    "sidebar-width": "220px",
+                    "margin-mobile": "12px",
+                    "lg": "16px",
+                    "xl": "20px",
+                    "sm": "8px",
+                    "xs": "4px",
+                    "margin-desktop": "32px",
+                    "gutter": "24px",
+                    "unit": "4px",
+                    "md": "12px"
+            },
+            "fontFamily": {
+                    "label-caps": ["Poppins"],
+                    "display-lg": ["Poppins"],
+                    "body-base": ["Poppins"],
+                    "display-sm": ["Poppins"],
+                    "body-bold": ["Poppins"],
+                    "helper-text": ["Poppins"],
+                    "display-md": ["Poppins"]
+            },
+            "fontSize": {
+                    "label-caps": ["11px", {"lineHeight": "16px", "letterSpacing": "0.6px", "fontWeight": "600"}],
+                    "display-lg": ["24px", {"lineHeight": "32px", "letterSpacing": "-0.3px", "fontWeight": "600"}],
+                    "body-base": ["14px", {"lineHeight": "22px", "fontWeight": "400"}],
+                    "display-sm": ["16px", {"lineHeight": "24px", "fontWeight": "600"}],
+                    "body-bold": ["14px", {"lineHeight": "22px", "fontWeight": "600"}],
+                    "helper-text": ["12px", {"lineHeight": "16px", "fontWeight": "400"}],
+                    "display-md": ["20px", {"lineHeight": "28px", "letterSpacing": "-0.2px", "fontWeight": "600"}]
+            }
+          },
+        },
+      }
+    </script>
+<style>
+        body { font-family: 'Poppins', sans-serif; background-color: #FAF5EC; color: #1d1c16; }
+        .material-symbols-outlined { font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24; }
+        .soft-card { background-color: white; border: 1px solid #CEBF98; box-shadow: 0 2px 4px rgba(26, 22, 18, 0.04); border-radius: 12px; }
+        .swatch-active { outline: 2px solid #a93200; outline-offset: 2px; }
+        .custom-scrollbar::-webkit-scrollbar { width: 4px; }
+        .custom-scrollbar::-webkit-scrollbar-thumb { background: #CEBF98; border-radius: 10px; }
+    </style>
+</head>
+<body class="flex min-h-screen">
+<!-- SideNavBar -->
+<aside class="fixed left-0 top-0 h-screen w-[220px] bg-inverse-surface flex flex-col h-full py-lg px-md shadow-md z-50">
+<div class="mb-xl px-sm">
+<h1 class="font-display-md text-display-md text-surface-bright leading-tight">TEC Emprende Lab</h1>
+<p class="font-body-base text-body-base text-secondary-fixed-dim opacity-70">Panel Administrativo</p>
+</div>
+<nav class="flex-1 space-y-xs custom-scrollbar overflow-y-auto">
+<a class="flex items-center gap-md p-sm rounded-lg transition-colors duration-200 ease-in-out text-secondary-fixed-dim font-body-base hover:text-surface-bright hover:bg-white/5" href="#">
+<span class="material-symbols-outlined">dashboard</span>
+<span>Dashboard</span>
+</a>
+<a class="flex items-center gap-md p-sm rounded-lg transition-colors duration-200 ease-in-out text-secondary-fixed-dim font-body-base hover:text-surface-bright hover:bg-white/5" href="#">
+<span class="material-symbols-outlined">groups</span>
+<span>Participantes</span>
+</a>
+<a class="flex items-center gap-md p-sm rounded-lg transition-colors duration-200 ease-in-out text-secondary-fixed-dim font-body-base hover:text-surface-bright hover:bg-white/5" href="#">
+<span class="material-symbols-outlined">school</span>
+<span>Cursos</span>
+</a>
+<a class="flex items-center gap-md p-sm rounded-lg transition-colors duration-200 ease-in-out text-secondary-fixed-dim font-body-base hover:text-surface-bright hover:bg-white/5" href="#">
+<span class="material-symbols-outlined">key</span>
+<span>Control de Accesos</span>
+</a>
+<a class="flex items-center gap-md p-sm rounded-lg transition-colors duration-200 ease-in-out text-secondary-fixed-dim font-body-base hover:text-surface-bright hover:bg-white/5" href="#">
+<span class="material-symbols-outlined">alarm</span>
+<span>Recordatorios</span>
+</a>
+<!-- Active Tab -->
+<a class="flex items-center gap-md p-sm rounded-lg transition-colors duration-200 ease-in-out text-primary-fixed-dim font-body-bold bg-surface-variant/10" href="#">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">label</span>
+<span>Etiquetas</span>
+</a>
+</nav>
+<div class="mt-auto pt-lg border-t border-white/10 flex items-center gap-md">
+<div class="w-8 h-8 rounded-full bg-primary flex items-center justify-center text-white text-xs font-bold">AL</div>
+<div class="overflow-hidden">
+<p class="text-xs font-bold text-surface-bright truncate">Admin Lab</p>
+<p class="text-[10px] text-secondary-fixed-dim truncate">admin@tec.ac.cr</p>
+</div>
+</div>
+</aside>
+<!-- Main Content Shell -->
+<div class="flex-1 ml-[220px] flex flex-col min-h-screen">
+<!-- TopNavBar -->
+<header class="flex justify-between items-center h-16 px-margin-desktop bg-surface border-b border-outline-variant sticky top-0 z-40">
+<div class="flex items-center gap-lg w-1/3">
+<div class="relative w-full max-w-xs">
+<span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-on-surface-variant text-sm">search</span>
+<input class="w-full bg-surface-container-low border border-arena rounded-lg pl-10 pr-4 py-2 text-body-base focus:outline-none focus:border-primary transition-all" placeholder="Buscar..." type="text"/>
+</div>
+</div>
+<div class="flex items-center gap-xl">
+<button class="relative text-on-surface-variant hover:text-primary transition-all">
+<span class="material-symbols-outlined">notifications</span>
+<span class="absolute top-0 right-0 w-2 h-2 bg-primary rounded-full border-2 border-surface"></span>
+</button>
+<button class="text-on-surface-variant hover:text-primary transition-all">
+<span class="material-symbols-outlined">settings</span>
+</button>
+<div class="h-8 w-px bg-outline-variant mx-sm"></div>
+<img alt="Administrator Profile" class="w-8 h-8 rounded-full border border-arena" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBOPGNj3IuhG171zUcvvMJiv94UMPAFzmTZPFVyjF2EWCk6u_cbot-_SYYgZBnytNsAcQwyiu8-XlQgwQhp7pgCjGuknwC93xtaA0JOEFTCEAj5y8j7m9XBre9oM_VFRpJzmMHlMHiH7nQDk9TVe32wpAwHaVumtU3b60Dah51ucBFcJLpGHps9Qcl2FpOK_Jrhm0cu5YlP4wi0I_qLXHJxEoo-tvIrEIk5W2ObCvrmaiT8SHkVWIOl2uoGRR7_eE5JNOaZ3eDx9yMQ"/>
+</div>
+</header>
+<!-- Page Canvas -->
+<main class="p-margin-desktop space-y-gutter flex-1 animate-in fade-in duration-700">
+<!-- Header Section -->
+<div class="flex justify-between items-end">
+<div>
+<h2 class="font-display-lg text-display-lg text-on-surface">Gestión de Etiquetas</h2>
+<p class="font-body-base text-on-surface-variant max-w-2xl">Organiza a tus participantes y cursos mediante un sistema de categorización visual intuitivo.</p>
+</div>
+</div>
+<!-- Creation Section -->
+<section class="soft-card p-xl">
+<h3 class="font-display-sm text-display-sm text-on-surface mb-lg">Crear Nueva Etiqueta</h3>
+<form class="grid grid-cols-1 lg:grid-cols-12 gap-xl items-end">
+<div class="lg:col-span-4 space-y-sm">
+<label class="font-label-caps text-label-caps text-on-surface-variant uppercase">Nombre de la etiqueta</label>
+<input class="w-full bg-white border border-arena rounded-lg px-md py-3 text-body-base focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none transition-all" placeholder="ej. Becado, VIP, Empresa..." type="text"/>
+</div>
+<div class="lg:col-span-5 space-y-sm">
+<label class="font-label-caps text-label-caps text-on-surface-variant uppercase">Color institucional</label>
+<div class="flex flex-wrap gap-md py-2">
+<button class="w-8 h-8 rounded-full bg-primary swatch-active" title="Primario Naranja" type="button"></button>
+<button class="w-8 h-8 rounded-full bg-[#A84020]" title="Siena" type="button"></button>
+<button class="w-8 h-8 rounded-full bg-tertiary" title="Oliva" type="button"></button>
+<button class="w-8 h-8 rounded-full bg-[#5a601d]" title="Verde Musgo" type="button"></button>
+<button class="w-8 h-8 rounded-full bg-[#4A5568]" title="Pizarra" type="button"></button>
+<button class="w-8 h-8 rounded-full bg-[#6B46C1]" title="Lavanda" type="button"></button>
+<button class="w-8 h-8 rounded-full bg-[#2C5282]" title="Azul Deep" type="button"></button>
+<button class="w-8 h-8 rounded-full bg-[#CEBF98]" title="Arena" type="button"></button>
+</div>
+</div>
+<div class="lg:col-span-3">
+<button class="w-full bg-primary text-white font-body-bold text-body-bold py-3 rounded-lg hover:bg-surface-tint shadow-md shadow-primary/20 transition-all active:scale-[0.98] flex items-center justify-center gap-sm" type="submit">
+<span class="material-symbols-outlined text-[18px]">add</span>
+                            Crear Etiqueta
+                        </button>
+</div>
+</form>
+</section>
+<!-- Existing Labels Section -->
+<section class="space-y-lg">
+<div class="flex items-center justify-between">
+<h3 class="font-display-sm text-display-sm text-on-surface">Etiquetas Existentes</h3>
+<span class="font-label-caps text-label-caps bg-surface-container-high px-md py-1 rounded-full text-on-surface-variant">4 Total</span>
+</div>
+<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-gutter">
+<!-- Label Pill Card: Becado -->
+<div class="soft-card p-md flex items-center justify-between group hover:border-primary transition-all">
+<div class="flex items-center gap-md">
+<div class="w-10 h-10 rounded-lg bg-tertiary/10 flex items-center justify-center text-tertiary">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">label</span>
+</div>
+<div>
+<p class="font-body-bold text-body-bold text-on-surface">Becado</p>
+<p class="text-helper-text text-on-surface-variant">24 participantes</p>
+</div>
+</div>
+<div class="flex flex-col gap-xs opacity-0 group-hover:opacity-100 transition-opacity">
+<button class="p-1 hover:bg-surface-container-high rounded text-on-surface-variant hover:text-primary transition-colors">
+<span class="material-symbols-outlined text-[18px]">edit</span>
+</button>
+<button class="p-1 hover:bg-error/10 rounded text-on-surface-variant hover:text-error transition-colors">
+<span class="material-symbols-outlined text-[18px]">delete</span>
+</button>
+</div>
+</div>
+<!-- Label Pill Card: Empresa -->
+<div class="soft-card p-md flex items-center justify-between group hover:border-primary transition-all">
+<div class="flex items-center gap-md">
+<div class="w-10 h-10 rounded-lg bg-[#2C5282]/10 flex items-center justify-center text-[#2C5282]">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">label</span>
+</div>
+<div>
+<p class="font-body-bold text-body-bold text-on-surface">Empresa</p>
+<p class="text-helper-text text-on-surface-variant">12 participantes</p>
+</div>
+</div>
+<div class="flex flex-col gap-xs opacity-0 group-hover:opacity-100 transition-opacity">
+<button class="p-1 hover:bg-surface-container-high rounded text-on-surface-variant hover:text-primary transition-colors">
+<span class="material-symbols-outlined text-[18px]">edit</span>
+</button>
+<button class="p-1 hover:bg-error/10 rounded text-on-surface-variant hover:text-error transition-colors">
+<span class="material-symbols-outlined text-[18px]">delete</span>
+</button>
+</div>
+</div>
+<!-- Label Pill Card: VIP -->
+<div class="soft-card p-md flex items-center justify-between group hover:border-primary transition-all">
+<div class="flex items-center gap-md">
+<div class="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center text-primary">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">label</span>
+</div>
+<div>
+<p class="font-body-bold text-body-bold text-on-surface">VIP</p>
+<p class="text-helper-text text-on-surface-variant">8 participantes</p>
+</div>
+</div>
+<div class="flex flex-col gap-xs opacity-0 group-hover:opacity-100 transition-opacity">
+<button class="p-1 hover:bg-surface-container-high rounded text-on-surface-variant hover:text-primary transition-colors">
+<span class="material-symbols-outlined text-[18px]">edit</span>
+</button>
+<button class="p-1 hover:bg-error/10 rounded text-on-surface-variant hover:text-error transition-colors">
+<span class="material-symbols-outlined text-[18px]">delete</span>
+</button>
+</div>
+</div>
+<!-- Label Pill Card: Urgente -->
+<div class="soft-card p-md flex items-center justify-between group hover:border-primary transition-all border-[#A84020]/20">
+<div class="flex items-center gap-md">
+<div class="w-10 h-10 rounded-lg bg-[#A84020]/10 flex items-center justify-center text-[#A84020]">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">label</span>
+</div>
+<div>
+<p class="font-body-bold text-body-bold text-on-surface">Urgente</p>
+<p class="text-helper-text text-on-surface-variant">5 participantes</p>
+</div>
+</div>
+<div class="flex flex-col gap-xs opacity-0 group-hover:opacity-100 transition-opacity">
+<button class="p-1 hover:bg-surface-container-high rounded text-on-surface-variant hover:text-primary transition-colors">
+<span class="material-symbols-outlined text-[18px]">edit</span>
+</button>
+<button class="p-1 hover:bg-error/10 rounded text-on-surface-variant hover:text-error transition-colors">
+<span class="material-symbols-outlined text-[18px]">delete</span>
+</button>
+</div>
+</div>
+</div>
+</section>
+<!-- Usage Tip -->
+<div class="bg-surface-container-lowest border-l-4 border-primary p-lg rounded-r-lg flex items-start gap-md">
+<span class="material-symbols-outlined text-primary">lightbulb</span>
+<p class="font-body-base text-on-surface-variant">
+<strong class="text-on-surface">Pro-Tip:</strong> Puedes asignar múltiples etiquetas a un solo participante para filtrar datos de manera más granular en el panel de participantes.
+                </p>
+</div>
+<div class="grid grid-cols-1 lg:grid-cols-2 gap-gutter opacity-40">
+<div class="h-48 soft-card overflow-hidden">
+<img alt="Team collaborating in a modern lab" class="w-full h-full object-cover" data-alt="A diverse team of young entrepreneurs working together in a high-tech laboratory environment. The room is filled with warm, natural sunlight that highlights sandy clay walls and minimalist wooden furniture. The atmosphere is professional yet vibrant, featuring a soft-UI aesthetic with subtle depth and institution-grade equipment. Soft shadows and a clean cream palette dominate the scene." src="https://lh3.googleusercontent.com/aida-public/AB6AXuCDNsikwAJ7jDHsh_RQ20VASChLegSja3g4j__KqzC-V1x_LSemQVk2yXKJLF4yTpAwN9dqxAllUqAu5QDUSHegl-zKdySxuIV3PzM4n0gV7Fn74mYjQATOyHXafKSXBWUbq6WUaKkkQacAqZ2MuD336JP-p5eSatRb7S89VdmU0A5sefLi9WaPeBVNbH7WaJ4EanOKc-9z_IiN48rIYlM707XViqb80scpUfzKgbnDrlG0zP-84wn3Sm-4x7vBI0t_1BJ5-Dtz7XWY"/>
+</div>
+<div class="h-48 soft-card overflow-hidden">
+<img alt="Digital labels on screen" class="w-full h-full object-cover" data-alt="Close-up macro photography of a digital dashboard screen showing beautifully rendered, colorful UI tags and labels. The tags are rounded pills in shades of terracotta, olive green, and lavender blue. The background is a clean, creamy white with soft ambient shadows, creating a tactile paper-like feel. The image represents modern information management and institutional organization." src="https://lh3.googleusercontent.com/aida-public/AB6AXuCeYIKRpiHq518UbA3ciuWAaJOqZJMEyoAdawLPoiLBgehSs6dOe-tMxjL4RYutXKiKUmPDIOxoNm_kjKr0ZFc5XmT1KCD9zwOBGrkT7MmRXkH22mVe2TV4hJibRz3I16oLuCHFBYGGdCqA9y445EoBSaii4cWlxW-zXGJ4a7BRHb3jiNeM7sJoiGUo9I7rQzBX48iqIjozIzC0wGQIoGLZkVA8ExGvpYntCdMvUzMxwx0CQiZqcNGYHtNm4GUlb_ylxPwuxVl1XYyx"/>
+</div>
+</div>
+</main>
+</div>
+<script>
+        // Micro-interaction for color selection
+        const swatches = document.querySelectorAll('button[title]');
+        swatches.forEach(swatch => {
+            swatch.addEventListener('click', () => {
+                swatches.forEach(s => s.classList.remove('swatch-active'));
+                swatch.classList.add('swatch-active');
+            });
+        });
+
+        // Simple form submission feedback
+        document.querySelector('form').addEventListener('submit', (e) => {
+            e.preventDefault();
+            const btn = e.target.querySelector('button[type="submit"]');
+            const originalText = btn.innerHTML;
+            btn.innerHTML = '<span class="material-symbols-outlined animate-spin">sync</span> Procesando...';
+            btn.classList.add('opacity-80');
+            
+            setTimeout(() => {
+                btn.innerHTML = '<span class="material-symbols-outlined">check</span> ¡Listo!';
+                btn.classList.remove('bg-primary');
+                btn.classList.add('bg-tertiary');
+                setTimeout(() => {
+                    btn.innerHTML = originalText;
+                    btn.classList.add('bg-primary');
+                    btn.classList.remove('bg-tertiary', 'opacity-80');
+                    e.target.reset();
+                }, 2000);
+            }, 1000);
+        });
+    </script>
+</body></html>

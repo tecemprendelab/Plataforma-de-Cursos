@@ -1,0 +1,408 @@
+<!DOCTYPE html>
+
+<html class="light" lang="es"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Generador de Certificados en Lote - TEC Emprende Lab</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<!-- Tailwind Configuration -->
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            "colors": {
+                "primary-fixed": "#ffdbd0",
+                "outline": "#8e7067",
+                "outline-variant": "#e3bfb4",
+                "surface-container-lowest": "#ffffff",
+                "secondary-container": "#e7ded7",
+                "secondary": "#645d58",
+                "on-primary": "#ffffff",
+                "on-tertiary-fixed-variant": "#444b07",
+                "surface-tint": "#ad3300",
+                "surface-container-low": "#f8f3ea",
+                "on-tertiary": "#ffffff",
+                "on-background": "#1d1c16",
+                "error": "#ba1a1a",
+                "inverse-surface": "#32302b",
+                "surface": "#fef9f0",
+                "primary-container": "#d24206",
+                "on-surface-variant": "#5a4139",
+                "primary-fixed-dim": "#ffb59e",
+                "tertiary-fixed-dim": "#c5cc7d",
+                "surface-dim": "#ded9d1",
+                "on-tertiary-fixed": "#1a1d00",
+                "on-primary-container": "#fffbff",
+                "surface-container": "#f2ede4",
+                "tertiary-container": "#727934",
+                "on-tertiary-container": "#feffdb",
+                "on-secondary-fixed": "#1f1b17",
+                "on-surface": "#1d1c16",
+                "tertiary": "#5a601d",
+                "primary": "#a93200",
+                "inverse-primary": "#ffb59e",
+                "surface-bright": "#fef9f0",
+                "error-container": "#ffdad6",
+                "background": "#fef9f0",
+                "on-primary-fixed": "#390b00",
+                "surface-variant": "#e7e2d9",
+                "secondary-fixed": "#eae1da",
+                "on-secondary-fixed-variant": "#4b4641",
+                "on-primary-fixed-variant": "#842500",
+                "inverse-on-surface": "#f5f0e7",
+                "tertiary-fixed": "#e1e996",
+                "on-secondary-container": "#68615c",
+                "on-error-container": "#93000a",
+                "on-error": "#ffffff",
+                "surface-container-high": "#ece8df",
+                "secondary-fixed-dim": "#cec5be",
+                "surface-container-highest": "#e7e2d9",
+                "on-secondary": "#ffffff"
+            },
+            "borderRadius": {
+                "DEFAULT": "0.25rem",
+                "lg": "0.5rem",
+                "xl": "0.75rem",
+                "full": "9999px"
+            },
+            "spacing": {
+                "margin-desktop": "32px",
+                "lg": "16px",
+                "unit": "4px",
+                "margin-mobile": "12px",
+                "xs": "4px",
+                "sm": "8px",
+                "md": "12px",
+                "sidebar-width": "220px",
+                "gutter": "24px",
+                "xl": "20px"
+            },
+            "fontFamily": {
+                "display-lg": ["Poppins"],
+                "body-bold": ["Poppins"],
+                "label-caps": ["Poppins"],
+                "display-md": ["Poppins"],
+                "display-sm": ["Poppins"],
+                "body-base": ["Poppins"],
+                "helper-text": ["Poppins"]
+            },
+            "fontSize": {
+                "display-lg": ["24px", {"lineHeight": "32px", "letterSpacing": "-0.3px", "fontWeight": "600"}],
+                "body-bold": ["14px", {"lineHeight": "22px", "fontWeight": "600"}],
+                "label-caps": ["11px", {"lineHeight": "16px", "letterSpacing": "0.6px", "fontWeight": "600"}],
+                "display-md": ["20px", {"lineHeight": "28px", "letterSpacing": "-0.2px", "fontWeight": "600"}],
+                "display-sm": ["16px", {"lineHeight": "24px", "fontWeight": "600"}],
+                "body-base": ["14px", {"lineHeight": "22px", "fontWeight": "400"}],
+                "helper-text": ["12px", {"lineHeight": "16px", "fontWeight": "400"}]
+            }
+          },
+        },
+      }
+    </script>
+<style>
+        body { font-family: 'Poppins', sans-serif; background-color: #fef9f0; color: #1d1c16; }
+        .material-symbols-outlined { font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24; }
+        .active-nav { color: #ffb59e; background-color: rgba(132, 37, 0, 0.2); font-weight: 700; }
+        .arena-border { border: 1px solid #CEBF98; }
+        .soft-shadow { box-shadow: 0 2px 4px rgba(26, 22, 18, 0.04); }
+        .custom-scrollbar::-webkit-scrollbar { width: 6px; }
+        .custom-scrollbar::-webkit-scrollbar-thumb { background: #CEBF98; border-radius: 10px; }
+        
+        /* Step Transitions */
+        .step-content { display: none; }
+        .step-content.active { display: block; animation: fadeIn 0.4s ease-out; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+    </style>
+</head>
+<body class="flex min-h-screen">
+<!-- SideNavBar (Shared Component) -->
+<aside class="fixed left-0 top-0 h-full w-[220px] bg-inverse-surface flex flex-col py-md px-sm shadow-md z-50">
+<div class="mb-xl px-sm">
+<h1 class="font-display-md text-display-md font-bold text-surface-bright leading-tight">TEC Emprende Lab</h1>
+<p class="text-on-secondary-fixed-variant text-helper-text">Admin Dashboard</p>
+</div>
+<nav class="flex-1 space-y-xs">
+<a class="flex items-center gap-sm px-md py-sm rounded-lg text-on-secondary-fixed-variant hover:bg-primary/10 hover:text-primary-fixed-dim transition-colors group" href="#">
+<span class="material-symbols-outlined">dashboard</span>
+<span class="font-body-base">Dashboard</span>
+</a>
+<a class="flex items-center gap-sm px-md py-sm rounded-lg text-on-secondary-fixed-variant hover:bg-primary/10 hover:text-primary-fixed-dim transition-colors group" href="#">
+<span class="material-symbols-outlined">groups</span>
+<span class="font-body-base">Participants</span>
+</a>
+<a class="flex items-center gap-sm px-md py-sm rounded-lg text-on-secondary-fixed-variant hover:bg-primary/10 hover:text-primary-fixed-dim transition-colors group" href="#">
+<span class="material-symbols-outlined">school</span>
+<span class="font-body-base">Courses</span>
+</a>
+<a class="flex items-center gap-sm px-md py-sm rounded-lg text-on-secondary-fixed-variant hover:bg-primary/10 hover:text-primary-fixed-dim transition-colors group" href="#">
+<span class="material-symbols-outlined">key</span>
+<span class="font-body-base">Access Control</span>
+</a>
+<a class="flex items-center gap-sm px-md py-sm rounded-lg text-on-secondary-fixed-variant hover:bg-primary/10 hover:text-primary-fixed-dim transition-colors group" href="#">
+<span class="material-symbols-outlined">notifications_active</span>
+<span class="font-body-base">Reminders</span>
+</a>
+<a class="flex items-center gap-sm px-md py-sm rounded-lg text-primary-fixed-dim bg-on-primary-fixed-variant/20 font-bold transition-colors group" href="#">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">verified</span>
+<span class="font-body-base">Certificates</span>
+</a>
+</nav>
+<div class="mt-auto border-t border-outline-variant/20 pt-sm space-y-xs">
+<a class="flex items-center gap-sm px-md py-sm rounded-lg text-on-secondary-fixed-variant hover:bg-primary/10 transition-colors" href="#">
+<span class="material-symbols-outlined">settings</span>
+<span class="font-body-base">Settings</span>
+</a>
+<a class="flex items-center gap-sm px-md py-sm rounded-lg text-on-secondary-fixed-variant hover:bg-primary/10 transition-colors" href="#">
+<span class="material-symbols-outlined">logout</span>
+<span class="font-body-base">Logout</span>
+</a>
+</div>
+</aside>
+<!-- Main Content -->
+<main class="flex-1 ml-[220px]">
+<!-- TopAppBar (Shared Component) -->
+<header class="fixed top-0 right-0 w-[calc(100%-220px)] flex justify-between items-center h-16 px-margin-desktop bg-surface border-b border-outline-variant z-40">
+<div class="flex items-center gap-md">
+<h2 class="font-display-sm text-display-sm text-primary">Generador de Certificados</h2>
+</div>
+<div class="flex items-center gap-lg">
+<div class="relative group">
+<span class="material-symbols-outlined text-on-surface-variant cursor-pointer hover:text-primary transition-colors">notifications</span>
+<span class="absolute -top-1 -right-1 w-2 h-2 bg-primary rounded-full"></span>
+</div>
+<span class="material-symbols-outlined text-on-surface-variant cursor-pointer hover:text-primary transition-colors">help</span>
+<div class="flex items-center gap-sm pl-md border-l border-outline-variant">
+<img alt="Administrator Profile" class="w-8 h-8 rounded-full bg-secondary-container" src="https://lh3.googleusercontent.com/aida-public/AB6AXuA9ygmHPcq9dcRtgdJ8loR6mYeXMqDP7qQ_7qIMvJ0UQGIW_pCq3Yubj7eVscgVBH0wR9AVP7is4UztceEciGf4PdF_v51vLiCba_3brzAbYoF5qYzXSX8A6eWTNmpcAhROA-3Cq0OA3Lpul9OgMMz3kFBaRFKihRI3bPbqsPFi3f2pw2vuJsqp-Npnq4uzB8hfjEe8NDUbrGxrU0v58PWI6PHztagCAtJRleJxgjQYonim1sMZsnxr7QUrULOQX1zerXqjGAY5IUQu"/>
+<span class="font-body-bold text-on-surface">Admin TEC</span>
+</div>
+</div>
+</header>
+<div class="pt-24 px-margin-desktop pb-margin-desktop">
+<!-- Tab Navigation -->
+<div class="flex gap-lg mb-xl border-b border-outline-variant">
+<button class="pb-md text-on-surface-variant font-body-bold hover:text-primary transition-colors">Individual</button>
+<button class="pb-md text-primary font-bold border-b-2 border-primary">Lote CSV</button>
+</div>
+<!-- Stepper -->
+<div class="flex items-center justify-between max-w-2xl mx-auto mb-12 relative">
+<div class="absolute top-1/2 left-0 w-full h-0.5 bg-outline-variant -z-10 -translate-y-1/2"></div>
+<!-- Step 1 -->
+<div class="flex flex-col items-center">
+<div class="w-10 h-10 rounded-full bg-primary-container text-white flex items-center justify-center font-bold mb-2 ring-4 ring-surface">
+<span class="material-symbols-outlined">check</span>
+</div>
+<span class="font-label-caps text-on-surface-variant">PLANTILLA</span>
+</div>
+<!-- Step 2 (Active) -->
+<div class="flex flex-col items-center">
+<div class="w-10 h-10 rounded-full bg-primary text-white flex items-center justify-center font-bold mb-2 ring-4 ring-surface" id="step-marker-2">2</div>
+<span class="font-label-caps text-primary">CARGA Y FILTROS</span>
+</div>
+<!-- Step 3 -->
+<div class="flex flex-col items-center">
+<div class="w-10 h-10 rounded-full bg-surface-container-high text-on-surface-variant flex items-center justify-center font-bold mb-2 ring-4 ring-surface" id="step-marker-3">3</div>
+<span class="font-label-caps text-on-surface-variant">RESULTADO</span>
+</div>
+</div>
+<!-- STEP 2 CONTENT (Main Interface) -->
+<section class="step-content active grid grid-cols-12 gap-gutter" id="step-2">
+<!-- Left Column: Filters & Upload -->
+<div class="col-span-12 lg:col-span-5 space-y-gutter">
+<!-- Upload Area -->
+<div class="bg-surface-container-lowest p-xl rounded-xl arena-border soft-shadow border-dashed border-2 hover:border-primary transition-colors cursor-pointer group">
+<div class="flex flex-col items-center text-center py-lg">
+<div class="w-16 h-16 bg-primary/10 rounded-full flex items-center justify-center mb-md group-hover:scale-110 transition-transform">
+<span class="material-symbols-outlined text-primary text-4xl">upload_file</span>
+</div>
+<h3 class="font-display-sm text-on-surface mb-xs">Cargar archivo CSV</h3>
+<p class="text-helper-text text-on-surface-variant mb-md">Arrastra y suelta tu archivo aquí o haz clic para buscarlo.</p>
+<span class="px-lg py-sm bg-primary text-white rounded-lg font-body-bold text-sm shadow-sm">Seleccionar Archivo</span>
+</div>
+</div>
+<!-- Filters & Selection -->
+<div class="bg-white p-xl rounded-xl arena-border soft-shadow space-y-md">
+<div class="space-y-sm">
+<label class="font-label-caps text-on-surface-variant">CURSO O TALLER</label>
+<select class="w-full bg-surface-container-low border-outline-variant rounded-lg font-body-base focus:ring-primary focus:border-primary">
+<option>Diseño Exprés 2026</option>
+<option>Marketing Digital para Pymes</option>
+<option>Costos y Presupuestos</option>
+</select>
+</div>
+<div class="grid grid-cols-2 gap-md">
+<div class="space-y-sm">
+<label class="font-label-caps text-on-surface-variant">ESTADO DE PAGO</label>
+<select class="w-full bg-surface-container-low border-outline-variant rounded-lg font-body-base">
+<option>Todos</option>
+<option>Pagado</option>
+<option>Pendiente</option>
+</select>
+</div>
+<div class="space-y-sm">
+<label class="font-label-caps text-on-surface-variant">FORMATO SALIDA</label>
+<select class="w-full bg-surface-container-low border-outline-variant rounded-lg font-body-base">
+<option>PDF (ZIP)</option>
+<option>Imágenes (JPG)</option>
+</select>
+</div>
+</div>
+</div>
+<!-- Participant Summary -->
+<div class="bg-tertiary-fixed/20 p-xl rounded-xl border border-tertiary-container/30">
+<div class="flex items-center gap-md mb-md">
+<span class="material-symbols-outlined text-tertiary">analytics</span>
+<h4 class="font-body-bold text-tertiary">Resumen del archivo</h4>
+</div>
+<div class="space-y-sm">
+<div class="flex justify-between items-center text-sm">
+<span class="text-on-surface-variant">Filas detectadas:</span>
+<span class="font-bold">42</span>
+</div>
+<div class="flex justify-between items-center text-sm">
+<span class="text-on-surface-variant">Participantes válidos:</span>
+<span class="font-bold text-tertiary">38</span>
+</div>
+<div class="flex justify-between items-center text-sm">
+<span class="text-on-surface-variant">Errores de formato:</span>
+<span class="font-bold text-error">4</span>
+</div>
+</div>
+<button class="w-full mt-xl bg-primary text-white py-md rounded-lg font-body-bold hover:bg-primary-container transition-all flex items-center justify-center gap-sm" onclick="nextStep()">
+<span>Generar 38 Certificados</span>
+<span class="material-symbols-outlined text-sm">arrow_forward</span>
+</button>
+</div>
+</div>
+<!-- Right Column: Live Preview -->
+<div class="col-span-12 lg:col-span-7">
+<div class="sticky top-24">
+<div class="flex items-center justify-between mb-md">
+<h3 class="font-display-sm">Vista Previa (Fila 1)</h3>
+<div class="flex gap-sm">
+<button class="p-2 bg-white arena-border rounded-lg hover:bg-surface-container-low"><span class="material-symbols-outlined">chevron_left</span></button>
+<span class="font-body-base flex items-center px-sm">1 de 38</span>
+<button class="p-2 bg-white arena-border rounded-lg hover:bg-surface-container-low"><span class="material-symbols-outlined">chevron_right</span></button>
+</div>
+</div>
+<!-- Certificate Card Template -->
+<div class="relative bg-white aspect-[1.414/1] w-full rounded-xl arena-border soft-shadow overflow-hidden flex flex-col items-center justify-center text-center p-12">
+<!-- Background Pattern Decor -->
+<div class="absolute inset-0 opacity-5 pointer-events-none" style="background-image: radial-gradient(#a93200 1px, transparent 1px); background-size: 20px 20px;"></div>
+<!-- Certificate Content -->
+<div class="z-10 space-y-6">
+<img alt="Logo Institucional" class="w-20 mx-auto grayscale" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBqRSVHJzXNFtr163eD1K2NHwt4zcpSg69FkJ9xyC0ml2Euu1j9MHtoId-ZS_Zq9-JGhyHDjZy_5p8Q9OdaXtOIBu8Sl7l4dEHbgTvlp0uajlIsaSWeZMr0ASdcazkCN1ssk1RQhcqc17UT7r5lE0ClIL09bs_43H0FC1bZ3l5iwpo6Ul11ZZ-Y4mziFQc1fFUhLqfq2lCVFcTWX7aoDygJTyaVO8i-0aBh--pGWUWgqVtSrL7-BH-xwRZukhAKNx_X2vX7Mrutv2Io"/>
+<p class="font-label-caps text-on-surface-variant tracking-[4px]">CERTIFICADO DE PARTICIPACIÓN</p>
+<div class="space-y-1">
+<p class="font-body-base italic">Se otorga el presente a:</p>
+<h2 class="font-display-lg text-primary text-3xl">ADRIAN LEONEL MORALES CASTRO</h2>
+</div>
+<div class="max-w-md mx-auto">
+<p class="font-body-base text-on-surface-variant">Por haber completado satisfactoriamente el taller <span class="font-bold">"Diseño Exprés 2026"</span> impartido por el TEC Emprende Lab con una duración de 40 horas académicas.</p>
+</div>
+<div class="pt-8 flex justify-center gap-12">
+<div class="border-t border-outline-variant pt-2 px-8">
+<p class="font-body-bold text-xs">Director Emprende Lab</p>
+</div>
+<div class="border-t border-outline-variant pt-2 px-8">
+<p class="font-body-bold text-xs">Coordinador Académico</p>
+</div>
+</div>
+<p class="text-[10px] text-outline pt-4">ID de verificación: TEC-2026-LOTE-001</p>
+</div>
+<!-- Overlay Label -->
+<div class="absolute top-4 right-4 bg-primary/10 text-primary px-3 py-1 rounded-full text-[10px] font-bold border border-primary/20">
+                                VISTA PREVIA DINÁMICA
+                            </div>
+</div>
+<p class="mt-md text-helper-text text-on-surface-variant text-center">Los campos <span class="font-bold text-primary">[Nombre]</span> e <span class="font-bold text-primary">[Identificación]</span> se mapearán automáticamente desde el CSV.</p>
+</div>
+</div>
+</section>
+<!-- STEP 3 CONTENT (Success State) -->
+<section class="step-content max-w-3xl mx-auto text-center py-12" id="step-3">
+<div class="relative inline-block mb-8">
+<!-- Celebration Illustration/Icon -->
+<div class="w-32 h-32 bg-tertiary-fixed-dim/30 rounded-full flex items-center justify-center mx-auto relative z-10">
+<span class="material-symbols-outlined text-tertiary text-6xl" style="font-variation-settings: 'FILL' 1;">celebration</span>
+</div>
+<!-- Confetti effect simulated with spans -->
+<div class="absolute -top-4 -left-4 w-4 h-4 bg-primary-fixed rounded-full animate-bounce"></div>
+<div class="absolute top-8 -right-8 w-3 h-3 bg-tertiary-fixed rounded-full animate-pulse"></div>
+<div class="absolute -bottom-2 right-4 w-5 h-5 bg-outline-variant rounded-full animate-ping"></div>
+</div>
+<h2 class="font-display-lg text-on-surface mb-md">¡Proceso completado con éxito!</h2>
+<p class="text-display-sm text-on-surface-variant mb-xl max-w-xl mx-auto">Se han generado <span class="font-bold text-primary">38 certificados</span> correctamente. Ya puedes descargar el paquete comprimido.</p>
+<div class="grid grid-cols-1 md:grid-cols-2 gap-lg mb-xl text-left">
+<div class="bg-white p-lg rounded-xl arena-border flex items-center gap-md">
+<div class="w-12 h-12 bg-green-100 rounded-lg flex items-center justify-center">
+<span class="material-symbols-outlined text-green-700">task_alt</span>
+</div>
+<div>
+<p class="font-body-bold text-green-700">38 Éxitos</p>
+<p class="text-helper-text">Listos para descarga</p>
+</div>
+</div>
+<div class="bg-white p-lg rounded-xl arena-border flex items-center gap-md opacity-60">
+<div class="w-12 h-12 bg-red-50 rounded-lg flex items-center justify-center">
+<span class="material-symbols-outlined text-red-700">error</span>
+</div>
+<div>
+<p class="font-body-bold text-red-700">0 Errores</p>
+<p class="text-helper-text">Sin incidencias detectadas</p>
+</div>
+</div>
+</div>
+<div class="flex flex-col sm:flex-row gap-md justify-center">
+<button class="bg-primary text-white px-xl py-md rounded-lg font-body-bold flex items-center justify-center gap-md shadow-lg hover:scale-[1.02] transition-transform">
+<span class="material-symbols-outlined">folder_zip</span>
+                        Descargar Certificados (ZIP)
+                    </button>
+<button class="bg-secondary text-cream px-xl py-md rounded-lg font-body-bold flex items-center justify-center gap-md hover:bg-inverse-surface transition-colors" onclick="window.location.reload()">
+<span class="material-symbols-outlined">refresh</span>
+                        Nueva Carga
+                    </button>
+</div>
+</section>
+</div>
+</main>
+<script>
+        function nextStep() {
+            // Hide step 2
+            document.getElementById('step-2').classList.remove('active');
+            
+            // Show step 3
+            document.getElementById('step-3').classList.add('active');
+            
+            // Update Stepper markers
+            const marker2 = document.getElementById('step-marker-2');
+            marker2.innerHTML = '<span class="material-symbols-outlined">check</span>';
+            marker2.classList.remove('bg-primary');
+            marker2.classList.add('bg-primary-container');
+
+            const marker3 = document.getElementById('step-marker-3');
+            marker3.classList.remove('bg-surface-container-high', 'text-on-surface-variant');
+            marker3.classList.add('bg-primary', 'text-white');
+            marker3.parentElement.querySelector('span').classList.remove('text-on-surface-variant');
+            marker3.parentElement.querySelector('span').classList.add('text-primary');
+
+            // Trigger confetti effect if library was present, here simulated via console
+            console.log("Certificates generated successfully!");
+        }
+
+        // Dropzone interaction simulation
+        const dropZone = document.querySelector('section#step-2 > div:first-child > div:first-child');
+        if(dropZone) {
+            dropZone.addEventListener('dragover', (e) => {
+                e.preventDefault();
+                dropZone.classList.add('bg-primary/5', 'border-primary');
+            });
+            dropZone.addEventListener('dragleave', () => {
+                dropZone.classList.remove('bg-primary/5', 'border-primary');
+            });
+        }
+    </script>
+</body></html>

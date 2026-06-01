@@ -1,0 +1,447 @@
+<!DOCTYPE html>
+
+<html lang="es"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Directorio de Participantes | TEC Emprende Lab</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<style>
+        body { font-family: 'Poppins', sans-serif; }
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+            vertical-align: middle;
+        }
+        .custom-scrollbar::-webkit-scrollbar { width: 6px; }
+        .custom-scrollbar::-webkit-scrollbar-track { background: transparent; }
+        .custom-scrollbar::-webkit-scrollbar-thumb { background: #CEBF98; border-radius: 10px; }
+        
+        @keyframes progress-shimmer {
+            0% { background-position: -200% 0; }
+            100% { background-position: 200% 0; }
+        }
+        .animate-progress {
+            background: linear-gradient(90deg, rgba(255,255,255,0) 0%, rgba(255,255,255,0.3) 50%, rgba(255,255,255,0) 100%);
+            background-size: 200% 100%;
+            animation: progress-shimmer 2s infinite linear;
+        }
+    </style>
+<script id="tailwind-config">
+        tailwind.config = {
+          darkMode: "class",
+          theme: {
+            extend: {
+              "colors": {
+                      "surface-tint": "#ad3300",
+                      "inverse-primary": "#ffb59e",
+                      "on-tertiary-fixed": "#1a1d00",
+                      "surface-variant": "#e7e2d9",
+                      "surface": "#fef9f0",
+                      "on-tertiary-container": "#feffdb",
+                      "secondary-container": "#e7ded7",
+                      "on-primary-container": "#fffbff",
+                      "on-primary-fixed": "#390b00",
+                      "on-primary-fixed-variant": "#842500",
+                      "surface-dim": "#ded9d1",
+                      "inverse-on-surface": "#f5f0e7",
+                      "on-secondary-fixed-variant": "#4b4641",
+                      "secondary-fixed": "#eae1da",
+                      "on-tertiary": "#ffffff",
+                      "secondary": "#645d58",
+                      "tertiary-container": "#727934",
+                      "surface-bright": "#fef9f0",
+                      "secondary-fixed-dim": "#cec5be",
+                      "on-surface-variant": "#5a4139",
+                      "on-background": "#1d1c16",
+                      "on-secondary-container": "#68615c",
+                      "surface-container-lowest": "#ffffff",
+                      "inverse-surface": "#32302b",
+                      "on-error-container": "#93000a",
+                      "on-tertiary-fixed-variant": "#444b07",
+                      "primary-fixed-dim": "#ffb59e",
+                      "tertiary-fixed-dim": "#c5cc7d",
+                      "primary-container": "#d24206",
+                      "error-container": "#ffdad6",
+                      "on-surface": "#1d1c16",
+                      "primary-fixed": "#ffdbd0",
+                      "surface-container-low": "#f8f3ea",
+                      "on-primary": "#ffffff",
+                      "outline": "#8e7067",
+                      "on-secondary": "#ffffff",
+                      "outline-variant": "#e3bfb4",
+                      "tertiary": "#5a601d",
+                      "on-error": "#ffffff",
+                      "on-secondary-fixed": "#1f1b17",
+                      "surface-container-highest": "#e7e2d9",
+                      "error": "#ba1a1a",
+                      "background": "#fef9f0",
+                      "tertiary-fixed": "#e1e996",
+                      "primary": "#a93200",
+                      "surface-container": "#f2ede4",
+                      "surface-container-high": "#ece8df"
+              },
+              "borderRadius": {
+                      "DEFAULT": "0.25rem",
+                      "lg": "0.5rem",
+                      "xl": "0.75rem",
+                      "full": "9999px"
+              },
+              "spacing": {
+                      "md": "12px",
+                      "gutter": "24px",
+                      "unit": "4px",
+                      "margin-desktop": "32px",
+                      "xs": "4px",
+                      "sm": "8px",
+                      "xl": "20px",
+                      "sidebar-width": "220px",
+                      "margin-mobile": "12px",
+                      "lg": "16px"
+              },
+              "fontFamily": {
+                      "body-base": ["Poppins"],
+                      "display-sm": ["Poppins"],
+                      "display-md": ["Poppins"],
+                      "display-lg": ["Poppins"],
+                      "body-bold": ["Poppins"]
+              }
+            },
+          },
+        }
+      </script>
+</head>
+<body class="bg-background text-on-surface flex min-h-screen">
+<!-- Sidebar Section -->
+<aside class="fixed left-0 top-0 h-screen w-[220px] bg-inverse-surface flex flex-col py-margin-desktop shadow-sm z-50">
+<div class="px-lg mb-xl">
+<h1 class="text-display-md font-display-md font-bold text-primary">TEC Emprende Lab</h1>
+<p class="text-secondary-fixed-dim text-xs opacity-70">Panel de Control</p>
+</div>
+<nav class="flex-grow flex flex-col gap-1 px-sm">
+<!-- Navigation Items -->
+<a class="flex items-center gap-md px-lg py-md text-secondary-fixed-dim hover:bg-secondary-fixed/10 hover:text-secondary-fixed transition-colors active:scale-95 duration-150 rounded-lg" href="#">
+<span class="material-symbols-outlined" data-icon="dashboard">dashboard</span>
+<span class="font-body-base text-body-base">Dashboard</span>
+</a>
+<a class="flex items-center gap-md px-lg py-md text-on-primary-fixed bg-primary-container rounded-lg active:scale-95 duration-150" href="#">
+<span class="material-symbols-outlined" data-icon="groups">groups</span>
+<span class="font-body-base text-body-base">Participantes</span>
+</a>
+<a class="flex items-center gap-md px-lg py-md text-secondary-fixed-dim hover:bg-secondary-fixed/10 hover:text-secondary-fixed transition-colors active:scale-95 duration-150 rounded-lg" href="#">
+<span class="material-symbols-outlined" data-icon="analytics">analytics</span>
+<span class="font-body-base text-body-base">Métricas</span>
+</a>
+<a class="flex items-center gap-md px-lg py-md text-secondary-fixed-dim hover:bg-secondary-fixed/10 hover:text-secondary-fixed transition-colors active:scale-95 duration-150 rounded-lg" href="#">
+<span class="material-symbols-outlined" data-icon="workspace_premium">workspace_premium</span>
+<span class="font-body-base text-body-base">Certificados</span>
+</a>
+<a class="flex items-center gap-md px-lg py-md text-secondary-fixed-dim hover:bg-secondary-fixed/10 hover:text-secondary-fixed transition-colors active:scale-95 duration-150 rounded-lg" href="#">
+<span class="material-symbols-outlined" data-icon="upload_file">upload_file</span>
+<span class="font-body-base text-body-base">Importación CSV</span>
+</a>
+<a class="flex items-center gap-md px-lg py-md text-secondary-fixed-dim hover:bg-secondary-fixed/10 hover:text-secondary-fixed transition-colors active:scale-95 duration-150 rounded-lg" href="#">
+<span class="material-symbols-outlined" data-icon="settings">settings</span>
+<span class="font-body-base text-body-base">Configuración</span>
+</a>
+</nav>
+<div class="px-sm mt-auto">
+<button class="w-full flex items-center gap-md px-lg py-md text-secondary-fixed-dim hover:bg-error/10 hover:text-error transition-colors rounded-lg">
+<span class="material-symbols-outlined" data-icon="logout">logout</span>
+<span class="font-body-base text-body-base">Cerrar Sesión</span>
+</button>
+</div>
+</aside>
+<!-- Main Content Area -->
+<main class="ml-[220px] w-[calc(100%-220px)] flex flex-col min-h-screen">
+<!-- Header / Top Bar -->
+<header class="sticky top-0 bg-surface border-b border-outline-variant flex justify-between items-center h-16 px-margin-desktop z-40">
+<div class="flex items-center bg-surface-container border border-outline-variant rounded-lg px-md py-xs w-96">
+<span class="material-symbols-outlined text-on-surface-variant mr-sm" data-icon="search">search</span>
+<input class="bg-transparent border-none focus:ring-0 text-body-base w-full" placeholder="Buscar participante..." type="text"/>
+</div>
+<div class="flex items-center gap-lg">
+<button class="flex items-center justify-center p-sm rounded-full hover:bg-surface-container transition-colors relative">
+<span class="material-symbols-outlined text-on-surface-variant" data-icon="notifications">notifications</span>
+<span class="absolute top-2 right-2 w-2 h-2 bg-primary rounded-full"></span>
+</button>
+<div class="h-8 w-[1px] bg-outline-variant"></div>
+<div class="flex items-center gap-sm cursor-pointer hover:bg-surface-container px-sm py-xs rounded-lg transition-colors">
+<span class="material-symbols-outlined text-display-sm text-primary" data-icon="account_circle">account_circle</span>
+<span class="font-body-bold text-body-bold">Admin TEC</span>
+</div>
+</div>
+</header>
+<!-- Content Canvas -->
+<section class="p-margin-desktop space-y-gutter">
+<!-- Page Heading & CTAs -->
+<div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-md">
+<div>
+<h2 class="text-display-lg font-display-lg text-on-surface">Directorio de Participantes</h2>
+<p class="text-on-surface-variant font-body-base">Gestión y seguimiento de emprendedores en formación.</p>
+</div>
+<div class="flex items-center gap-md">
+<button class="flex items-center gap-sm px-lg py-md bg-inverse-surface text-surface border border-transparent rounded-lg font-body-bold hover:opacity-90 transition-all active:scale-95">
+<span class="material-symbols-outlined" data-icon="verified_user">verified_user</span>
+                        Verificar cédulas
+                    </button>
+<button class="flex items-center gap-sm px-lg py-md bg-primary text-on-primary rounded-lg font-body-bold shadow-sm hover:shadow-md transition-all active:scale-95">
+<span class="material-symbols-outlined" data-icon="person_add">person_add</span>
+                        Nuevo participante
+                    </button>
+</div>
+</div>
+<!-- Filters Quick Bar -->
+<div class="flex flex-wrap items-center gap-md">
+<span class="text-label-caps text-on-surface-variant uppercase tracking-widest">Filtros rápidos:</span>
+<button class="px-lg py-xs bg-primary-container text-on-primary-fixed rounded-full font-body-bold text-xs border border-primary/20">Todos</button>
+<button class="px-lg py-xs bg-surface-container border border-outline-variant text-on-surface-variant rounded-full font-body-base text-xs hover:bg-secondary-container transition-colors">Activos</button>
+<button class="px-lg py-xs bg-surface-container border border-outline-variant text-on-surface-variant rounded-full font-body-base text-xs hover:bg-secondary-container transition-colors">Pendientes</button>
+<button class="px-lg py-xs bg-surface-container border border-outline-variant text-on-surface-variant rounded-full font-body-base text-xs hover:bg-secondary-container transition-colors">Graduados</button>
+<div class="h-6 w-[1px] bg-outline-variant mx-sm"></div>
+<button class="flex items-center gap-xs px-lg py-xs bg-tertiary-fixed text-on-tertiary-fixed rounded-full font-body-base text-xs">
+<span class="material-symbols-outlined text-[14px]" data-icon="filter_list">filter_list</span>
+                    Más filtros
+                </button>
+</div>
+<!-- Main Table Card -->
+<div class="bg-surface-container-lowest rounded-xl border border-outline-variant shadow-[0px_2px_4px_rgba(26,22,18,0.04)] overflow-hidden">
+<div class="overflow-x-auto">
+<table class="w-full text-left border-collapse">
+<thead>
+<tr class="bg-surface-container-high border-b border-outline-variant">
+<th class="px-lg py-md text-label-caps text-on-surface-variant uppercase tracking-wider">Participante</th>
+<th class="px-lg py-md text-label-caps text-on-surface-variant uppercase tracking-wider">Cursos Inscritos</th>
+<th class="px-lg py-md text-label-caps text-on-surface-variant uppercase tracking-wider">Acceso Restante</th>
+<th class="px-lg py-md text-label-caps text-on-surface-variant uppercase tracking-wider">Etiquetas</th>
+<th class="px-lg py-md text-label-caps text-on-surface-variant uppercase tracking-wider">Estado</th>
+<th class="px-lg py-md text-label-caps text-on-surface-variant uppercase tracking-wider text-right">Acciones</th>
+</tr>
+</thead>
+<tbody class="divide-y divide-outline-variant/30">
+<!-- Row 1 -->
+<tr class="hover:bg-surface-container-low transition-colors group">
+<td class="px-lg py-md">
+<div class="flex items-center gap-md">
+<div class="w-10 h-10 rounded-full bg-secondary-fixed flex items-center justify-center overflow-hidden border border-outline">
+<img alt="Elena" class="w-full h-full object-cover" data-alt="A professional studio portrait of a Latina entrepreneur with a friendly smile, wearing business casual attire. The lighting is soft and warm, complementing a cream-colored minimalist background. The style is modern, high-quality digital photography with a focused, shallow depth of field." src="https://lh3.googleusercontent.com/aida-public/AB6AXuAtCNpzyptoNMGxohghU8zVKmjUO7_CjFgMO_TKf55iiaEmYXkKqQ8BOt5XP_MKhBuxZkmOZeveZOZyYoUTLkNLRBLf1JmKX3y2FghXRuG7vOYik9Foz0sOxVIQAls-TZ0nwu5gjPGlRyQKJ2W_LuWBA76rC8uCT7olucSIiR7RyLniBkCYin0pi0epJJgLiS2wLRqwAfnQNnFweg58jaFkiNDBy5JcmLILlz0UNCVWASq-ujyfJDwPxvNfdxGpW7pxc_i79MrJYCy4"/>
+</div>
+<div>
+<p class="font-body-bold text-on-surface leading-tight">Elena Rodríguez</p>
+<p class="text-helper-text text-on-surface-variant">elena.rodriguez@tec.ac.cr</p>
+</div>
+</div>
+</td>
+<td class="px-lg py-md">
+<div class="flex flex-col gap-1">
+<span class="px-sm py-0.5 bg-orange-100 text-primary text-[10px] font-bold rounded-md w-fit">TALLER: Design Thinking</span>
+<span class="px-sm py-0.5 bg-blue-100 text-blue-700 text-[10px] font-bold rounded-md w-fit">CURSO: Finanzas Ágiles</span>
+</div>
+</td>
+<td class="px-lg py-md">
+<div class="w-full max-w-[120px]">
+<div class="flex justify-between items-center mb-1">
+<span class="text-[10px] font-bold text-tertiary">12 días</span>
+</div>
+<div class="h-[6px] w-full bg-secondary-container rounded-full overflow-hidden relative">
+<div class="h-full bg-tertiary w-[80%] rounded-full relative overflow-hidden">
+<div class="absolute inset-0 animate-progress"></div>
+</div>
+</div>
+</div>
+</td>
+<td class="px-lg py-md">
+<div class="flex flex-wrap gap-1">
+<span class="px-2 py-0.5 bg-surface-container-highest text-on-surface-variant rounded-full text-[10px] border border-outline-variant">Pyme</span>
+<span class="px-2 py-0.5 bg-surface-container-highest text-on-surface-variant rounded-full text-[10px] border border-outline-variant">Innovación</span>
+</div>
+</td>
+<td class="px-lg py-md">
+<div class="flex items-center gap-xs">
+<span class="w-2 h-2 rounded-full bg-tertiary"></span>
+<span class="text-body-base font-medium text-tertiary">Activo</span>
+</div>
+</td>
+<td class="px-lg py-md text-right">
+<button class="p-sm text-on-surface-variant hover:text-primary transition-colors">
+<span class="material-symbols-outlined" data-icon="more_vert">more_vert</span>
+</button>
+</td>
+</tr>
+<!-- Row 2 -->
+<tr class="bg-surface-container-low/30 hover:bg-surface-container-low transition-colors group">
+<td class="px-lg py-md">
+<div class="flex items-center gap-md">
+<div class="w-10 h-10 rounded-full bg-secondary-fixed flex items-center justify-center overflow-hidden border border-outline">
+<img alt="Marco" class="w-full h-full object-cover" data-alt="A clean, professional headshot of a young male professional in a smart white shirt. The background is a soft, out-of-focus modern office space with warm lighting and sandy tones. The image conveys confidence and professionalism, with high-end digital clarity and balanced contrast." src="https://lh3.googleusercontent.com/aida-public/AB6AXuBNJ8LU1Qg1Ke5V-UByiPMOhuaco90vZv34L-CMG5vg2Lhib17TgeNMvrhYfLgT8nC93fMVSKmmEomfRLPvbPBX-Ul0gZa5fiys99qXDgdV9IDhV3KM4lAj-S13-kfRPgY6yT9E477NR1E_mfHw3y7kmKm-VQoRtFDimu1yN6cx1hoSiqMaekNEYqtDZjtKVwFDS5ahj0hbGzfInso4NEz-ObqmaKQo7EG32LFIJTNgAV0G49_jsUQZg087DMbV3H-dpch1rbvdJDWt"/>
+</div>
+<div>
+<p class="font-body-bold text-on-surface leading-tight">Marco Tulio Solano</p>
+<p class="text-helper-text text-on-surface-variant">m.solano@startup.cr</p>
+</div>
+</div>
+</td>
+<td class="px-lg py-md">
+<div class="flex flex-col gap-1">
+<span class="px-sm py-0.5 bg-purple-100 text-purple-700 text-[10px] font-bold rounded-md w-fit">SEMINARIO: IA Aplicada</span>
+</div>
+</td>
+<td class="px-lg py-md">
+<div class="w-full max-w-[120px]">
+<div class="flex justify-between items-center mb-1">
+<span class="text-[10px] font-bold text-primary">3 días</span>
+</div>
+<div class="h-[6px] w-full bg-secondary-container rounded-full overflow-hidden relative">
+<div class="h-full bg-primary w-[30%] rounded-full relative overflow-hidden">
+<div class="absolute inset-0 animate-progress"></div>
+</div>
+</div>
+</div>
+</td>
+<td class="px-lg py-md">
+<div class="flex flex-wrap gap-1">
+<span class="px-2 py-0.5 bg-surface-container-highest text-on-surface-variant rounded-full text-[10px] border border-outline-variant">AgroTech</span>
+</div>
+</td>
+<td class="px-lg py-md">
+<div class="flex items-center gap-xs">
+<span class="w-2 h-2 rounded-full bg-primary"></span>
+<span class="text-body-base font-medium text-primary">Por vencer</span>
+</div>
+</td>
+<td class="px-lg py-md text-right">
+<button class="p-sm text-on-surface-variant hover:text-primary transition-colors">
+<span class="material-symbols-outlined" data-icon="more_vert">more_vert</span>
+</button>
+</td>
+</tr>
+<!-- Row 3 -->
+<tr class="hover:bg-surface-container-low transition-colors group">
+<td class="px-lg py-md">
+<div class="flex items-center gap-md">
+<div class="w-10 h-10 rounded-full bg-secondary-fixed flex items-center justify-center overflow-hidden border border-outline">
+<img alt="Jimena" class="w-full h-full object-cover" data-alt="A focused close-up of a female professional with glasses, working in a contemporary, sun-drenched coworking space. The image is bright and airy, with soft textures and a warm color palette of cream, terracotta, and soft woods. Professional lighting accentuates a look of concentration and innovation." src="https://lh3.googleusercontent.com/aida-public/AB6AXuDVozM3VmMbCyj0auupmEHIf2p-h0_HZALFZpmfszcKQCLUVAOEcIoD9kEPsCcLl-Q4UH74orOT4mKXs7jEZEWuat9jWbv5sWNV0ZsSVnOdbvKOy4Ho8TsTjBQVPCpEBFQdUJVec8mpVuXlaVwM83PmjCV4STD4IIDr0r7QoyZQQjJH0v-mV5vWAKyBZmpacPmt-aLGWoFTjGs07DGf339K4Bcu8x5HkpKX0QsrjZl1L1bNO8tS2S6eqwGynrxF1oIS4NlZGAAF7nsY"/>
+</div>
+<div>
+<p class="font-body-bold text-on-surface leading-tight">Jimena Castro</p>
+<p class="text-helper-text text-on-surface-variant">jimena_c@outlook.com</p>
+</div>
+</div>
+</td>
+<td class="px-lg py-md">
+<div class="flex flex-col gap-1">
+<span class="px-sm py-0.5 bg-blue-100 text-blue-700 text-[10px] font-bold rounded-md w-fit">CURSO: E-commerce</span>
+<span class="px-sm py-0.5 bg-orange-100 text-primary text-[10px] font-bold rounded-md w-fit">TALLER: Pitch Deck</span>
+</div>
+</td>
+<td class="px-lg py-md">
+<div class="w-full max-w-[120px]">
+<div class="flex justify-between items-center mb-1">
+<span class="text-[10px] font-bold text-on-surface-variant/50">Vencido</span>
+</div>
+<div class="h-[6px] w-full bg-secondary-container rounded-full overflow-hidden">
+<div class="h-full bg-error w-[100%] rounded-full opacity-60"></div>
+</div>
+</div>
+</td>
+<td class="px-lg py-md">
+<div class="flex flex-wrap gap-1">
+<span class="px-2 py-0.5 bg-surface-container-highest text-on-surface-variant rounded-full text-[10px] border border-outline-variant">Social</span>
+<span class="px-2 py-0.5 bg-surface-container-highest text-on-surface-variant rounded-full text-[10px] border border-outline-variant">MujerEmprende</span>
+</div>
+</td>
+<td class="px-lg py-md">
+<div class="flex items-center gap-xs text-on-surface-variant/60">
+<span class="w-2 h-2 rounded-full bg-outline"></span>
+<span class="text-body-base font-medium">Inactivo</span>
+</div>
+</td>
+<td class="px-lg py-md text-right">
+<button class="p-sm text-on-surface-variant hover:text-primary transition-colors">
+<span class="material-symbols-outlined" data-icon="more_vert">more_vert</span>
+</button>
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+<!-- Pagination Footer -->
+<div class="px-lg py-md border-t border-outline-variant flex justify-between items-center bg-surface-container-low">
+<p class="text-helper-text text-on-surface-variant">Mostrando 1-10 de 128 participantes</p>
+<div class="flex items-center gap-sm">
+<button class="p-xs rounded border border-outline-variant hover:bg-surface-container transition-all disabled:opacity-30" disabled="">
+<span class="material-symbols-outlined" data-icon="chevron_left">chevron_left</span>
+</button>
+<span class="text-body-bold px-md">1 / 13</span>
+<button class="p-xs rounded border border-outline-variant hover:bg-surface-container transition-all">
+<span class="material-symbols-outlined" data-icon="chevron_right">chevron_right</span>
+</button>
+</div>
+</div>
+</div>
+<!-- Dashboard Stats Grid (Quick Overview) -->
+<div class="grid grid-cols-1 md:grid-cols-4 gap-gutter">
+<div class="bg-surface-container-lowest p-lg rounded-xl border border-outline-variant shadow-sm flex items-center gap-md">
+<div class="w-12 h-12 bg-primary/10 text-primary rounded-full flex items-center justify-center">
+<span class="material-symbols-outlined text-[28px]" data-icon="group">group</span>
+</div>
+<div>
+<p class="text-label-caps text-on-surface-variant">Total</p>
+<p class="text-display-md font-bold text-on-surface">1,284</p>
+</div>
+</div>
+<div class="bg-surface-container-lowest p-lg rounded-xl border border-outline-variant shadow-sm flex items-center gap-md">
+<div class="w-12 h-12 bg-tertiary/10 text-tertiary rounded-full flex items-center justify-center">
+<span class="material-symbols-outlined text-[28px]" data-icon="check_circle">check_circle</span>
+</div>
+<div>
+<p class="text-label-caps text-on-surface-variant">Activos</p>
+<p class="text-display-md font-bold text-on-surface">856</p>
+</div>
+</div>
+<div class="bg-surface-container-lowest p-lg rounded-xl border border-outline-variant shadow-sm flex items-center gap-md">
+<div class="w-12 h-12 bg-primary/10 text-primary rounded-full flex items-center justify-center">
+<span class="material-symbols-outlined text-[28px]" data-icon="pending">pending</span>
+</div>
+<div>
+<p class="text-label-caps text-on-surface-variant">Cédulas Pend.</p>
+<p class="text-display-md font-bold text-on-surface">42</p>
+</div>
+</div>
+<div class="bg-surface-container-lowest p-lg rounded-xl border border-outline-variant shadow-sm flex items-center gap-md">
+<div class="w-12 h-12 bg-blue-100 text-blue-700 rounded-full flex items-center justify-center">
+<span class="material-symbols-outlined text-[28px]" data-icon="history_edu">history_edu</span>
+</div>
+<div>
+<p class="text-label-caps text-on-surface-variant">Egresados</p>
+<p class="text-display-md font-bold text-on-surface">329</p>
+</div>
+</div>
+</div>
+</section>
+</main>
+<script>
+        // Simple logic to handle table interaction or search simulation
+        document.querySelector('input[type="text"]').addEventListener('keyup', function(e) {
+            const rows = document.querySelectorAll('tbody tr');
+            const search = e.target.value.toLowerCase();
+            
+            rows.forEach(row => {
+                const text = row.innerText.toLowerCase();
+                row.style.display = text.includes(search) ? '' : 'none';
+            });
+        });
+
+        // Hover effect for table rows
+        const tableRows = document.querySelectorAll('tbody tr');
+        tableRows.forEach(row => {
+            row.addEventListener('mouseenter', () => {
+                row.classList.add('shadow-md');
+            });
+            row.addEventListener('mouseleave', () => {
+                row.classList.remove('shadow-md');
+            });
+        });
+    </script>
+</body></html>

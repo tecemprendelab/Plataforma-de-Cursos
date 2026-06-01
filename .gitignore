@@ -34,3 +34,4 @@ tasks/
 .agents/
 .playwright-mcp/
 .vercel
+*.zip

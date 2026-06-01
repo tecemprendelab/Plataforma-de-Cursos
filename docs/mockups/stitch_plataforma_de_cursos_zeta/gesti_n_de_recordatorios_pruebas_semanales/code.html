@@ -1,0 +1,373 @@
+<!DOCTYPE html>
+
+<html class="light" lang="es"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Recordatorios - TEC Emprende Lab</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800;900&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+          darkMode: "class",
+          theme: {
+            extend: {
+              "colors": {
+                      "inverse-surface": "#32302b",
+                      "inverse-primary": "#ffb59e",
+                      "secondary-fixed": "#eae1da",
+                      "on-surface": "#1d1c16",
+                      "secondary-fixed-dim": "#cec5be",
+                      "on-secondary-fixed-variant": "#4b4641",
+                      "surface-container-low": "#f8f3ea",
+                      "secondary-container": "#e7ded7",
+                      "surface-tint": "#ad3300",
+                      "error": "#ba1a1a",
+                      "primary-container": "#d24206",
+                      "on-primary": "#ffffff",
+                      "on-tertiary-fixed": "#1a1d00",
+                      "tertiary-fixed": "#e1e996",
+                      "tertiary-container": "#727934",
+                      "on-primary-fixed-variant": "#842500",
+                      "surface-container-high": "#ece8df",
+                      "secondary": "#645d58",
+                      "on-tertiary": "#ffffff",
+                      "on-primary-container": "#fffbff",
+                      "surface-variant": "#e7e2d9",
+                      "primary": "#a93200",
+                      "on-tertiary-fixed-variant": "#444b07",
+                      "error-container": "#ffdad6",
+                      "tertiary": "#5a601d",
+                      "surface": "#fef9f0",
+                      "surface-container-highest": "#e7e2d9",
+                      "surface-dim": "#ded9d1",
+                      "on-error-container": "#93000a",
+                      "surface-bright": "#fef9f0",
+                      "on-secondary": "#ffffff",
+                      "on-surface-variant": "#5a4139",
+                      "surface-container-lowest": "#ffffff",
+                      "on-tertiary-container": "#feffdb",
+                      "inverse-on-surface": "#f5f0e7",
+                      "surface-container": "#f2ede4",
+                      "background": "#fef9f0",
+                      "on-background": "#1d1c16",
+                      "on-secondary-container": "#68615c",
+                      "on-error": "#ffffff",
+                      "outline": "#8e7067",
+                      "on-secondary-fixed": "#1f1b17",
+                      "on-primary-fixed": "#390b00",
+                      "tertiary-fixed-dim": "#c5cc7d",
+                      "primary-fixed-dim": "#ffb59e",
+                      "outline-variant": "#e3bfb4",
+                      "primary-fixed": "#ffdbd0",
+                      "arena": "#CEBF98",
+                      "siena": "#A84020"
+              },
+              "borderRadius": {
+                      "DEFAULT": "0.25rem",
+                      "lg": "0.5rem",
+                      "xl": "0.75rem",
+                      "full": "9999px"
+              },
+              "spacing": {
+                      "xs": "4px",
+                      "margin-desktop": "32px",
+                      "md": "12px",
+                      "lg": "16px",
+                      "unit": "4px",
+                      "margin-mobile": "12px",
+                      "gutter": "24px",
+                      "xl": "20px",
+                      "sidebar-width": "220px",
+                      "sm": "8px"
+              },
+              "fontFamily": {
+                      "display-md-mobile": ["Poppins"],
+                      "display-sm": ["Poppins"],
+                      "display-lg": ["Poppins"],
+                      "body-base": ["Poppins"],
+                      "label-caps": ["Poppins"],
+                      "display-md": ["Poppins"],
+                      "body-bold": ["Poppins"],
+                      "helper-text": ["Poppins"],
+                      "display-lg-mobile": ["Poppins"]
+              },
+              "fontSize": {
+                      "display-md-mobile": ["17px", {"lineHeight": "24px", "letterSpacing": "-0.2px", "fontWeight": "600"}],
+                      "display-sm": ["16px", {"lineHeight": "24px", "fontWeight": "600"}],
+                      "display-lg": ["24px", {"lineHeight": "32px", "letterSpacing": "-0.3px", "fontWeight": "600"}],
+                      "body-base": ["14px", {"lineHeight": "22px", "fontWeight": "400"}],
+                      "label-caps": ["11px", {"lineHeight": "16px", "letterSpacing": "0.6px", "fontWeight": "600"}],
+                      "display-md": ["20px", {"lineHeight": "28px", "letterSpacing": "-0.2px", "fontWeight": "600"}],
+                      "body-bold": ["14px", {"lineHeight": "22px", "fontWeight": "600"}],
+                      "helper-text": ["12px", {"lineHeight": "16px", "fontWeight": "400"}],
+                      "display-lg-mobile": ["20px", {"lineHeight": "28px", "letterSpacing": "-0.3px", "fontWeight": "600"}]
+              }
+            },
+          },
+        }
+    </script>
+<style>
+        body {
+            background-color: #FAF5EC;
+            font-family: 'Poppins', sans-serif;
+            color: #1d1c16;
+        }
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+            vertical-align: middle;
+        }
+        .sidebar-active {
+            background-color: #d24206 !important;
+            color: #fffbff !important;
+        }
+        .card-arena {
+            border: 1px solid #CEBF98;
+            box-shadow: 0 2px 4px rgba(26, 22, 18, 0.04);
+        }
+        .btn-primary {
+            background-color: #E8521A;
+            transition: all 0.2s ease;
+        }
+        .btn-primary:hover {
+            background-color: #d24206;
+            transform: translateY(-1px);
+        }
+        .badge-taller { background-color: #ffdbd0; color: #a93200; }
+        .badge-curso { background-color: #e7ded7; color: #645d58; }
+        .badge-seminario { background-color: #e1e996; color: #5a601d; }
+    </style>
+</head>
+<body class="flex min-h-screen">
+<!-- SideNavBar -->
+<aside class="fixed left-0 top-0 h-screen w-[220px] bg-inverse-surface dark:bg-on-surface flex flex-col h-full py-lg border-r border-on-surface-variant shadow-md z-50">
+<div class="px-lg mb-xl">
+<h1 class="font-display-md text-display-md font-bold text-surface-container-lowest">TEC Emprende Lab</h1>
+<p class="text-on-secondary-fixed-variant text-helper-text font-helper-text">Gestión Académica</p>
+</div>
+<nav class="flex-1 space-y-1">
+<a class="flex items-center px-4 py-3 mx-2 text-on-secondary-fixed-dim font-body-base hover:text-on-primary-fixed hover:bg-secondary-fixed-dim/10 rounded-lg transition-colors duration-200" href="#">
+<span class="material-symbols-outlined mr-3">dashboard</span>
+                Dashboard
+            </a>
+<a class="flex items-center px-4 py-3 mx-2 text-on-secondary-fixed-dim font-body-base hover:text-on-primary-fixed hover:bg-secondary-fixed-dim/10 rounded-lg transition-colors duration-200" href="#">
+<span class="material-symbols-outlined mr-3">groups</span>
+                Participantes
+            </a>
+<a class="flex items-center px-4 py-3 mx-2 text-on-secondary-fixed-dim font-body-base hover:text-on-primary-fixed hover:bg-secondary-fixed-dim/10 rounded-lg transition-colors duration-200" href="#">
+<span class="material-symbols-outlined mr-3">school</span>
+                Cursos
+            </a>
+<a class="flex items-center px-4 py-3 mx-2 text-on-secondary-fixed-dim font-body-base hover:text-on-primary-fixed hover:bg-secondary-fixed-dim/10 rounded-lg transition-colors duration-200" href="#">
+<span class="material-symbols-outlined mr-3">key</span>
+                Control de Accesos
+            </a>
+<a class="sidebar-active flex items-center px-4 py-3 mx-2 font-body-bold rounded-lg shadow-sm" href="#">
+<span class="material-symbols-outlined mr-3">alarm</span>
+                Recordatorios
+            </a>
+<a class="flex items-center px-4 py-3 mx-2 text-on-secondary-fixed-dim font-body-base hover:text-on-primary-fixed hover:bg-secondary-fixed-dim/10 rounded-lg transition-colors duration-200" href="#">
+<span class="material-symbols-outlined mr-3">workspace_premium</span>
+                Certificados
+            </a>
+</nav>
+<div class="mt-auto px-lg mb-lg">
+<button class="w-full bg-primary-container text-on-primary-container py-3 px-4 rounded-lg font-body-bold flex items-center justify-center gap-2 hover:opacity-90 active:scale-95 transition-all">
+<span class="material-symbols-outlined">add</span>
+                Nuevo Registro
+            </button>
+</div>
+<div class="border-t border-on-surface-variant/30 pt-lg">
+<a class="flex items-center px-4 py-2 mx-2 text-on-secondary-fixed-dim font-body-base hover:text-on-primary-fixed hover:bg-secondary-fixed-dim/10 rounded-lg" href="#">
+<span class="material-symbols-outlined mr-3">settings</span>
+                Ajustes
+            </a>
+<a class="flex items-center px-4 py-2 mx-2 text-on-secondary-fixed-dim font-body-base hover:text-on-primary-fixed hover:bg-secondary-fixed-dim/10 rounded-lg" href="#">
+<span class="material-symbols-outlined mr-3">logout</span>
+                Cerrar Sesión
+            </a>
+</div>
+</aside>
+<!-- Main Content Area -->
+<main class="flex-1 ml-[220px] flex flex-col min-h-screen overflow-x-hidden">
+<!-- TopAppBar -->
+<header class="h-16 flex justify-between items-center px-margin-desktop bg-surface border-b border-outline-variant sticky top-0 z-40">
+<div class="flex items-center flex-1">
+<div class="relative w-96 max-w-full">
+<span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-on-surface-variant">search</span>
+<input class="w-full pl-10 pr-4 py-2 bg-surface-container-low border border-arena rounded-lg focus:ring-2 focus:ring-primary focus:border-primary outline-none transition-all font-body-base" placeholder="Buscar por nombre o curso..." type="text"/>
+</div>
+</div>
+<div class="flex items-center gap-4">
+<button class="p-2 text-on-surface-variant hover:text-primary transition-all rounded-full hover:bg-surface-container">
+<span class="material-symbols-outlined">notifications</span>
+</button>
+<button class="p-2 text-on-surface-variant hover:text-primary transition-all rounded-full hover:bg-surface-container">
+<span class="material-symbols-outlined">help_outline</span>
+</button>
+<div class="flex items-center gap-3 ml-2 border-l border-outline-variant pl-4">
+<div class="text-right hidden sm:block">
+<p class="font-body-bold text-on-surface leading-tight">Admin TEC</p>
+<p class="text-helper-text text-on-surface-variant leading-tight">Gestor Académico</p>
+</div>
+<img alt="Usuario Administrativo" class="w-10 h-10 rounded-full border border-arena" data-alt="A professional close-up portrait of a middle-aged academic administrator in a clean modern office setting. The lighting is soft and natural, emphasizing a bright and welcoming atmosphere with institutional colors of cream and white. The person has a friendly expression and is wearing a neat, semi-formal attire suitable for a professional university environment in Costa Rica." src="https://lh3.googleusercontent.com/aida-public/AB6AXuCQpTuh3CPIGwxFM5tGSAFLFXDfiU_5E7EhdgiT_bjHMYMNgUOx7OJD14OWHlP5R07gnnXj_k02eDmk0ZZrsqftok54wyogSwiGWGXlkN_4gBi40BI-bImoer2xsCMLDUq5lK-47-tNKhEdsmOdB67frEKIpuTJXoWVA9S5qAjSgeA74biIBbGliJqIVZD94Wb5coXxL1QMLnIupeo5S7CLh4fGkxfXmivks48a7y5hG94yXDgj4DqSFiOBRkYpgrQ9b7DD0irFm8fx"/>
+</div>
+</div>
+</header>
+<!-- Content Canvas -->
+<div class="p-margin-desktop flex-1">
+<!-- Page Header -->
+<div class="mb-lg">
+<h2 class="font-display-lg text-display-lg text-on-surface mb-xs">Recordatorios de Pruebas</h2>
+<p class="text-on-surface-variant font-body-base">Listado de participantes que deben realizar su prueba final durante esta semana.</p>
+</div>
+<!-- Bento-style Dashboard Content -->
+<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-gutter" id="reminders-grid">
+<!-- Card 1 -->
+<div class="bg-surface-container-lowest card-arena rounded-xl p-lg flex flex-col transition-all hover:shadow-lg">
+<div class="flex items-center gap-4 mb-md">
+<img alt="Participante" class="w-14 h-14 rounded-full border-2 border-arena" data-alt="A portrait of a young male entrepreneur with a focused and enthusiastic expression. The lighting is crisp and modern, reflecting a clean studio environment. The style is professional and optimistic, emphasizing a human-centric startup culture with warm earthy tones in the background to match the laboratory's brand identity." src="https://lh3.googleusercontent.com/aida-public/AB6AXuAgTxUPk5dCU1rhyoO6haSFgcWie0SRMA1FY4O1Y1HsAbyLGXWVzdJVuA1uvKu7WQDANYs7EJa5fiYa0wErwdbUba60YNXooSqZnZvksYOdmkV5Xv5ntcuhjigU3Jt_wCNZTLf-Miur_j3lrc-0CWEThr4awNVkMNUw314y7maramEZN9GIfkhFPd9KiN76ItDYLEUbwTO3gQnI4dzsdrLG6yg4ODD3drb1In1-U60OJqO1k6dUcVgkWurhC2K8yYoh1ZmLyhfEF9sO"/>
+<div class="overflow-hidden">
+<h3 class="font-body-bold text-on-surface truncate">Carlos Rodríguez</h3>
+<span class="inline-block px-3 py-1 rounded-full text-label-caps font-label-caps badge-curso uppercase">Curso: Gestión Ágil</span>
+</div>
+</div>
+<div class="mb-lg">
+<div class="flex items-center gap-2 text-siena font-body-bold">
+<span class="material-symbols-outlined text-[20px]">calendar_today</span>
+<span>Vence: 24 Oct, 2024</span>
+</div>
+<p class="text-helper-text text-on-surface-variant mt-1">Faltan 2 días para la fecha límite</p>
+</div>
+<button class="mt-auto w-full btn-primary text-white py-2.5 rounded-lg font-body-bold flex items-center justify-center gap-2">
+<span class="material-symbols-outlined text-[18px]">mail</span>
+                        Enviar Recordatorio
+                    </button>
+</div>
+<!-- Card 2 -->
+<div class="bg-surface-container-lowest card-arena rounded-xl p-lg flex flex-col transition-all hover:shadow-lg">
+<div class="flex items-center gap-4 mb-md">
+<img alt="Participante" class="w-14 h-14 rounded-full border-2 border-arena" data-alt="A portrait of a young female professional smiling warmly, conveying confidence and intelligence. The image has a bright, high-key aesthetic with soft shadows. The background is a blurred university campus setting with warm sunlight and natural elements, maintaining the Costa Rican laboratory's organic and approachable brand spirit." src="https://lh3.googleusercontent.com/aida-public/AB6AXuB69_e2NcafDqvMh1dZgJBnZaxCa0pMl_FiGMQA9qeME5SXgk7gqrk57RaulYj0zWwhQyhp3fS2Q0amNEtBcPQavT3dCBwkJXzIcnK0Fa6LBp9REbni8tkEwBIksNpjtSTUreYms9GSXThK4n1f2_huNUGGJmM1sYZiI8fExWaIL1Ms_t8dLwt25H3wh44pkXzDapWtJOVekiJDTP_oNIwbyY9Fswk5sz28FhcFUhepbbKVON1q_xrb6QQ9X-K4zutpB3lCgiWDaER7"/>
+<div class="overflow-hidden">
+<h3 class="font-body-bold text-on-surface truncate">Elena Mora Solís</h3>
+<span class="inline-block px-3 py-1 rounded-full text-label-caps font-label-caps badge-taller uppercase">Taller: Lean Startup</span>
+</div>
+</div>
+<div class="mb-lg">
+<div class="flex items-center gap-2 text-siena font-body-bold">
+<span class="material-symbols-outlined text-[20px]">warning</span>
+<span>Vence: Mañana</span>
+</div>
+<p class="text-helper-text text-on-surface-variant mt-1">Acceso expira pronto</p>
+</div>
+<button class="mt-auto w-full btn-primary text-white py-2.5 rounded-lg font-body-bold flex items-center justify-center gap-2">
+<span class="material-symbols-outlined text-[18px]">mail</span>
+                        Enviar Recordatorio
+                    </button>
+</div>
+<!-- Card 3 -->
+<div class="bg-surface-container-lowest card-arena rounded-xl p-lg flex flex-col transition-all hover:shadow-lg">
+<div class="flex items-center gap-4 mb-md">
+<img alt="Participante" class="w-14 h-14 rounded-full border-2 border-arena" data-alt="A professional portrait of a man in his late 20s, looking serious yet approachable. He is set against a warm-toned minimalist office background. The lighting is balanced and soft, creating a tactile and organic feel that aligns with the laboratory's professional warmth aesthetic and institutionally rooted design style." src="https://lh3.googleusercontent.com/aida-public/AB6AXuDoPAkjjFc72CSk3r-6-jOzLnWTLNWLEU7991oSYHCrNQ2Chpl0j8I-xq1u1FdFPKwVGsfc5J3iiDPwQUYEyGWeVVgi5UNHSXT_zWlnMygN8M1V9pCr8yGopYNV_Kx8O0OUfL0t3Ptj0C9AwsIMsG3TIryG82MPe0LummM5atWXFh7Ld57mk0UHvNPgOf6JVsrJ_KB_d9VdMX4fQUpcq4ZXTFfWQ_UMy4gB5A2bajQo_5UT_WtEWZKsQaQJrBSU9DN2zt1umverDKvg"/>
+<div class="overflow-hidden">
+<h3 class="font-body-bold text-on-surface truncate">Marco Brenes</h3>
+<span class="inline-block px-3 py-1 rounded-full text-label-caps font-label-caps badge-seminario uppercase">Seminario: IA Aplicada</span>
+</div>
+</div>
+<div class="mb-lg">
+<div class="flex items-center gap-2 text-on-surface-variant font-body-bold">
+<span class="material-symbols-outlined text-[20px]">calendar_today</span>
+<span>Vence: 27 Oct, 2024</span>
+</div>
+<p class="text-helper-text text-on-surface-variant mt-1">Faltan 5 días</p>
+</div>
+<button class="mt-auto w-full btn-primary text-white py-2.5 rounded-lg font-body-bold flex items-center justify-center gap-2">
+<span class="material-symbols-outlined text-[18px]">mail</span>
+                        Enviar Recordatorio
+                    </button>
+</div>
+<!-- Card 4 -->
+<div class="bg-surface-container-lowest card-arena rounded-xl p-lg flex flex-col transition-all hover:shadow-lg">
+<div class="flex items-center gap-4 mb-md">
+<img alt="Participante" class="w-14 h-14 rounded-full border-2 border-arena" data-alt="A headshot of a young woman with a sharp, professional look, wearing modern business-casual attire. The image uses a palette of soft creams and sandy whites in the background. The lighting is bright and clear, emphasizing institutional prestige and the human-centric entrepreneurial spirit of the Costa Rican TEC Emprende Lab." src="https://lh3.googleusercontent.com/aida-public/AB6AXuDtx57vhF0Z9zUqRLJYCWnoBWpPPT_9cu0WQwE4-T6AJxthWwHAb2CeFLVvWTI5NTDFx4RuB1FNS3pqZ-uqYiYBTRvmL4Cb4GxkfsILXnnuZKM7efLQCK93ZO-V_z8MgkdfLndcZLQL1m9sTih4puuFX4V9H29qzfeLWpFn9prk-AKCMoAQ-FXKLZDZ9EUi8JE7bnpWtiV1vtMFQpU3FJHKxT_VGUq8_P_rpNCAdbJBKypP8E4r7WVrz5nHiaUlZ_DI41BV2xNtfzNj"/>
+<div class="overflow-hidden">
+<h3 class="font-body-bold text-on-surface truncate">Lucía Méndez</h3>
+<span class="inline-block px-3 py-1 rounded-full text-label-caps font-label-caps badge-curso uppercase">Curso: Finanzas</span>
+</div>
+</div>
+<div class="mb-lg">
+<div class="flex items-center gap-2 text-siena font-body-bold">
+<span class="material-symbols-outlined text-[20px]">alarm_on</span>
+<span>Vence: 23 Oct, 2024</span>
+</div>
+<p class="text-helper-text text-on-surface-variant mt-1">Última oportunidad</p>
+</div>
+<button class="mt-auto w-full btn-primary text-white py-2.5 rounded-lg font-body-bold flex items-center justify-center gap-2">
+<span class="material-symbols-outlined text-[18px]">mail</span>
+                        Enviar Recordatorio
+                    </button>
+</div>
+</div>
+<!-- Empty State (Hidden by default) -->
+<div class="hidden flex-col items-center justify-center py-20 text-center" id="empty-state">
+<div class="w-24 h-24 bg-tertiary-fixed rounded-full flex items-center justify-center mb-6 shadow-sm">
+<span class="material-symbols-outlined text-tertiary text-[48px]" style="font-variation-settings: 'FILL' 1;">check_circle</span>
+</div>
+<h3 class="font-display-md text-display-md text-on-surface mb-2">¡Todo al día!</h3>
+<p class="text-on-surface-variant font-body-base max-w-sm">No hay recordatorios pendientes para esta semana. Todos los participantes están al corriente.</p>
+<button class="mt-8 text-primary font-body-bold flex items-center gap-2 hover:underline" onclick="toggleView()">
+                    Ver historial de enviados
+                    <span class="material-symbols-outlined">arrow_forward</span>
+</button>
+</div>
+</div>
+<!-- Footer -->
+<footer class="flex justify-between items-center py-md px-margin-desktop bg-surface-container-lowest border-t border-outline-variant">
+<p class="text-on-surface-variant font-helper-text text-helper-text">© 2024 TEC Emprende Lab. Todos los derechos reservados.</p>
+<div class="flex gap-lg">
+<a class="text-on-secondary-fixed-variant font-helper-text text-helper-text hover:text-primary transition-all" href="#">Soporte</a>
+<a class="text-on-secondary-fixed-variant font-helper-text text-helper-text hover:text-primary transition-all" href="#">Documentación</a>
+<a class="text-on-secondary-fixed-variant font-helper-text text-helper-text hover:text-primary transition-all" href="#">Privacidad</a>
+</div>
+</footer>
+</main>
+<script>
+        // Micro-interaction for buttons
+        document.querySelectorAll('.btn-primary').forEach(button => {
+            button.addEventListener('click', function() {
+                const originalContent = this.innerHTML;
+                this.disabled = true;
+                this.innerHTML = '<span class="material-symbols-outlined animate-spin">sync</span> Enviando...';
+                
+                setTimeout(() => {
+                    this.innerHTML = '<span class="material-symbols-outlined">check</span> Enviado con éxito';
+                    this.style.backgroundColor = '#5a601d'; // Success color tertiary
+                    
+                    setTimeout(() => {
+                        this.closest('.bg-surface-container-lowest').style.opacity = '0.5';
+                        this.closest('.bg-surface-container-lowest').style.transform = 'scale(0.95)';
+                        setTimeout(() => {
+                            this.closest('.bg-surface-container-lowest').remove();
+                            checkEmpty();
+                        }, 300);
+                    }, 1000);
+                }, 1500);
+            });
+        });
+
+        function checkEmpty() {
+            const grid = document.getElementById('reminders-grid');
+            if (grid.children.length === 0) {
+                grid.classList.add('hidden');
+                document.getElementById('empty-state').classList.remove('hidden');
+                document.getElementById('empty-state').classList.add('flex');
+            }
+        }
+
+        // Just for demo purposes, toggle empty state
+        function toggleView() {
+            location.reload();
+        }
+    </script>
+</body></html>

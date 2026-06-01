@@ -1,0 +1,433 @@
+<!DOCTYPE html>
+
+<html class="light" lang="es"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Exportar Datos - TEC Emprende Lab</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            "colors": {
+                    "inverse-surface": "#32302b",
+                    "surface": "#fef9f0",
+                    "primary-container": "#d24206",
+                    "on-background": "#1d1c16",
+                    "error": "#ba1a1a",
+                    "tertiary-fixed-dim": "#c5cc7d",
+                    "surface-dim": "#ded9d1",
+                    "on-tertiary-fixed": "#1a1d00",
+                    "on-primary-container": "#fffbff",
+                    "on-surface-variant": "#5a4139",
+                    "primary-fixed-dim": "#ffb59e",
+                    "outline-variant": "#e3bfb4",
+                    "surface-container-lowest": "#ffffff",
+                    "secondary-container": "#e7ded7",
+                    "primary-fixed": "#ffdbd0",
+                    "outline": "#8e7067",
+                    "surface-tint": "#ad3300",
+                    "surface-container-low": "#f8f3ea",
+                    "on-tertiary": "#ffffff",
+                    "on-tertiary-fixed-variant": "#444b07",
+                    "secondary": "#645d58",
+                    "on-primary": "#ffffff",
+                    "inverse-on-surface": "#f5f0e7",
+                    "on-secondary-container": "#68615c",
+                    "tertiary-fixed": "#e1e996",
+                    "on-secondary-fixed-variant": "#4b4641",
+                    "on-primary-fixed-variant": "#842500",
+                    "surface-container-highest": "#e7e2d9",
+                    "on-secondary": "#ffffff",
+                    "on-error": "#ffffff",
+                    "on-error-container": "#93000a",
+                    "surface-container-high": "#ece8df",
+                    "secondary-fixed-dim": "#cec5be",
+                    "on-secondary-fixed": "#1f1b17",
+                    "tertiary": "#5a601d",
+                    "primary": "#a93200",
+                    "on-surface": "#1d1c16",
+                    "surface-container": "#f2ede4",
+                    "tertiary-container": "#727934",
+                    "on-tertiary-container": "#feffdb",
+                    "on-primary-fixed": "#390b00",
+                    "secondary-fixed": "#eae1da",
+                    "surface-variant": "#e7e2d9",
+                    "inverse-primary": "#ffb59e",
+                    "surface-bright": "#fef9f0",
+                    "error-container": "#ffdad6",
+                    "background": "#fef9f0",
+                    "arena": "#CEBF98"
+            },
+            "borderRadius": {
+                    "DEFAULT": "0.25rem",
+                    "lg": "0.5rem",
+                    "xl": "0.75rem",
+                    "full": "9999px"
+            },
+            "spacing": {
+                    "margin-mobile": "12px",
+                    "xs": "4px",
+                    "sm": "8px",
+                    "md": "12px",
+                    "margin-desktop": "32px",
+                    "lg": "16px",
+                    "unit": "4px",
+                    "xl": "20px",
+                    "sidebar-width": "220px",
+                    "gutter": "24px"
+            },
+            "fontFamily": {
+                    "display-lg": ["Poppins"],
+                    "display-md": ["Poppins"],
+                    "display-sm": ["Poppins"],
+                    "body-bold": ["Poppins"],
+                    "body-base": ["Poppins"],
+                    "label-caps": ["Poppins"],
+                    "helper-text": ["Poppins"]
+            },
+            "fontSize": {
+                    "display-lg": ["24px", {"lineHeight": "32px", "letterSpacing": "-0.3px", "fontWeight": "600"}],
+                    "display-md": ["20px", {"lineHeight": "28px", "letterSpacing": "-0.2px", "fontWeight": "600"}],
+                    "display-sm": ["16px", {"lineHeight": "24px", "fontWeight": "600"}],
+                    "body-bold": ["14px", {"lineHeight": "22px", "fontWeight": "600"}],
+                    "body-base": ["14px", {"lineHeight": "22px", "fontWeight": "400"}],
+                    "label-caps": ["11px", {"lineHeight": "16px", "letterSpacing": "0.6px", "fontWeight": "600"}],
+                    "helper-text": ["12px", {"lineHeight": "16px", "fontWeight": "400"}]
+            }
+          },
+        },
+      }
+    </script>
+<style>
+        body {
+            font-family: 'Poppins', sans-serif;
+            background-color: #fef9f0; /* surface-bright fallback */
+        }
+        .sidebar-item-active {
+            background-color: #a93200; /* primary */
+            color: #ffffff;
+            border-radius: 0.5rem;
+            font-weight: 600;
+        }
+        .soft-card {
+            background: white;
+            border: 1px solid #CEBF98;
+            border-radius: 12px;
+            box-shadow: 0 2px 4px rgba(26, 22, 18, 0.04);
+        }
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        .custom-scrollbar::-webkit-scrollbar {
+            width: 6px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-track {
+            background: transparent;
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb {
+            background: #CEBF98;
+            border-radius: 10px;
+        }
+        .glass-header {
+            background: rgba(254, 249, 240, 0.9);
+            backdrop-filter: blur(8px);
+        }
+    </style>
+</head>
+<body class="flex min-h-screen text-on-surface">
+<!-- SIDEBAR -->
+<aside class="w-[220px] h-screen fixed left-0 top-0 bg-inverse-surface text-surface flex flex-col py-xl px-md border-r border-outline-variant/20 z-[60]">
+<div class="mb-xl px-sm">
+<div class="font-display-lg text-display-lg font-bold text-primary-fixed mb-xs">TEC Emprende Lab</div>
+<div class="font-label-caps text-label-caps text-surface/60">PANEL ADMINISTRATIVO</div>
+</div>
+<nav class="flex-1 space-y-unit overflow-y-auto custom-scrollbar">
+<a class="flex items-center gap-sm p-sm text-on-surface-variant hover:bg-surface-container-low transition-colors duration-200" href="#">
+<span class="material-symbols-outlined" data-icon="dashboard">dashboard</span>
+<span class="font-body-base text-body-base">Dashboard</span>
+</a>
+<a class="flex items-center gap-sm p-sm text-on-surface-variant hover:bg-surface-container-low transition-colors duration-200" href="#">
+<span class="material-symbols-outlined" data-icon="group">group</span>
+<span class="font-body-base text-body-base">Participantes</span>
+</a>
+<a class="flex items-center gap-sm p-sm text-on-surface-variant hover:bg-surface-container-low transition-colors duration-200" href="#">
+<span class="material-symbols-outlined" data-icon="school">school</span>
+<span class="font-body-base text-body-base">Cursos</span>
+</a>
+<a class="flex items-center gap-sm p-sm text-on-surface-variant hover:bg-surface-container-low transition-colors duration-200" href="#">
+<span class="material-symbols-outlined" data-icon="label">label</span>
+<span class="font-body-base text-body-base">Etiquetas</span>
+</a>
+<a class="flex items-center gap-sm p-sm text-on-surface-variant hover:bg-surface-container-low transition-colors duration-200" href="#">
+<span class="material-symbols-outlined" data-icon="file_upload">file_upload</span>
+<span class="font-body-base text-body-base">Importar CSV</span>
+</a>
+<a class="flex items-center gap-sm p-sm bg-primary text-on-primary rounded-lg font-semibold active:scale-[0.98] transition-all" href="#">
+<span class="material-symbols-outlined" data-icon="file_download">file_download</span>
+<span class="font-body-base text-body-base">Exportar Datos</span>
+</a>
+<a class="flex items-center gap-sm p-sm text-on-surface-variant hover:bg-surface-container-low transition-colors duration-200" href="#">
+<span class="material-symbols-outlined" data-icon="verified">verified</span>
+<span class="font-body-base text-body-base">Certificados</span>
+</a>
+</nav>
+<div class="mt-auto border-t border-white/10 pt-lg space-y-unit">
+<a class="flex items-center gap-sm p-sm text-on-surface-variant hover:bg-surface-container-low transition-colors duration-200" href="#">
+<span class="material-symbols-outlined" data-icon="settings">settings</span>
+<span class="font-body-base text-body-base">Configuración</span>
+</a>
+<a class="flex items-center gap-sm p-sm text-on-surface-variant hover:bg-surface-container-low transition-colors duration-200" href="#">
+<span class="material-symbols-outlined" data-icon="logout">logout</span>
+<span class="font-body-base text-body-base">Cerrar Sesión</span>
+</a>
+</div>
+</aside>
+<!-- MAIN CONTENT -->
+<main class="ml-[220px] flex-1 flex flex-col min-h-screen relative overflow-hidden">
+<!-- TOP NAVBAR -->
+<header class="fixed top-0 right-0 w-[calc(100%-220px)] h-16 z-50 glass-header border-b border-outline-variant/30 flex items-center justify-between px-margin-desktop">
+<div class="flex items-center gap-md bg-surface-container-low px-md py-xs rounded-full border border-arena w-96">
+<span class="material-symbols-outlined text-on-surface-variant" data-icon="search">search</span>
+<input class="bg-transparent border-none focus:ring-0 text-body-base w-full p-0" placeholder="Buscar reportes o participantes..." type="text"/>
+</div>
+<div class="flex items-center gap-lg">
+<button class="text-on-surface-variant hover:text-primary transition-colors">
+<span class="material-symbols-outlined" data-icon="notifications">notifications</span>
+</button>
+<button class="text-on-surface-variant hover:text-primary transition-colors">
+<span class="material-symbols-outlined" data-icon="help_outline">help_outline</span>
+</button>
+<div class="flex items-center gap-sm border-l border-outline-variant/50 pl-lg ml-sm">
+<div class="text-right hidden sm:block">
+<div class="font-body-bold text-body-bold leading-none">Admin Usuario</div>
+<div class="font-helper-text text-helper-text text-on-surface-variant">Gestor de Datos</div>
+</div>
+<img alt="Admin Avatar" class="w-10 h-10 rounded-full border-2 border-primary-fixed" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBS8Q90r-MeVh2cfGotq1Z2XEX3ntS0paD-NkPxngRc8smWefrxL6rCIYV6VLQrFdftWwSzeFDduwB6cyxt4eGtLlqVCchkiIs5_QANqH4qvu67RL3vVt-oLstRK9Zi0oB6PSIoCfPgv-n8R-cbm-hRcVrE2IZQtLnLcU55wRSI-Al7OE2qA2StlSxkdPGSAb_5RX6PH-dqqqM_DEgMq3rDHMhMbRkic-nGIpqBr0ECzZoA_IMnmeZixlemA6HLDALugEt7E_RZswoI"/>
+</div>
+</div>
+</header>
+<!-- CANVAS -->
+<div class="mt-16 p-margin-desktop space-y-gutter">
+<!-- HEADER -->
+<div class="flex flex-col md:flex-row md:items-end justify-between gap-lg">
+<div>
+<h1 class="font-display-lg text-display-lg text-primary mb-xs">Exportar Datos</h1>
+<p class="font-body-base text-body-base text-on-surface-variant">Genera reportes detallados en múltiples formatos para el seguimiento institucional.</p>
+</div>
+<div class="flex gap-sm">
+<button class="px-lg py-sm border border-arena rounded-lg flex items-center gap-xs font-body-bold text-on-surface-variant hover:bg-surface-container-high transition-all">
+<span class="material-symbols-outlined text-[18px]" data-icon="history">history</span>
+                        Historial
+                    </button>
+<button class="px-xl py-sm bg-primary text-white rounded-lg flex items-center gap-xs font-body-bold shadow-sm hover:opacity-90 active:scale-[0.98] transition-all">
+<span class="material-symbols-outlined text-[20px]" data-icon="download">download</span>
+                        Exportar Reporte
+                    </button>
+</div>
+</div>
+<!-- ASYMMETRIC GRID LAYOUT -->
+<div class="grid grid-cols-12 gap-gutter">
+<!-- SELECTION & FORMAT (LEFT SIDE - 5 COLUMNS) -->
+<div class="col-span-12 lg:col-span-5 space-y-gutter">
+<!-- REPORTE TIPO SELECTION -->
+<section class="soft-card p-lg">
+<div class="flex items-center gap-sm mb-lg border-b border-arena/30 pb-sm">
+<span class="material-symbols-outlined text-primary" data-icon="fact_check">fact_check</span>
+<h2 class="font-display-sm text-display-sm">Selección de Datos</h2>
+</div>
+<div class="space-y-sm">
+<!-- Block 1 -->
+<label class="flex items-start gap-md p-md rounded-lg border border-transparent hover:border-arena hover:bg-surface-container-low transition-all cursor-pointer group">
+<input checked="" class="mt-1 w-5 h-5 rounded border-arena text-primary focus:ring-primary" type="checkbox"/>
+<div>
+<div class="font-body-bold text-body-bold">Resumen ejecutivo</div>
+<p class="font-helper-text text-helper-text text-on-surface-variant">Indicadores clave de rendimiento y métricas globales de acceso.</p>
+</div>
+</label>
+<!-- Block 2 -->
+<label class="flex items-start gap-md p-md rounded-lg border border-transparent hover:border-arena hover:bg-surface-container-low transition-all cursor-pointer group">
+<input class="mt-1 w-5 h-5 rounded border-arena text-primary focus:ring-primary" type="checkbox"/>
+<div>
+<div class="font-body-bold text-body-bold">Cursos y talleres</div>
+<p class="font-helper-text text-helper-text text-on-surface-variant">Detalle de inscritos, asistencias y calificaciones por programa.</p>
+</div>
+</label>
+<!-- Block 3 -->
+<label class="flex items-start gap-md p-md rounded-lg border border-transparent hover:border-arena hover:bg-surface-container-low transition-all cursor-pointer group">
+<input class="mt-1 w-5 h-5 rounded border-arena text-primary focus:ring-primary" type="checkbox"/>
+<div>
+<div class="font-body-bold text-body-bold">Etiquetas</div>
+<p class="font-helper-text text-helper-text text-on-surface-variant">Clasificación temática y demográfica de los participantes.</p>
+</div>
+</label>
+<!-- Block 4 -->
+<label class="flex items-start gap-md p-md rounded-lg border border-transparent hover:border-arena hover:bg-surface-container-low transition-all cursor-pointer group">
+<input class="mt-1 w-5 h-5 rounded border-arena text-primary focus:ring-primary" type="checkbox"/>
+<div>
+<div class="font-body-bold text-body-bold">Alertas y atención requerida</div>
+<p class="font-helper-text text-helper-text text-on-surface-variant text-primary">Usuarios con accesos próximos a vencer o inactividad crítica.</p>
+</div>
+</label>
+<!-- Block 5 -->
+<label class="flex items-start gap-md p-md rounded-lg border border-transparent hover:border-arena hover:bg-surface-container-low transition-all cursor-pointer group">
+<input class="mt-1 w-5 h-5 rounded border-arena text-primary focus:ring-primary" type="checkbox"/>
+<div>
+<div class="font-body-bold text-body-bold">Listado detallado de participantes</div>
+<p class="font-helper-text text-helper-text text-on-surface-variant">Exportación completa de la base de datos de usuarios registrados.</p>
+</div>
+</label>
+</div>
+</section>
+<!-- FORMAT SELECTOR -->
+<section class="soft-card p-lg">
+<div class="flex items-center gap-sm mb-lg border-b border-arena/30 pb-sm">
+<span class="material-symbols-outlined text-primary" data-icon="file_present">file_present</span>
+<h2 class="font-display-sm text-display-sm">Formato de Salida</h2>
+</div>
+<div class="flex flex-wrap gap-md">
+<button class="flex-1 min-w-[100px] p-md border-2 border-primary bg-primary/5 rounded-xl text-center group transition-all">
+<span class="material-symbols-outlined text-primary mb-sm block" data-icon="table_view" style="font-size: 32px;">table_view</span>
+<div class="font-body-bold text-on-surface">Excel (.xlsx)</div>
+<div class="font-label-caps text-[10px] text-primary">RECOMENDADO</div>
+</button>
+<button class="flex-1 min-w-[100px] p-md border border-arena rounded-xl text-center hover:border-primary transition-all grayscale hover:grayscale-0">
+<span class="material-symbols-outlined text-on-surface-variant mb-sm block" data-icon="description" style="font-size: 32px;">description</span>
+<div class="font-body-bold text-on-surface">CSV</div>
+<div class="font-label-caps text-[10px] text-on-surface-variant">TEXTO PLANO</div>
+</button>
+<button class="flex-1 min-w-[100px] p-md border border-arena rounded-xl text-center hover:border-primary transition-all grayscale hover:grayscale-0">
+<span class="material-symbols-outlined text-on-surface-variant mb-sm block" data-icon="picture_as_pdf" style="font-size: 32px;">picture_as_pdf</span>
+<div class="font-body-bold text-on-surface">PDF</div>
+<div class="font-label-caps text-[10px] text-on-surface-variant">SOLO LECTURA</div>
+</button>
+</div>
+</section>
+</div>
+<!-- PREVIEW TABLE (RIGHT SIDE - 7 COLUMNS) -->
+<div class="col-span-12 lg:col-span-7">
+<div class="soft-card h-full flex flex-col">
+<div class="p-lg flex items-center justify-between border-b border-arena/30">
+<div class="flex items-center gap-sm">
+<span class="material-symbols-outlined text-tertiary" data-icon="visibility">visibility</span>
+<h2 class="font-display-sm text-display-sm">Vista Previa</h2>
+</div>
+<span class="font-label-caps text-label-caps bg-surface-container-high px-sm py-xs rounded">MUESTRA (1-10 DE 1,240)</span>
+</div>
+<div class="flex-1 overflow-x-auto">
+<table class="w-full text-left border-collapse">
+<thead>
+<tr class="bg-surface-container-low">
+<th class="p-md font-label-caps text-label-caps text-on-surface-variant tracking-[0.6px] border-b border-arena/20">NOMBRE</th>
+<th class="p-md font-label-caps text-label-caps text-on-surface-variant tracking-[0.6px] border-b border-arena/20">CORREO ELECTRÓNICO</th>
+<th class="p-md font-label-caps text-label-caps text-on-surface-variant tracking-[0.6px] border-b border-arena/20">CURSO / PROGRAMA</th>
+<th class="p-md font-label-caps text-label-caps text-on-surface-variant tracking-[0.6px] border-b border-arena/20">ESTADO</th>
+</tr>
+</thead>
+<tbody class="font-body-base text-body-base divide-y divide-arena/10">
+<tr class="hover:bg-surface-container-low transition-colors">
+<td class="p-md font-body-bold">Adrian Morales</td>
+<td class="p-md text-on-surface-variant">adrian.m@itcr.ac.cr</td>
+<td class="p-md">Diseño Exprés</td>
+<td class="p-md"><span class="px-sm py-xs bg-tertiary/10 text-tertiary rounded-full font-label-caps text-[10px]">ACTIVO</span></td>
+</tr>
+<tr class="bg-surface-container-lowest/50 hover:bg-surface-container-low transition-colors">
+<td class="p-md font-body-bold">Sofia Méndez</td>
+<td class="p-md text-on-surface-variant">smendez.22@gmail.com</td>
+<td class="p-md">Marketing Digital</td>
+<td class="p-md"><span class="px-sm py-xs bg-primary/10 text-primary rounded-full font-label-caps text-[10px]">POR VENCER</span></td>
+</tr>
+<tr class="hover:bg-surface-container-low transition-colors">
+<td class="p-md font-body-bold">Roberto Vega</td>
+<td class="p-md text-on-surface-variant">rvega.it@gmail.com</td>
+<td class="p-md">Costos 2026</td>
+<td class="p-md"><span class="px-sm py-xs bg-tertiary/10 text-tertiary rounded-full font-label-caps text-[10px]">ACTIVO</span></td>
+</tr>
+<tr class="bg-surface-container-lowest/50 hover:bg-surface-container-low transition-colors">
+<td class="p-md font-body-bold">Elena Castillo</td>
+<td class="p-md text-on-surface-variant">ecastillo@tec.ac.cr</td>
+<td class="p-md">Pre-incubación</td>
+<td class="p-md"><span class="px-sm py-xs bg-error/10 text-error rounded-full font-label-caps text-[10px]">EXPIRADO</span></td>
+</tr>
+<tr class="hover:bg-surface-container-low transition-colors">
+<td class="p-md font-body-bold">Juan Pablo Ruiz</td>
+<td class="p-md text-on-surface-variant">jpruiz@outlook.com</td>
+<td class="p-md">Diseño Exprés</td>
+<td class="p-md"><span class="px-sm py-xs bg-tertiary/10 text-tertiary rounded-full font-label-caps text-[10px]">ACTIVO</span></td>
+</tr>
+<tr class="bg-surface-container-lowest/50 hover:bg-surface-container-low transition-colors">
+<td class="p-md font-body-bold">Maria Fernanda</td>
+<td class="p-md text-on-surface-variant">mafer@gmail.com</td>
+<td class="p-md">FIDEIMAS Mayo</td>
+<td class="p-md"><span class="px-sm py-xs bg-tertiary/10 text-tertiary rounded-full font-label-caps text-[10px]">ACTIVO</span></td>
+</tr>
+<tr class="hover:bg-surface-container-low transition-colors">
+<td class="p-md font-body-bold">Alberto J. Morales</td>
+<td class="p-md text-on-surface-variant">amorales@itcr.ac.cr</td>
+<td class="p-md">Costos 2026</td>
+<td class="p-md"><span class="px-sm py-xs bg-tertiary/10 text-tertiary rounded-full font-label-caps text-[10px]">ACTIVO</span></td>
+</tr>
+<tr class="bg-surface-container-lowest/50 hover:bg-surface-container-low transition-colors">
+<td class="p-md font-body-bold">Laura Espinoza</td>
+<td class="p-md text-on-surface-variant">lespinoza@gmail.com</td>
+<td class="p-md">Pre-incubación</td>
+<td class="p-md"><span class="px-sm py-xs bg-primary/10 text-primary rounded-full font-label-caps text-[10px]">POR VENCER</span></td>
+</tr>
+</tbody>
+</table>
+</div>
+<div class="p-md bg-surface-container-low border-t border-arena/20 text-center rounded-b-xl">
+<button class="text-primary font-body-bold hover:underline">Ver datos completos en pantalla completa</button>
+</div>
+</div>
+</div>
+</div>
+<!-- BOTÓN ACCIÓN FINAL (ONLY FOR MOBILE IF NEEDED BUT REDUNDANT WITH HEADER) -->
+<div class="lg:hidden">
+<button class="w-full py-lg bg-primary text-white rounded-xl flex items-center justify-center gap-sm font-body-bold shadow-lg active:scale-[0.98] transition-all">
+<span class="material-symbols-outlined" data-icon="file_download">file_download</span>
+                    EXPORTAR REPORTE AHORA
+                </button>
+</div>
+</div>
+</main>
+<!-- FLOATING DECORATION (MICRO-INTERACTION) -->
+<div class="pointer-events-none fixed top-0 left-0 w-64 h-64 bg-primary/5 rounded-full blur-[100px] transition-all duration-300 z-0" id="glow-cursor"></div>
+<script>
+        // Micro-interaction for cursor light
+        const glow = document.getElementById('glow-cursor');
+        window.addEventListener('mousemove', (e) => {
+            const x = e.clientX - 128;
+            const y = e.clientY - 128;
+            glow.style.transform = `translate3d(${x}px, ${y}px, 0)`;
+        });
+
+        // Simple format selection logic
+        const formatButtons = document.querySelectorAll('.grayscale');
+        const activeFormat = document.querySelector('.border-2.border-primary');
+
+        formatButtons.forEach(btn => {
+            btn.addEventListener('click', () => {
+                // Reset all
+                document.querySelectorAll('.border-2.border-primary').forEach(b => {
+                    b.classList.remove('border-2', 'border-primary', 'bg-primary/5');
+                    b.classList.add('border', 'border-arena', 'grayscale');
+                    b.querySelector('.text-primary')?.classList.replace('text-primary', 'text-on-surface-variant');
+                    b.querySelector('.text-[10px]')?.classList.replace('text-primary', 'text-on-surface-variant');
+                });
+                
+                // Set active
+                btn.classList.remove('border', 'border-arena', 'grayscale');
+                btn.classList.add('border-2', 'border-primary', 'bg-primary/5');
+                const icon = btn.querySelector('.material-symbols-outlined');
+                icon.classList.replace('text-on-surface-variant', 'text-primary');
+                const subtext = btn.querySelector('.text-[10px]');
+                subtext.classList.replace('text-on-surface-variant', 'text-primary');
+            });
+        });
+    </script>
+</body></html>

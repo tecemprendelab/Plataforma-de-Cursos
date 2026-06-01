@@ -1,0 +1,458 @@
+<!DOCTYPE html>
+
+<html lang="es"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700;800&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "surface-tint": "#ad3300",
+                        "inverse-primary": "#ffb59e",
+                        "on-tertiary-fixed": "#1a1d00",
+                        "surface-variant": "#e7e2d9",
+                        "surface": "#fef9f0",
+                        "on-tertiary-container": "#feffdb",
+                        "secondary-container": "#e7ded7",
+                        "on-primary-container": "#fffbff",
+                        "on-primary-fixed": "#390b00",
+                        "on-primary-fixed-variant": "#842500",
+                        "surface-dim": "#ded9d1",
+                        "inverse-on-surface": "#f5f0e7",
+                        "on-secondary-fixed-variant": "#4b4641",
+                        "secondary-fixed": "#eae1da",
+                        "on-tertiary": "#ffffff",
+                        "secondary": "#645d58",
+                        "tertiary-container": "#727934",
+                        "surface-bright": "#fef9f0",
+                        "secondary-fixed-dim": "#cec5be",
+                        "on-surface-variant": "#5a4139",
+                        "on-background": "#1d1c16",
+                        "on-secondary-container": "#68615c",
+                        "surface-container-lowest": "#ffffff",
+                        "inverse-surface": "#32302b",
+                        "on-error-container": "#93000a",
+                        "on-tertiary-fixed-variant": "#444b07",
+                        "primary-fixed-dim": "#ffb59e",
+                        "tertiary-fixed-dim": "#c5cc7d",
+                        "primary-container": "#d24206",
+                        "error-container": "#ffdad6",
+                        "on-surface": "#1d1c16",
+                        "primary-fixed": "#ffdbd0",
+                        "surface-container-low": "#f8f3ea",
+                        "on-primary": "#ffffff",
+                        "outline": "#8e7067",
+                        "on-secondary": "#ffffff",
+                        "outline-variant": "#e3bfb4",
+                        "tertiary": "#5a601d",
+                        "on-error": "#ffffff",
+                        "on-secondary-fixed": "#1f1b17",
+                        "surface-container-highest": "#e7e2d9",
+                        "error": "#ba1a1a",
+                        "background": "#fef9f0",
+                        "tertiary-fixed": "#e1e996",
+                        "primary": "#a93200",
+                        "surface-container": "#f2ede4",
+                        "surface-container-high": "#ece8df"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "0.25rem",
+                        "lg": "0.5rem",
+                        "xl": "0.75rem",
+                        "full": "9999px"
+                    },
+                    "spacing": {
+                        "md": "12px",
+                        "gutter": "24px",
+                        "unit": "4px",
+                        "margin-desktop": "32px",
+                        "xs": "4px",
+                        "sm": "8px",
+                        "xl": "20px",
+                        "sidebar-width": "220px",
+                        "margin-mobile": "12px",
+                        "lg": "16px"
+                    },
+                    "fontFamily": {
+                        "body-base": ["Poppins"],
+                        "display-sm": ["Poppins"],
+                        "display-md": ["Poppins"],
+                        "display-lg": ["Poppins"]
+                    },
+                    "fontSize": {
+                        "helper-text": ["12px", {"lineHeight": "16px", "fontWeight": "400"}],
+                        "label-caps": ["11px", {"lineHeight": "16px", "letterSpacing": "0.6px", "fontWeight": "600"}],
+                        "body-base": ["14px", {"lineHeight": "22px", "fontWeight": "400"}],
+                        "display-sm": ["16px", {"lineHeight": "24px", "fontWeight": "600"}],
+                        "display-md": ["20px", {"lineHeight": "28px", "letterSpacing": "-0.2px", "fontWeight": "600"}],
+                        "display-lg": ["24px", {"lineHeight": "32px", "letterSpacing": "-0.3px", "fontWeight": "600"}]
+                    }
+                }
+            }
+        }
+    </script>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        .custom-scrollbar::-webkit-scrollbar {
+            width: 4px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-track {
+            background: transparent;
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb {
+            background: #CEBF98;
+            border-radius: 10px;
+        }
+    </style>
+</head>
+<body class="bg-surface font-body-base text-on-surface selection:bg-primary-fixed-dim overflow-hidden">
+<!-- SIDEBAR -->
+<aside class="fixed left-0 top-0 h-screen w-[220px] bg-inverse-surface shadow-sm flex flex-col py-margin-desktop z-50">
+<div class="px-lg mb-xl">
+<h1 class="text-display-md font-bold text-primary tracking-tight">TEC Emprende Lab</h1>
+<p class="text-secondary-fixed-dim text-helper-text opacity-70">Panel de Control</p>
+</div>
+<nav class="flex-1 space-y-1 px-md">
+<a class="flex items-center gap-md px-lg py-md text-on-primary-fixed bg-primary-container rounded-lg active:scale-95 duration-150 transition-colors" href="#">
+<span class="material-symbols-outlined">dashboard</span>
+<span class="font-body-base">Dashboard</span>
+</a>
+<a class="flex items-center gap-md px-lg py-md text-secondary-fixed-dim hover:bg-secondary-fixed/10 hover:text-secondary-fixed transition-colors active:scale-95 duration-150" href="#">
+<span class="material-symbols-outlined">groups</span>
+<span class="font-body-base">Participantes</span>
+</a>
+<a class="flex items-center gap-md px-lg py-md text-secondary-fixed-dim hover:bg-secondary-fixed/10 hover:text-secondary-fixed transition-colors active:scale-95 duration-150" href="#">
+<span class="material-symbols-outlined">analytics</span>
+<span class="font-body-base">Métricas</span>
+</a>
+<a class="flex items-center gap-md px-lg py-md text-secondary-fixed-dim hover:bg-secondary-fixed/10 hover:text-secondary-fixed transition-colors active:scale-95 duration-150" href="#">
+<span class="material-symbols-outlined">workspace_premium</span>
+<span class="font-body-base">Certificados</span>
+</a>
+<a class="flex items-center gap-md px-lg py-md text-secondary-fixed-dim hover:bg-secondary-fixed/10 hover:text-secondary-fixed transition-colors active:scale-95 duration-150" href="#">
+<span class="material-symbols-outlined">upload_file</span>
+<span class="font-body-base">Importación CSV</span>
+</a>
+<a class="flex items-center gap-md px-lg py-md text-secondary-fixed-dim hover:bg-secondary-fixed/10 hover:text-secondary-fixed transition-colors active:scale-95 duration-150" href="#">
+<span class="material-symbols-outlined">settings</span>
+<span class="font-body-base">Configuración</span>
+</a>
+</nav>
+<div class="px-lg mt-auto border-t border-white/5 pt-lg">
+<button class="w-full mb-md bg-primary text-white font-bold py-md rounded-lg flex items-center justify-center gap-sm hover:bg-primary-container transition-all active:scale-95">
+<span class="material-symbols-outlined">add</span>
+                Nuevo Registro
+            </button>
+<a class="flex items-center gap-md px-lg py-md text-secondary-fixed-dim hover:text-error transition-colors" href="#">
+<span class="material-symbols-outlined">logout</span>
+<span class="font-body-base">Cerrar Sesión</span>
+</a>
+</div>
+</aside>
+<!-- MAIN CONTENT -->
+<div class="ml-[220px] h-screen flex flex-col">
+<!-- TOP NAVBAR -->
+<header class="sticky top-0 right-0 z-40 bg-surface border-b border-outline-variant flex justify-between items-center h-16 px-margin-desktop w-full">
+<div class="flex items-center flex-1">
+<div class="relative w-full max-w-md">
+<span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-on-surface-variant text-sm">search</span>
+<input class="w-full bg-surface-container-low border border-outline-variant rounded-lg py-2 pl-10 pr-4 text-body-base focus:ring-2 focus:ring-primary focus:border-primary outline-none transition-all" placeholder="Buscar participantes o cursos..." type="text"/>
+</div>
+</div>
+<div class="flex items-center gap-lg ml-xl">
+<button class="relative p-2 text-on-surface-variant hover:text-primary transition-all">
+<span class="material-symbols-outlined">notifications</span>
+<span class="absolute top-2 right-2 w-2 h-2 bg-primary rounded-full border-2 border-surface"></span>
+</button>
+<div class="h-8 w-[1px] bg-outline-variant"></div>
+<div class="flex items-center gap-sm">
+<div class="text-right hidden sm:block">
+<p class="text-body-bold text-on-surface leading-tight">Admin Lab</p>
+<p class="text-helper-text text-on-surface-variant">Superuser</p>
+</div>
+<img class="w-10 h-10 rounded-full border border-outline-variant object-cover" data-alt="A professional portrait of a male administrative manager in a well-lit modern office setting. He wears a neutral-toned sweater and has a friendly, authoritative expression. The background is slightly blurred with soft warm tones and clean architectural lines, following the institutional and human-centric aesthetic of the laboratory." src="https://lh3.googleusercontent.com/aida-public/AB6AXuD7n8VdOEg7typ70H9io7Cnf_vpUaQz8c-FCmJIFOx-_B1mp60zKlWSjOebQ9JXnI-wkD2PT7NkoMz2YGb6YBhiNAJY0XZOmwZFl4ZRIxsw7l6BK79hFsGPM6c0pCSAhQeEFj8clsBrf5BQgxBvkfUwlwl625iXIPZIa3KxSC7yvGXow9qwCilA67pqX0-kTG8wVsEm6jAdxJ9ztNQ9wSCNj6v9c7JKpoynt8vcWd9l9KaOMWWn3JrtfQ5o8iBnpLeSx279aoq9lOPM"/>
+</div>
+</div>
+</header>
+<!-- DASHBOARD BODY -->
+<main class="flex-1 overflow-y-auto p-margin-desktop custom-scrollbar">
+<div class="mb-gutter">
+<h2 class="text-display-lg font-bold text-on-surface tracking-tight">Dashboard Administrativo</h2>
+<p class="text-secondary text-body-base">Bienvenido al panel central de monitoreo de TEC Emprende Lab.</p>
+</div>
+<!-- STAT CARDS BENTO -->
+<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-lg mb-gutter">
+<!-- Total -->
+<div class="bg-surface-container-lowest p-lg rounded-xl border border-outline-variant shadow-[rgba(26,22,18,0.04)_0px_2px_4px] hover:translate-y-[-2px] transition-transform">
+<div class="flex items-center gap-sm mb-sm">
+<span class="material-symbols-outlined text-secondary text-display-sm">groups</span>
+<span class="text-label-caps text-secondary">TOTAL</span>
+</div>
+<p class="text-[26px] font-bold text-on-surface">1,284</p>
+<p class="text-helper-text text-tertiary mt-unit flex items-center gap-xs">
+<span class="material-symbols-outlined text-[14px]">trending_up</span> +12% este mes
+                    </p>
+</div>
+<!-- Activos -->
+<div class="bg-surface-container-lowest p-lg rounded-xl border border-outline-variant shadow-[rgba(26,22,18,0.04)_0px_2px_4px] hover:translate-y-[-2px] transition-transform">
+<div class="flex items-center gap-sm mb-sm">
+<span class="material-symbols-outlined text-tertiary text-display-sm">check_circle</span>
+<span class="text-label-caps text-secondary">ACTIVOS</span>
+</div>
+<p class="text-[26px] font-bold text-tertiary">942</p>
+<p class="text-helper-text text-secondary mt-unit">En formación actual</p>
+</div>
+<!-- Con Acceso -->
+<div class="bg-surface-container-lowest p-lg rounded-xl border border-outline-variant shadow-[rgba(26,22,18,0.04)_0px_2px_4px] hover:translate-y-[-2px] transition-transform">
+<div class="flex items-center gap-sm mb-sm">
+<span class="material-symbols-outlined text-primary text-display-sm">key</span>
+<span class="text-label-caps text-secondary">CON ACCESO</span>
+</div>
+<p class="text-[26px] font-bold text-on-surface">1,020</p>
+<p class="text-helper-text text-secondary mt-unit">Credenciales válidas</p>
+</div>
+<!-- Por Vencer -->
+<div class="bg-surface-container-lowest p-lg rounded-xl border border-outline-variant shadow-[rgba(26,22,18,0.04)_0px_2px_4px] hover:translate-y-[-2px] transition-transform">
+<div class="flex items-center gap-sm mb-sm">
+<span class="material-symbols-outlined text-primary text-display-sm">warning</span>
+<span class="text-label-caps text-secondary">POR VENCER</span>
+</div>
+<p class="text-[26px] font-bold text-primary">48</p>
+<p class="text-helper-text text-primary mt-unit flex items-center gap-xs">
+                         Crítico ≤7 días
+                    </p>
+</div>
+<!-- Expirados -->
+<div class="bg-surface-container-lowest p-lg rounded-xl border border-outline-variant shadow-[rgba(26,22,18,0.04)_0px_2px_4px] hover:translate-y-[-2px] transition-transform">
+<div class="flex items-center gap-sm mb-sm">
+<span class="material-symbols-outlined text-secondary text-display-sm">timer_off</span>
+<span class="text-label-caps text-secondary">EXPIRADOS</span>
+</div>
+<p class="text-[26px] font-bold text-on-surface opacity-40">15</p>
+<p class="text-helper-text text-secondary mt-unit">Requieren renovación</p>
+</div>
+</div>
+<div class="grid grid-cols-12 gap-gutter">
+<!-- MONITOR DE ACCESOS CRÍTICOS -->
+<section class="col-span-12 lg:col-span-8 bg-surface-container-lowest rounded-xl border border-outline-variant p-lg shadow-[rgba(26,22,18,0.04)_0px_2px_4px]">
+<div class="flex items-center justify-between mb-lg">
+<div class="flex items-center gap-md">
+<div class="p-sm bg-primary-fixed text-primary rounded-lg">
+<span class="material-symbols-outlined">priority_high</span>
+</div>
+<h3 class="text-display-sm font-bold text-on-surface">Monitor de Accesos Críticos</h3>
+</div>
+<button class="text-label-caps text-primary hover:underline">Ver todos</button>
+</div>
+<div class="overflow-x-auto">
+<table class="w-full text-left">
+<thead>
+<tr class="border-b border-outline-variant text-label-caps text-on-secondary-fixed-variant">
+<th class="pb-md font-semibold tracking-widest uppercase">Participante</th>
+<th class="pb-md font-semibold tracking-widest uppercase">Curso / Programa</th>
+<th class="pb-md font-semibold tracking-widest uppercase">Días Restantes</th>
+<th class="pb-md font-semibold tracking-widest uppercase">Acción</th>
+</tr>
+</thead>
+<tbody class="text-body-base">
+<tr class="border-b border-surface-container hover:bg-surface-container-low transition-colors">
+<td class="py-md">
+<div class="flex items-center gap-md">
+<div class="w-8 h-8 rounded-full bg-secondary-container flex items-center justify-center text-xs font-bold text-on-secondary-container">AV</div>
+<div>
+<p class="font-bold">Ana Villalobos</p>
+<p class="text-helper-text text-secondary">ana.v@estudiantetec.cr</p>
+</div>
+</div>
+</td>
+<td class="py-md text-secondary">Gestión de Emprendimiento</td>
+<td class="py-md">
+<div class="w-32">
+<div class="flex justify-between text-helper-text mb-1">
+<span class="text-error font-bold">1 día</span>
+<span>Crítico</span>
+</div>
+<div class="h-[6px] w-full bg-surface-container-highest rounded-full overflow-hidden">
+<div class="h-full bg-error rounded-full" style="width: 15%;"></div>
+</div>
+</div>
+</td>
+<td class="py-md">
+<button class="px-md py-1 bg-surface-container rounded-full text-label-caps text-on-surface hover:bg-outline-variant transition-all">Renovar</button>
+</td>
+</tr>
+<tr class="border-b border-surface-container hover:bg-surface-container-low transition-colors">
+<td class="py-md">
+<div class="flex items-center gap-md">
+<div class="w-8 h-8 rounded-full bg-secondary-container flex items-center justify-center text-xs font-bold text-on-secondary-container">CM</div>
+<div>
+<p class="font-bold">Carlos Mora</p>
+<p class="text-helper-text text-secondary">c.mora@outlook.com</p>
+</div>
+</div>
+</td>
+<td class="py-md text-secondary">Diseño de Modelo de Negocio</td>
+<td class="py-md">
+<div class="w-32">
+<div class="flex justify-between text-helper-text mb-1">
+<span class="text-primary font-bold">3 días</span>
+<span>Urgente</span>
+</div>
+<div class="h-[6px] w-full bg-surface-container-highest rounded-full overflow-hidden">
+<div class="h-full bg-primary rounded-full" style="width: 40%;"></div>
+</div>
+</div>
+</td>
+<td class="py-md">
+<button class="px-md py-1 bg-surface-container rounded-full text-label-caps text-on-surface hover:bg-outline-variant transition-all">Renovar</button>
+</td>
+</tr>
+<tr class="hover:bg-surface-container-low transition-colors">
+<td class="py-md">
+<div class="flex items-center gap-md">
+<div class="w-8 h-8 rounded-full bg-secondary-container flex items-center justify-center text-xs font-bold text-on-secondary-container">LR</div>
+<div>
+<p class="font-bold">Laura Rojas</p>
+<p class="text-helper-text text-secondary">lrojas@pymes.cr</p>
+</div>
+</div>
+</td>
+<td class="py-md text-secondary">Finanzas para No Financieros</td>
+<td class="py-md">
+<div class="w-32">
+<div class="flex justify-between text-helper-text mb-1">
+<span class="text-primary font-bold">6 días</span>
+<span>Próximo</span>
+</div>
+<div class="h-[6px] w-full bg-surface-container-highest rounded-full overflow-hidden">
+<div class="h-full bg-primary-container rounded-full" style="width: 80%;"></div>
+</div>
+</div>
+</td>
+<td class="py-md">
+<button class="px-md py-1 bg-surface-container rounded-full text-label-caps text-on-surface hover:bg-outline-variant transition-all">Renovar</button>
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+</section>
+<!-- CURSOS ACTIVOS GRID -->
+<section class="col-span-12 lg:col-span-4 flex flex-col gap-lg">
+<div class="bg-surface-container-lowest rounded-xl border border-outline-variant p-lg shadow-[rgba(26,22,18,0.04)_0px_2px_4px] flex-1">
+<div class="flex items-center justify-between mb-lg">
+<h3 class="text-display-sm font-bold text-on-surface">Cursos Activos</h3>
+<span class="material-symbols-outlined text-secondary">more_vert</span>
+</div>
+<div class="space-y-md">
+<!-- Course 1 -->
+<div class="p-md bg-surface-container rounded-lg border border-transparent hover:border-outline-variant transition-all group">
+<div class="flex justify-between items-start mb-md">
+<div>
+<span class="px-2 py-0.5 bg-primary/10 text-primary text-[10px] font-bold rounded-full border border-primary/20 uppercase">Taller</span>
+<h4 class="font-bold text-on-surface mt-1">Mentalidad Ágil</h4>
+</div>
+<p class="text-display-sm font-bold text-primary">85%</p>
+</div>
+<div class="h-2 w-full bg-surface-container-highest rounded-full mb-2">
+<div class="h-full bg-primary rounded-full" style="width: 85%;"></div>
+</div>
+<div class="flex justify-between text-helper-text text-secondary">
+<span>24/30 cupos</span>
+<span class="flex items-center gap-xs"><span class="w-2 h-2 rounded-full bg-tertiary"></span> Activo</span>
+</div>
+</div>
+<!-- Course 2 -->
+<div class="p-md bg-surface-container rounded-lg border border-transparent hover:border-outline-variant transition-all group">
+<div class="flex justify-between items-start mb-md">
+<div>
+<span class="px-2 py-0.5 bg-[#DDE6FF] text-[#1D2B53] text-[10px] font-bold rounded-full border border-[#B8C9F9] uppercase">Curso</span>
+<h4 class="font-bold text-on-surface mt-1">Ventas Estratégicas</h4>
+</div>
+<p class="text-display-sm font-bold text-on-surface">62%</p>
+</div>
+<div class="h-2 w-full bg-surface-container-highest rounded-full mb-2">
+<div class="h-full bg-on-secondary-fixed-variant rounded-full" style="width: 62%;"></div>
+</div>
+<div class="flex justify-between text-helper-text text-secondary">
+<span>31/50 cupos</span>
+<span class="flex items-center gap-xs"><span class="w-2 h-2 rounded-full bg-tertiary"></span> Activo</span>
+</div>
+</div>
+<!-- Course 3 -->
+<div class="p-md bg-surface-container rounded-lg border border-transparent hover:border-outline-variant transition-all group">
+<div class="flex justify-between items-start mb-md">
+<div>
+<span class="px-2 py-0.5 bg-[#F2EBFF] text-[#4A26AB] text-[10px] font-bold rounded-full border border-[#DED0FF] uppercase">Seminario</span>
+<h4 class="font-bold text-on-surface mt-1">Pitch Deck Masterclass</h4>
+</div>
+<p class="text-display-sm font-bold text-on-surface">96%</p>
+</div>
+<div class="h-2 w-full bg-surface-container-highest rounded-full mb-2">
+<div class="h-full bg-primary-container rounded-full" style="width: 96%;"></div>
+</div>
+<div class="flex justify-between text-helper-text text-secondary">
+<span>24/25 cupos</span>
+<span class="flex items-center gap-xs"><span class="w-2 h-2 rounded-full bg-primary"></span> Casi lleno</span>
+</div>
+</div>
+</div>
+<button class="w-full mt-lg border border-outline text-on-surface font-semibold py-md rounded-lg hover:bg-surface-container transition-all">
+                            Gestionar Todos los Cursos
+                        </button>
+</div>
+<!-- RECENT ACTIVITY MINI CARD -->
+<div class="bg-inverse-surface text-secondary-fixed p-lg rounded-xl shadow-lg relative overflow-hidden">
+<div class="relative z-10">
+<h3 class="text-display-sm font-bold text-white mb-md">Estado del Sistema</h3>
+<div class="flex items-center gap-md">
+<div class="w-12 h-12 rounded-full bg-tertiary/20 flex items-center justify-center border border-tertiary/30">
+<span class="material-symbols-outlined text-tertiary-fixed">cloud_done</span>
+</div>
+<div>
+<p class="text-body-bold text-white">Sincronización al día</p>
+<p class="text-helper-text opacity-70">Última actualización: hace 5 min</p>
+</div>
+</div>
+</div>
+<!-- Abstract Background Decoration -->
+<div class="absolute -right-8 -bottom-8 w-24 h-24 bg-primary/20 rounded-full blur-2xl"></div>
+<div class="absolute -left-8 -top-8 w-24 h-24 bg-tertiary/10 rounded-full blur-2xl"></div>
+</div>
+</section>
+</div>
+</main>
+</div>
+<!-- NOTIFICATION TOAST (JS INTERACTION) -->
+<div class="fixed bottom-margin-desktop right-margin-desktop bg-inverse-surface text-white px-xl py-md rounded-lg shadow-2xl translate-y-20 opacity-0 transition-all duration-500 z-[100] flex items-center gap-md border border-white/10" id="toast">
+<span class="material-symbols-outlined text-tertiary-fixed">info</span>
+<p class="text-body-base">Nuevos registros importados correctamente.</p>
+<button class="ml-xl opacity-60 hover:opacity-100" onclick="hideToast()"><span class="material-symbols-outlined text-sm">close</span></button>
+</div>
+<script>
+        // Micro-interaction for showing a toast notification on load
+        window.onload = () => {
+            const toast = document.getElementById('toast');
+            setTimeout(() => {
+                toast.classList.remove('translate-y-20', 'opacity-0');
+            }, 1000);
+            
+            setTimeout(() => {
+                hideToast();
+            }, 6000);
+        };
+
+        function hideToast() {
+            const toast = document.getElementById('toast');
+            toast.classList.add('translate-y-20', 'opacity-0');
+        }
+    </script>
+</body></html>

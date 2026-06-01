@@ -1,0 +1,375 @@
+<!DOCTYPE html>
+
+<html class="light" lang="es"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800;900&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            "colors": {
+                    "error-container": "#ffdad6",
+                    "on-primary-container": "#fffbff",
+                    "surface-container": "#f2ede4",
+                    "surface-container-low": "#f8f3ea",
+                    "on-primary-fixed": "#390b00",
+                    "on-primary-fixed-variant": "#842500",
+                    "secondary": "#645d58",
+                    "primary-fixed-dim": "#ffb59e",
+                    "on-tertiary-fixed-variant": "#444b07",
+                    "on-secondary-fixed": "#1f1b17",
+                    "inverse-on-surface": "#f5f0e7",
+                    "secondary-fixed-dim": "#cec5be",
+                    "secondary-container": "#e7ded7",
+                    "surface-variant": "#e7e2d9",
+                    "error": "#ba1a1a",
+                    "tertiary-container": "#727934",
+                    "outline": "#8e7067",
+                    "on-primary": "#ffffff",
+                    "inverse-surface": "#32302b",
+                    "on-secondary-container": "#68615c",
+                    "surface-container-high": "#ece8df",
+                    "surface-dim": "#ded9d1",
+                    "on-error-container": "#93000a",
+                    "on-surface": "#1d1c16",
+                    "surface-tint": "#ad3300",
+                    "surface": "#fef9f0",
+                    "tertiary-fixed-dim": "#c5cc7d",
+                    "on-background": "#1d1c16",
+                    "inverse-primary": "#ffb59e",
+                    "on-tertiary-fixed": "#1a1d00",
+                    "primary-fixed": "#ffdbd0",
+                    "outline-variant": "#e3bfb4",
+                    "background": "#fef9f0",
+                    "on-tertiary": "#ffffff",
+                    "surface-bright": "#fef9f0",
+                    "tertiary": "#5a601d",
+                    "on-tertiary-container": "#feffdb",
+                    "on-surface-variant": "#5a4139",
+                    "surface-container-highest": "#e7e2d9",
+                    "tertiary-fixed": "#e1e996",
+                    "secondary-fixed": "#eae1da",
+                    "on-error": "#ffffff",
+                    "primary": "#a93200",
+                    "on-secondary-fixed-variant": "#4b4641",
+                    "on-secondary": "#ffffff",
+                    "surface-container-lowest": "#ffffff",
+                    "primary-container": "#d24206"
+            },
+            "borderRadius": {
+                    "DEFAULT": "0.25rem",
+                    "lg": "0.5rem",
+                    "xl": "0.75rem",
+                    "full": "9999px"
+            },
+            "spacing": {
+                    "lg": "16px",
+                    "xs": "4px",
+                    "unit": "4px",
+                    "md": "12px",
+                    "margin-desktop": "32px",
+                    "xl": "20px",
+                    "margin-mobile": "12px",
+                    "gutter": "24px",
+                    "sm": "8px",
+                    "sidebar-width": "220px"
+            },
+            "fontFamily": {
+                    "display-md": ["Poppins"],
+                    "label-caps": ["Poppins"],
+                    "helper-text": ["Poppins"],
+                    "body-bold": ["Poppins"],
+                    "display-md-mobile": ["Poppins"],
+                    "body-base": ["Poppins"],
+                    "display-sm": ["Poppins"],
+                    "display-lg": ["Poppins"],
+                    "display-lg-mobile": ["Poppins"]
+            },
+            "fontSize": {
+                    "display-md": ["20px", {"lineHeight": "28px", "letterSpacing": "-0.2px", "fontWeight": "600"}],
+                    "label-caps": ["11px", {"lineHeight": "16px", "letterSpacing": "0.6px", "fontWeight": "600"}],
+                    "helper-text": ["12px", {"lineHeight": "16px", "fontWeight": "400"}],
+                    "body-bold": ["14px", {"lineHeight": "22px", "fontWeight": "600"}],
+                    "display-md-mobile": ["17px", {"lineHeight": "24px", "letterSpacing": "-0.2px", "fontWeight": "600"}],
+                    "body-base": ["14px", {"lineHeight": "22px", "fontWeight": "400"}],
+                    "display-sm": ["16px", {"lineHeight": "24px", "fontWeight": "600"}],
+                    "display-lg": ["24px", {"lineHeight": "32px", "letterSpacing": "-0.3px", "fontWeight": "600"}],
+                    "display-lg-mobile": ["20px", {"lineHeight": "28px", "letterSpacing": "-0.3px", "fontWeight": "600"}]
+            }
+          },
+        },
+      }
+    </script>
+<style>
+        body { font-family: 'Poppins', sans-serif; background-color: #FAF5EC; }
+        .material-symbols-outlined { font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24; }
+        .drag-area { background-color: #fcf2eb; border: 2px dashed #CEBF98; }
+        .soft-card { background: #ffffff; border: 1px solid #CEBF98; box-shadow: 0 2px 4px rgba(26, 22, 18, 0.04); }
+        .primary-btn { background-color: #E8521A; transition: transform 0.2s; }
+        .primary-btn:hover { background-color: #d24206; transform: translateY(-1px); }
+        .primary-btn:active { transform: translateY(1px); }
+        .table-striped tr:nth-child(even) { background-color: #F2E8D0; }
+    </style>
+</head>
+<body class="text-on-surface">
+<!-- SideNavBar -->
+<aside class="fixed left-0 top-0 h-screen w-[220px] bg-inverse-surface dark:bg-on-surface flex flex-col h-full py-lg border-r border-on-surface-variant shadow-md z-50">
+<div class="px-lg mb-xl">
+<h1 class="font-display-md text-display-md font-bold text-surface-container-lowest">TEC Emprende Lab</h1>
+<p class="font-helper-text text-helper-text text-on-secondary-fixed-dim opacity-70">Gestión Académica</p>
+</div>
+<nav class="flex-1 space-y-1">
+<a class="flex items-center px-lg py-md text-on-secondary-fixed-dim font-body-base hover:text-on-primary-fixed hover:bg-secondary-fixed-dim/10 rounded-lg mx-2 transition-colors duration-200" href="#">
+<span class="material-symbols-outlined mr-md" data-icon="dashboard">dashboard</span>
+<span>Dashboard</span>
+</a>
+<a class="flex items-center px-lg py-md text-on-primary-fixed font-body-bold bg-primary-container rounded-lg mx-2" href="#">
+<span class="material-symbols-outlined mr-md" data-icon="groups">groups</span>
+<span>Participantes</span>
+</a>
+<a class="flex items-center px-lg py-md text-on-secondary-fixed-dim font-body-base hover:text-on-primary-fixed hover:bg-secondary-fixed-dim/10 rounded-lg mx-2 transition-colors duration-200" href="#">
+<span class="material-symbols-outlined mr-md" data-icon="school">school</span>
+<span>Cursos</span>
+</a>
+<a class="flex items-center px-lg py-md text-on-secondary-fixed-dim font-body-base hover:text-on-primary-fixed hover:bg-secondary-fixed-dim/10 rounded-lg mx-2 transition-colors duration-200" href="#">
+<span class="material-symbols-outlined mr-md" data-icon="key">key</span>
+<span>Control de Accesos</span>
+</a>
+<a class="flex items-center px-lg py-md text-on-secondary-fixed-dim font-body-base hover:text-on-primary-fixed hover:bg-secondary-fixed-dim/10 rounded-lg mx-2 transition-colors duration-200" href="#">
+<span class="material-symbols-outlined mr-md" data-icon="alarm">alarm</span>
+<span>Recordatorios</span>
+</a>
+<a class="flex items-center px-lg py-md text-on-secondary-fixed-dim font-body-base hover:text-on-primary-fixed hover:bg-secondary-fixed-dim/10 rounded-lg mx-2 transition-colors duration-200" href="#">
+<span class="material-symbols-outlined mr-md" data-icon="workspace_premium">workspace_premium</span>
+<span>Certificados</span>
+</a>
+</nav>
+<div class="mt-auto px-2 space-y-1">
+<a class="flex items-center px-lg py-md text-on-secondary-fixed-dim font-body-base hover:text-on-primary-fixed hover:bg-secondary-fixed-dim/10 rounded-lg transition-colors duration-200" href="#">
+<span class="material-symbols-outlined mr-md" data-icon="settings">settings</span>
+<span>Ajustes</span>
+</a>
+<a class="flex items-center px-lg py-md text-on-secondary-fixed-dim font-body-base hover:text-on-primary-fixed hover:bg-secondary-fixed-dim/10 rounded-lg transition-colors duration-200" href="#">
+<span class="material-symbols-outlined mr-md" data-icon="logout">logout</span>
+<span>Cerrar Sesión</span>
+</a>
+</div>
+</aside>
+<!-- Main Content Wrapper -->
+<div class="ml-[220px] flex flex-col min-h-screen">
+<!-- TopAppBar -->
+<header class="flex justify-between items-center h-16 px-margin-desktop bg-surface dark:bg-surface-dim border-b border-outline-variant shadow-sm sticky top-0 z-40">
+<div class="flex items-center flex-1 max-w-xl">
+<div class="relative w-full">
+<span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-on-surface-variant">search</span>
+<input class="w-full pl-10 pr-4 py-2 bg-surface-container-low border border-outline-variant rounded-lg focus:ring-2 focus:ring-primary focus:outline-none font-body-base" placeholder="Buscar participantes..." type="text"/>
+</div>
+</div>
+<div class="flex items-center gap-lg">
+<button class="material-symbols-outlined text-on-surface-variant p-2 hover:bg-surface-container-high rounded-full transition-all">notifications</button>
+<button class="material-symbols-outlined text-on-surface-variant p-2 hover:bg-surface-container-high rounded-full transition-all">help_outline</button>
+<div class="flex items-center gap-sm ml-md cursor-pointer group">
+<img alt="Usuario Administrativo" class="w-10 h-10 rounded-full border border-outline-variant" data-alt="A professional portrait of a Hispanic female administrative manager in a modern office environment. She has a confident, warm smile, wearing a professional blazer. The lighting is bright and natural, consistent with a clean corporate Soft-UI aesthetic using sandy and cream tones." src="https://lh3.googleusercontent.com/aida-public/AB6AXuByS3OIVRa3w_gh8n9eJIntWTQy3z976SGx9GPj89T4cGYEnaqlSlOgDOSa9JtjHS1e0-_M-hDj6vzcZmGS9Kvk6LUuoxqEQGo2NXiR8qKAqPaMONSfDE0mIEyg5WTvlFxV75geT2vTpBTOBuVvpD34P1hqKMBCbRWKt-zpo9mI7XM3DbxuMv2trx4ECUUYGvANaOR_FWAEyXTHZi3d4d_zOm_a9iUfwnOAHxc__ifwemMmaY8CpWW5IWz27Y1CDO_YQXu9M_nytb5V"/>
+<div class="hidden md:block">
+<p class="font-body-bold text-on-surface text-sm leading-tight">Admin TEC</p>
+<p class="font-helper-text text-on-surface-variant text-xs">Administrador</p>
+</div>
+</div>
+</div>
+</header>
+<!-- Page Content -->
+<main class="p-margin-desktop flex-1">
+<div class="max-w-6xl mx-auto">
+<div class="flex justify-between items-end mb-gutter">
+<div>
+<h2 class="font-display-lg text-display-lg text-primary mb-xs">Importar Participantes</h2>
+<p class="font-body-base text-on-surface-variant">Carga tu archivo CSV para registrar múltiples participantes a la vez.</p>
+</div>
+<a class="flex items-center gap-xs text-primary font-body-bold hover:underline" href="#">
+<span class="material-symbols-outlined text-md">download</span>
+                        Descargar plantilla CSV
+                    </a>
+</div>
+<!-- Drag & Drop Area -->
+<section class="drag-area rounded-xl p-12 mb-gutter flex flex-col items-center justify-center text-center cursor-pointer hover:bg-[#f8e9df] transition-all" id="drop-zone">
+<div class="w-16 h-16 bg-primary/10 rounded-full flex items-center justify-center mb-lg">
+<span class="material-symbols-outlined text-primary text-4xl" data-icon="cloud_upload">cloud_upload</span>
+</div>
+<h3 class="font-display-sm text-display-sm mb-xs">Arrastra y suelta tu archivo aquí</h3>
+<p class="font-body-base text-on-surface-variant mb-lg">o haz clic para buscar en tu ordenador</p>
+<input accept=".csv" class="hidden" id="file-input" type="file"/>
+<button class="ghost-btn border border-outline px-xl py-md rounded-lg font-body-bold hover:bg-surface-container-high transition-colors">Seleccionar Archivo</button>
+<p class="font-helper-text text-helper-text mt-md text-on-secondary-fixed-variant">Formatos soportados: .csv (máx 5MB)</p>
+</section>
+<!-- Post-upload Data Preview Section (Initially visible for the prompt) -->
+<div class="grid grid-cols-1 lg:grid-cols-3 gap-gutter">
+<!-- Preview Table -->
+<div class="lg:col-span-2 space-y-gutter">
+<div class="soft-card rounded-xl overflow-hidden">
+<div class="p-lg border-b border-outline-variant flex justify-between items-center bg-surface-container-low">
+<h4 class="font-body-bold">Previsualización de Datos (Primeras 5 filas)</h4>
+<span class="text-xs font-label-caps text-on-surface-variant">ARCHIVO: PARTICIPANTES_PROYECTO_2024.CSV</span>
+</div>
+<div class="overflow-x-auto">
+<table class="w-full text-left font-body-base table-striped">
+<thead class="bg-surface-container-high">
+<tr class="font-label-caps text-on-surface-variant">
+<th class="px-lg py-md">Cédula</th>
+<th class="px-lg py-md">Nombre</th>
+<th class="px-lg py-md">Correo</th>
+<th class="px-lg py-md">Teléfono</th>
+<th class="px-lg py-md">Estado</th>
+</tr>
+</thead>
+<tbody class="text-sm">
+<tr>
+<td class="px-lg py-md">1-1234-5678</td>
+<td class="px-lg py-md">Maria Rodriguez</td>
+<td class="px-lg py-md">m.rodriguez@email.com</td>
+<td class="px-lg py-md">8888-0001</td>
+<td class="px-lg py-md">
+<div class="flex items-center gap-xs text-[#2e7d32]">
+<span class="w-2 h-2 rounded-full bg-[#2e7d32]"></span> Nuevo
+                                                </div>
+</td>
+</tr>
+<tr>
+<td class="px-lg py-md">2-0543-0987</td>
+<td class="px-lg py-md">Luis Quesada</td>
+<td class="px-lg py-md">l.quesada@tec.ac.cr</td>
+<td class="px-lg py-md">8777-1122</td>
+<td class="px-lg py-md">
+<div class="flex items-center gap-xs text-[#ef6c00]">
+<span class="w-2 h-2 rounded-full bg-[#ef6c00]"></span> Duplicado
+                                                </div>
+</td>
+</tr>
+<tr>
+<td class="px-lg py-md">3-0111-2222</td>
+<td class="px-lg py-md">Ana Mora</td>
+<td class="px-lg py-md">ana.mora@provider</td>
+<td class="px-lg py-md">N/A</td>
+<td class="px-lg py-md">
+<div class="flex items-center gap-xs text-error font-body-bold">
+<span class="w-2 h-2 rounded-full bg-error"></span> Error
+                                                </div>
+</td>
+</tr>
+<tr>
+<td class="px-lg py-md">1-0987-6543</td>
+<td class="px-lg py-md">Carlos Vega</td>
+<td class="px-lg py-md">cvega@email.com</td>
+<td class="px-lg py-md">8444-5566</td>
+<td class="px-lg py-md">
+<div class="flex items-center gap-xs text-[#2e7d32]">
+<span class="w-2 h-2 rounded-full bg-[#2e7d32]"></span> Nuevo
+                                                </div>
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+<div class="flex justify-end gap-md">
+<button class="px-xl py-md text-on-surface font-body-bold border border-outline rounded-lg hover:bg-surface-container transition-colors">Cancelar</button>
+<button class="primary-btn px-xl py-md text-white font-body-bold rounded-lg shadow-lg flex items-center gap-sm">
+<span class="material-symbols-outlined" data-icon="check_circle">check_circle</span>
+                                Confirmar e Importar
+                            </button>
+</div>
+</div>
+<!-- Summary & Validation -->
+<div class="space-y-gutter">
+<div class="soft-card p-lg rounded-xl">
+<h4 class="font-body-bold mb-lg border-b border-outline-variant pb-sm">Resumen de Validación</h4>
+<div class="space-y-md">
+<div class="flex items-center justify-between p-md bg-[#e8f5e9] border border-[#a5d6a7] rounded-lg">
+<div class="flex items-center gap-sm">
+<span class="material-symbols-outlined text-[#2e7d32]" data-icon="person_add">person_add</span>
+<span class="font-body-base text-[#1b5e20]">Nuevos Registros</span>
+</div>
+<span class="font-display-sm text-[#1b5e20]">124</span>
+</div>
+<div class="flex items-center justify-between p-md bg-[#fff3e0] border border-[#ffcc80] rounded-lg">
+<div class="flex items-center gap-sm">
+<span class="material-symbols-outlined text-[#ef6c00]" data-icon="content_copy">content_copy</span>
+<span class="font-body-base text-[#e65100]">Duplicados</span>
+</div>
+<span class="font-display-sm text-[#e65100]">12</span>
+</div>
+<div class="flex items-center justify-between p-md bg-[#ffebee] border border-[#ef9a9a] rounded-lg">
+<div class="flex items-center gap-sm">
+<span class="material-symbols-outlined text-error" data-icon="error_outline">error_outline</span>
+<span class="font-body-base text-[#b71c1c]">Errores Encontrados</span>
+</div>
+<span class="font-display-sm text-[#b71c1c]">3</span>
+</div>
+</div>
+<div class="mt-xl p-md bg-surface-container rounded-lg border border-outline-variant">
+<h5 class="text-xs font-label-caps text-on-surface-variant mb-xs">NOTAS DE IMPORTACIÓN</h5>
+<p class="text-xs text-on-surface-variant leading-relaxed">
+                                    • Los duplicados se omitirán automáticamente si ya existen en la base de datos.<br/>
+                                    • Los errores deben corregirse en el archivo CSV y volver a cargar.
+                                </p>
+</div>
+</div>
+<!-- Sidebar Asset -->
+<div class="soft-card p-lg rounded-xl bg-surface-container-low border-none">
+<div class="flex flex-col items-center text-center">
+<img class="w-full h-32 object-cover rounded-lg mb-md shadow-sm" data-alt="A high-quality, professional photograph of someone reviewing legal documents on a clean, wooden desk. The scene is bright with soft morning light, evoking a sense of organization and administrative clarity. The aesthetic matches the Costa Rican laboratory setting with warm earthy tones and professional institutional quality." src="https://lh3.googleusercontent.com/aida-public/AB6AXuDnHB6_ZzIFfvqdzzf4stgP-Wurp6cWVOEmNnhbKvgyxzRehLAsp8grs43HxfsELYOFCBfZAPR6u_9pC1wfcMzxdn6WoZzO3c_FTsZDs_us2FnB96qe8mRqbmiHZssUdtIm5HINpI9O3qGcpFlr7976ApuD90ZbTYffxWvt3pUBe8IoS01kG4s_hXCG6GSd_wLtb7m1s-21bXhgxy5r5G8xYS3wDSXuBc9Q_ObrEkkxNiMc_0H3KqOLkQxRdWQ5F7blkmCk2kzpydUy"/>
+<h4 class="font-body-bold text-sm mb-xs">¿Necesitas ayuda?</h4>
+<p class="text-xs text-on-surface-variant mb-md">Revisa nuestra guía de importación masiva para evitar errores comunes.</p>
+<button class="w-full py-2 text-xs font-body-bold text-primary border border-primary rounded-lg hover:bg-primary/5 transition-all">Ver Tutorial</button>
+</div>
+</div>
+</div>
+</div>
+</div>
+</main>
+<!-- Footer -->
+<footer class="flex justify-between items-center py-md px-margin-desktop bg-surface-container-lowest dark:bg-surface-container-low border-t border-outline-variant">
+<p class="font-helper-text text-helper-text text-on-surface-variant">© 2024 TEC Emprende Lab. Todos los derechos reservados.</p>
+<div class="flex gap-lg">
+<a class="font-helper-text text-helper-text text-on-secondary-fixed-variant hover:text-primary transition-colors opacity-80 hover:opacity-100" href="#">Soporte</a>
+<a class="font-helper-text text-helper-text text-on-secondary-fixed-variant hover:text-primary transition-colors opacity-80 hover:opacity-100" href="#">Documentación</a>
+<a class="font-helper-text text-helper-text text-on-secondary-fixed-variant hover:text-primary transition-colors opacity-80 hover:opacity-100" href="#">Privacidad</a>
+</div>
+</footer>
+</div>
+<script>
+        const dropZone = document.getElementById('drop-zone');
+        const fileInput = document.getElementById('file-input');
+
+        dropZone.addEventListener('click', () => fileInput.click());
+
+        dropZone.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            dropZone.classList.add('bg-[#f2e2d5]');
+        });
+
+        dropZone.addEventListener('dragleave', () => {
+            dropZone.classList.remove('bg-[#f2e2d5]');
+        });
+
+        dropZone.addEventListener('drop', (e) => {
+            e.preventDefault();
+            dropZone.classList.remove('bg-[#f2e2d5]');
+            const files = e.dataTransfer.files;
+            if (files.length) {
+                console.log('File detected:', files[0].name);
+                // logic for handling upload would go here
+            }
+        });
+
+        fileInput.addEventListener('change', (e) => {
+            if (e.target.files.length) {
+                console.log('File selected:', e.target.files[0].name);
+            }
+        });
+    </script>
+</body></html>

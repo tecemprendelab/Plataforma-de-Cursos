@@ -1,0 +1,394 @@
+<!DOCTYPE html>
+
+<html class="light" lang="es"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Generador de Certificados - TEC Emprende Lab</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<!-- Tailwind Configuration -->
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            "colors": {
+                    "primary-fixed": "#ffdbd0",
+                    "outline": "#8e7067",
+                    "outline-variant": "#e3bfb4",
+                    "surface-container-lowest": "#ffffff",
+                    "secondary-container": "#e7ded7",
+                    "secondary": "#645d58",
+                    "on-primary": "#ffffff",
+                    "on-tertiary-fixed-variant": "#444b07",
+                    "surface-tint": "#ad3300",
+                    "surface-container-low": "#f8f3ea",
+                    "on-tertiary": "#ffffff",
+                    "on-background": "#1d1c16",
+                    "error": "#ba1a1a",
+                    "inverse-surface": "#32302b",
+                    "surface": "#fef9f0",
+                    "primary-container": "#d24206",
+                    "on-surface-variant": "#5a4139",
+                    "primary-fixed-dim": "#ffb59e",
+                    "tertiary-fixed-dim": "#c5cc7d",
+                    "surface-dim": "#ded9d1",
+                    "on-tertiary-fixed": "#1a1d00",
+                    "on-primary-container": "#fffbff",
+                    "surface-container": "#f2ede4",
+                    "tertiary-container": "#727934",
+                    "on-tertiary-container": "#feffdb",
+                    "on-secondary-fixed": "#1f1b17",
+                    "on-surface": "#1d1c16",
+                    "tertiary": "#5a601d",
+                    "primary": "#a93200",
+                    "inverse-primary": "#ffb59e",
+                    "surface-bright": "#fef9f0",
+                    "error-container": "#ffdad6",
+                    "background": "#fef9f0",
+                    "on-primary-fixed": "#390b00",
+                    "surface-variant": "#e7e2d9",
+                    "secondary-fixed": "#eae1da",
+                    "on-secondary-fixed-variant": "#4b4641",
+                    "on-primary-fixed-variant": "#842500",
+                    "inverse-on-surface": "#f5f0e7",
+                    "tertiary-fixed": "#e1e996",
+                    "on-secondary-container": "#68615c",
+                    "on-error-container": "#93000a",
+                    "on-error": "#ffffff",
+                    "surface-container-high": "#ece8df",
+                    "secondary-fixed-dim": "#cec5be",
+                    "surface-container-highest": "#e7e2d9",
+                    "on-secondary": "#ffffff",
+                    "arena": "#CEBF98"
+            },
+            "borderRadius": {
+                    "DEFAULT": "0.25rem",
+                    "lg": "0.5rem",
+                    "xl": "0.75rem",
+                    "full": "9999px"
+            },
+            "spacing": {
+                    "margin-desktop": "32px",
+                    "lg": "16px",
+                    "unit": "4px",
+                    "margin-mobile": "12px",
+                    "xs": "4px",
+                    "sm": "8px",
+                    "md": "12px",
+                    "sidebar-width": "220px",
+                    "gutter": "24px",
+                    "xl": "20px"
+            },
+            "fontFamily": {
+                    "display-lg": ["Poppins"],
+                    "body-bold": ["Poppins"],
+                    "label-caps": ["Poppins"],
+                    "display-md": ["Poppins"],
+                    "display-sm": ["Poppins"],
+                    "body-base": ["Poppins"],
+                    "helper-text": ["Poppins"]
+            }
+          }
+        }
+      }
+    </script>
+<style>
+        .custom-scrollbar::-webkit-scrollbar { width: 4px; }
+        .custom-scrollbar::-webkit-scrollbar-track { background: transparent; }
+        .custom-scrollbar::-webkit-scrollbar-thumb { background: #CEBF98; border-radius: 10px; }
+        .glass-card { background: rgba(255, 255, 255, 0.7); backdrop-filter: blur(10px); border: 1px solid #CEBF98; }
+        .active-tab { border-bottom: 3px solid #a93200; color: #a93200; font-weight: 600; }
+        .inactive-tab { color: #5a4139; }
+        .step-completed { background: #727934; color: white; }
+        .step-active { background: #a93200; color: white; box-shadow: 0 0 0 4px rgba(169, 50, 0, 0.2); }
+        .step-pending { background: #e7e2d9; color: #5a4139; }
+    </style>
+</head>
+<body class="bg-surface text-on-surface font-body-base overflow-hidden h-screen flex">
+<!-- SideNavBar -->
+<aside class="fixed left-0 top-0 h-full w-[220px] bg-inverse-surface flex flex-col py-md px-sm z-50">
+<div class="mb-xl px-md">
+<h1 class="font-display-md text-display-md font-bold text-surface-bright leading-tight">TEC Emprende Lab</h1>
+<p class="text-on-secondary-fixed-variant text-xs mt-1">Admin Dashboard</p>
+</div>
+<nav class="flex-grow space-y-1">
+<a class="flex items-center gap-3 py-3 px-md rounded-lg text-on-secondary-fixed-variant hover:bg-primary/10 hover:text-primary-fixed-dim transition-all" href="#">
+<span class="material-symbols-outlined text-lg">dashboard</span>
+<span class="text-sm">Dashboard</span>
+</a>
+<a class="flex items-center gap-3 py-3 px-md rounded-lg text-on-secondary-fixed-variant hover:bg-primary/10 hover:text-primary-fixed-dim transition-all" href="#">
+<span class="material-symbols-outlined text-lg">groups</span>
+<span class="text-sm">Participants</span>
+</a>
+<a class="flex items-center gap-3 py-3 px-md rounded-lg text-on-secondary-fixed-variant hover:bg-primary/10 hover:text-primary-fixed-dim transition-all" href="#">
+<span class="material-symbols-outlined text-lg">school</span>
+<span class="text-sm">Courses</span>
+</a>
+<a class="flex items-center gap-3 py-3 px-md rounded-lg text-on-secondary-fixed-variant hover:bg-primary/10 hover:text-primary-fixed-dim transition-all" href="#">
+<span class="material-symbols-outlined text-lg">key</span>
+<span class="text-sm">Access Control</span>
+</a>
+<a class="flex items-center gap-3 py-3 px-md rounded-lg text-on-secondary-fixed-variant hover:bg-primary/10 hover:text-primary-fixed-dim transition-all" href="#">
+<span class="material-symbols-outlined text-lg">notifications_active</span>
+<span class="text-sm">Reminders</span>
+</a>
+<!-- Active Tab: Certificates -->
+<a class="flex items-center gap-3 py-3 px-md rounded-lg text-primary-fixed-dim bg-on-primary-fixed-variant/20 font-bold scale-95 active:scale-90 transition-transform" href="#">
+<span class="material-symbols-outlined text-lg">verified</span>
+<span class="text-sm">Certificates</span>
+</a>
+</nav>
+<div class="mt-auto space-y-1 border-t border-white/10 pt-md">
+<a class="flex items-center gap-3 py-3 px-md rounded-lg text-on-secondary-fixed-variant hover:bg-primary/10 transition-colors" href="#">
+<span class="material-symbols-outlined text-lg">settings</span>
+<span class="text-sm">Settings</span>
+</a>
+<a class="flex items-center gap-3 py-3 px-md rounded-lg text-on-secondary-fixed-variant hover:bg-primary/10 transition-colors" href="#">
+<span class="material-symbols-outlined text-lg">logout</span>
+<span class="text-sm">Logout</span>
+</a>
+</div>
+</aside>
+<!-- Content Area -->
+<main class="ml-[220px] flex-grow h-full flex flex-col overflow-hidden relative">
+<!-- TopAppBar -->
+<header class="flex justify-between items-center h-16 px-margin-desktop bg-surface border-b border-outline-variant z-40">
+<div class="flex items-center gap-8">
+<h2 class="font-display-sm text-display-sm text-primary">Generador de Certificados</h2>
+<div class="flex gap-6 h-full">
+<button class="h-16 px-2 flex items-center active-tab">Individual</button>
+<button class="h-16 px-2 flex items-center inactive-tab hover:text-primary-container transition-colors">Lote CSV</button>
+</div>
+</div>
+<div class="flex items-center gap-4">
+<div class="relative group">
+<span class="material-symbols-outlined text-outline absolute left-3 top-1/2 -translate-y-1/2">search</span>
+<input class="pl-10 pr-4 py-2 bg-surface-container-low border border-arena rounded-full text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 w-64 transition-all" placeholder="Buscar participante..." type="text"/>
+</div>
+<div class="flex items-center gap-2">
+<button class="p-2 text-on-surface-variant hover:bg-primary/5 rounded-full transition-colors">
+<span class="material-symbols-outlined">notifications</span>
+</button>
+<div class="w-8 h-8 rounded-full overflow-hidden border border-arena">
+<img alt="Admin Profile" data-alt="Close-up portrait of a professional administrator in a brightly lit modern office setting. High-key lighting highlighting sharp features and a confident expression. Soft-UI background with warm wood textures and minimalist furniture. Cohesive professional aesthetic following the corporate warm tones of TEC Emprende Lab." src="https://lh3.googleusercontent.com/aida-public/AB6AXuCVKx4C1egFnWgQQNkQnZjegyb9dbosKLeMNw1dRiNghDVStGc2Z50kb6sKb7pmaTsZnkJQREeyDDIgmweOMoohPOBORz0nNDBvj8HrkXZHSsK-XGq7bb0WZ0KhH537zLS-sGOF9LoUzapo6n7fzvyK_o3hFu2iyfQvVgRs0ftAHxClAf4yyh033tlBa3oVcoAED2pQq85FtaK7TzpZIhf7z8S79oGmft_GtI0x5IghmFR-2ONUFgCQvt69INl0BCpf1UyrKXHrfwLy"/>
+</div>
+</div>
+</div>
+</header>
+<!-- Main Body -->
+<div class="p-margin-desktop flex-grow flex gap-8 overflow-hidden">
+<!-- Left Column: Process -->
+<div class="w-[450px] flex flex-col gap-6 h-full">
+<!-- Stepper -->
+<div class="bg-white rounded-xl p-6 border border-arena shadow-sm">
+<div class="flex items-center justify-between px-4 relative">
+<div class="absolute top-1/2 left-1/2 -translate-y-1/2 w-[80%] h-[2px] bg-arena -translate-x-1/2 -z-10"></div>
+<div class="flex flex-col items-center gap-2">
+<div class="w-10 h-10 rounded-full flex items-center justify-center step-completed font-bold text-sm">1</div>
+<span class="text-[10px] font-label-caps tracking-widest uppercase text-tertiary">Plantilla</span>
+</div>
+<div class="flex flex-col items-center gap-2">
+<div class="w-10 h-10 rounded-full flex items-center justify-center step-active font-bold text-sm">2</div>
+<span class="text-[10px] font-label-caps tracking-widest uppercase text-primary">Datos</span>
+</div>
+<div class="flex flex-col items-center gap-2">
+<div class="w-10 h-10 rounded-full flex items-center justify-center step-pending font-bold text-sm">3</div>
+<span class="text-[10px] font-label-caps tracking-widest uppercase text-outline">Generar</span>
+</div>
+</div>
+</div>
+<!-- Step Content Container -->
+<div class="flex-grow overflow-y-auto custom-scrollbar pr-2 flex flex-col gap-6 pb-8">
+<!-- Section 1: Template Selection (Miniatures) -->
+<section class="bg-white rounded-xl p-6 border border-arena shadow-sm flex flex-col gap-4">
+<div class="flex justify-between items-center">
+<h3 class="font-display-sm text-on-surface">Seleccionar Plantilla</h3>
+<div class="flex gap-2">
+<button class="p-1 border border-arena rounded hover:bg-surface-container transition-colors"><span class="material-symbols-outlined text-sm">chevron_left</span></button>
+<button class="p-1 border border-arena rounded hover:bg-surface-container transition-colors"><span class="material-symbols-outlined text-sm">chevron_right</span></button>
+</div>
+</div>
+<div class="flex gap-4 overflow-x-hidden pb-2">
+<div class="min-w-[120px] aspect-[4/3] rounded-lg border-2 border-primary overflow-hidden relative cursor-pointer ring-4 ring-primary/10">
+<img class="w-full h-full object-cover" data-alt="A clean and professional certificate template layout with a cream background, dark orange accents, and elegant typography. The layout features subtle Costa Rican textures like coffee leaf patterns. Bright, soft studio lighting to emphasize the high-quality paper texture and modern design of the document." src="https://lh3.googleusercontent.com/aida-public/AB6AXuCdYSEeFV4QxgS1_x6t3TMf5VdJ6D-F0VGcErRUZ-M9El_7JuCnr0PQYf3ZeNroLpHl8NBNEBx3Jb2cTGuCRBXuiqAXvhZxtdvhaDsCzEsD5rq-Bot6519nH3hcs_Ae_dg30HGgReKQxOfRUlJbwXDdrw2LVgjEAodZs6dpb4umq5X3pEKd9yGRGTnMVAL0k7tGNA672mUDbPeu6dt_Gd5KLTH3ulKD6fM7BOxpna3OKL3Q8ANoUAL-9vZtMww5Aef9WOjCCAzdHDEN"/>
+<div class="absolute inset-0 bg-primary/20 flex items-center justify-center"><span class="material-symbols-outlined text-white">check_circle</span></div>
+</div>
+<div class="min-w-[120px] aspect-[4/3] rounded-lg border border-arena overflow-hidden cursor-pointer hover:border-primary-container transition-all opacity-70">
+<img class="w-full h-full object-cover" data-alt="A formal institutional certificate template with a dark charcoal border and sophisticated golden-arena details. Minimalist architectural grid lines influenced by modern university branding. Soft ambient lighting reflecting a premium, academic feel with legible serif typography." src="https://lh3.googleusercontent.com/aida-public/AB6AXuBP_DnFCuiMCNA_4l3h2k7gmctF1JBwv4FZTQjVPA89b5PmINDFBwgX26PaVJ1tOABzZMtxKyQuznuh2kmroX3Fe__DIWNQnoT9AmUBYUoUeqeTDwvTb_VEh7QF4oHV1Zn4-oyzJorYRrwFaApr_E5xXSSzarkTIcocRLCFz0WSvx8HbBEgOH2pVdCm2iDq6GQYm57DMAyiqB-ip70-vMjQY_w1WaltVIkWWJcwKOIUqQfCs56-fSc0_DaFT2b9BOOKo-WHn1X6tKox"/>
+</div>
+<div class="min-w-[120px] aspect-[4/3] rounded-lg border border-arena overflow-hidden cursor-pointer hover:border-primary-container transition-all opacity-70">
+<img class="w-full h-full object-cover" data-alt="An entrepreneurial spirit certificate design for workshops, featuring vibrant orange geometric patterns on a pristine white background. Tactile paper shadows and clean grid layout for a contemporary, fast-paced startup laboratory feel. High contrast lighting highlighting the primary orange branding color." src="https://lh3.googleusercontent.com/aida-public/AB6AXuBQWWSGX1a6F9zCie9G2nrRCgwR4MD3i7Jg-yarWQ1TQb-SaUXVnOs8xkfzZG4Ibk-FbQrROSA19g7srl6lWhMEuXhIEowsQg-FiVfTTVOm5bukR1SMHRhp1iYwZ1kfsx2qQKylbLBYMtFzr125rHA1LIyzpVX2EsO4L4Ad_rj4n3yViUhf8fjAmA4mzbZWWfBvX47D8JtZrqlq6a_sqaVLUSDlXj2jkgpCbt4xJCUj_TTl2Cgwqgv6Z6wfnKr6oT7nVo-d-4M7zk5R"/>
+</div>
+</div>
+<div class="flex gap-2">
+<select class="flex-grow bg-surface-container-low border-arena rounded-lg text-sm py-2 px-3 focus:border-primary focus:ring-0">
+<option>Filtrar por Curso: Todos</option>
+<option>Diseño Exprés</option>
+<option>Marketing Digital</option>
+</select>
+</div>
+</section>
+<!-- Section 2: Data Input -->
+<section class="bg-white rounded-xl p-6 border border-arena shadow-sm flex flex-col gap-5">
+<h3 class="font-display-sm text-on-surface">Datos del Participante</h3>
+<div class="space-y-4">
+<div class="space-y-1">
+<label class="text-[11px] font-label-caps text-on-surface-variant uppercase tracking-wider">Nombre Completo</label>
+<input class="w-full bg-surface-container-low border-arena rounded-lg py-3 px-4 text-sm focus:border-primary focus:ring-1 focus:ring-primary" type="text" value="ADRIAN LEONEL MORALES CASTRO"/>
+</div>
+<div class="grid grid-cols-2 gap-4">
+<div class="space-y-1">
+<label class="text-[11px] font-label-caps text-on-surface-variant uppercase tracking-wider">Fecha Emisión</label>
+<input class="w-full bg-surface-container-low border-arena rounded-lg py-3 px-4 text-sm focus:border-primary focus:ring-0" type="date" value="2026-05-29"/>
+</div>
+<div class="space-y-1">
+<label class="text-[11px] font-label-caps text-on-surface-variant uppercase tracking-wider">ID Participante</label>
+<input class="w-full bg-surface-container-low border-arena rounded-lg py-3 px-4 text-sm focus:border-primary focus:ring-0" placeholder="TEC-2026-001" type="text"/>
+</div>
+</div>
+<div class="space-y-1">
+<label class="text-[11px] font-label-caps text-on-surface-variant uppercase tracking-wider">Menciones Especiales</label>
+<textarea class="w-full bg-surface-container-low border-arena rounded-lg py-3 px-4 text-sm focus:border-primary focus:ring-0" placeholder="Ej: Participación destacada en el taller de prototipado..." rows="3"></textarea>
+</div>
+</div>
+</section>
+<!-- Section 3: Final Step / Generate -->
+<section class="bg-white rounded-xl p-6 border border-arena shadow-sm flex flex-col gap-6">
+<h3 class="font-display-sm text-on-surface">Opciones de Generación</h3>
+<div class="flex gap-4">
+<button class="flex-1 py-4 border-2 border-primary bg-primary/5 rounded-xl flex flex-col items-center gap-2 group transition-all">
+<span class="material-symbols-outlined text-primary text-3xl">picture_as_pdf</span>
+<span class="text-xs font-label-caps text-primary">Formato PDF</span>
+</button>
+<button class="flex-1 py-4 border border-arena hover:border-primary-container rounded-xl flex flex-col items-center gap-2 group transition-all opacity-60">
+<span class="material-symbols-outlined text-outline text-3xl">image</span>
+<span class="text-xs font-label-caps text-outline">Formato PNG</span>
+</button>
+</div>
+<div class="p-4 bg-surface-container-low rounded-lg border border-dotted border-arena">
+<h4 class="text-[11px] font-label-caps text-tertiary uppercase mb-2">Resumen de Selección</h4>
+<ul class="text-[12px] space-y-2 text-on-surface-variant">
+<li class="flex justify-between"><span>Plantilla:</span> <span class="font-semibold">TEC Pro-v2</span></li>
+<li class="flex justify-between"><span>Participantes:</span> <span class="font-semibold">1 Individual</span></li>
+<li class="flex justify-between"><span>Calidad:</span> <span class="font-semibold">300 DPI</span></li>
+</ul>
+</div>
+<button class="w-full py-4 bg-primary text-white rounded-xl font-bold flex items-center justify-center gap-3 shadow-lg shadow-primary/20 hover:bg-primary-container active:scale-[0.98] transition-all">
+<span class="material-symbols-outlined">auto_awesome</span>
+                            Generar y descargar
+                        </button>
+</section>
+</div>
+</div>
+<!-- Right Column: Preview -->
+<div class="flex-grow flex flex-col gap-4">
+<div class="flex justify-between items-center px-2">
+<h3 class="font-display-sm text-on-surface">Vista Previa en Tiempo Real</h3>
+<div class="flex items-center gap-4">
+<div class="flex items-center gap-2 text-sm text-outline">
+<span class="material-symbols-outlined text-sm">zoom_out</span>
+<span>85%</span>
+<span class="material-symbols-outlined text-sm">zoom_in</span>
+</div>
+<button class="p-2 border border-arena rounded-lg hover:bg-white transition-colors">
+<span class="material-symbols-outlined text-sm">fullscreen</span>
+</button>
+</div>
+</div>
+<!-- Certificate Render Panel -->
+<div class="flex-grow bg-surface-container-high rounded-2xl border border-arena p-12 flex items-center justify-center relative overflow-hidden group">
+<!-- Background texture/pattern -->
+<div class="absolute inset-0 opacity-10 pointer-events-none" style="background-image: radial-gradient(#a93200 0.5px, transparent 0.5px); background-size: 24px 24px;"></div>
+<!-- The actual certificate paper -->
+<div class="bg-white shadow-2xl w-full max-w-[800px] aspect-[1.414/1] flex flex-col p-16 relative border-[12px] border-double border-arena/30 ring-1 ring-arena overflow-hidden" id="certificate-canvas">
+<!-- Watermark -->
+<div class="absolute inset-0 flex items-center justify-center opacity-[0.03] pointer-events-none rotate-[25deg]">
+<span class="text-[120px] font-bold">TEC EMPRENDE</span>
+</div>
+<!-- Top Logo Section -->
+<div class="flex justify-between items-start">
+<div class="w-32 h-16 bg-surface-container flex items-center justify-center rounded">
+<span class="font-display-md text-primary font-bold">TEC</span>
+</div>
+<div class="text-right">
+<p class="text-[10px] font-label-caps tracking-widest text-arena uppercase">No. Registro: TEC-LAB-2026-0922</p>
+</div>
+</div>
+<!-- Central Content -->
+<div class="mt-auto mb-auto flex flex-col items-center text-center">
+<p class="text-arena font-label-caps text-sm tracking-[0.3em] uppercase mb-4">Certificado de Excelencia</p>
+<h2 class="font-display-lg text-[28px] text-on-surface mb-2">Se otorga el presente reconocimiento a:</h2>
+<div class="w-full h-[2px] bg-gradient-to-r from-transparent via-primary to-transparent my-6"></div>
+<h1 class="font-display-lg text-[42px] italic text-primary drop-shadow-sm mb-4" id="preview-name">Adrian Leonel Morales Castro</h1>
+<p class="text-on-surface-variant leading-relaxed max-w-xl mx-auto text-lg">
+                                Por haber completado satisfactoriamente el programa avanzado de <br/>
+<span class="font-bold text-on-surface">"Diseño y Prototipado para Startups"</span> <br/>
+                                con una duración de 45 horas presenciales.
+                            </p>
+</div>
+<!-- Footer Signatures -->
+<div class="flex justify-between items-end mt-12 px-8">
+<div class="flex flex-col items-center">
+<div class="w-32 h-[1px] bg-arena mb-2"></div>
+<p class="text-[10px] font-label-caps uppercase text-outline">Coordinación Lab</p>
+</div>
+<div class="flex flex-col items-center relative">
+<!-- Fake Signature Seal -->
+<div class="absolute -top-12 opacity-80 mix-blend-multiply">
+<div class="w-20 h-20 rounded-full border-4 border-primary/20 flex items-center justify-center text-[8px] font-bold text-primary uppercase text-center rotate-[15deg]">
+<div class="border border-dashed border-primary/40 rounded-full w-full h-full p-2 flex items-center justify-center">
+                                            Oficial<br/>TEC Lab
+                                        </div>
+</div>
+</div>
+<div class="w-32 h-[1px] bg-arena mb-2"></div>
+<p class="text-[10px] font-label-caps uppercase text-outline">Director Ejecutivo</p>
+</div>
+</div>
+<!-- Corner Accents -->
+<div class="absolute bottom-0 right-0 w-24 h-24 overflow-hidden pointer-events-none">
+<div class="absolute -bottom-8 -right-8 w-24 h-24 bg-primary rotate-45"></div>
+</div>
+</div>
+<!-- Floating Preview Info -->
+<div class="absolute bottom-8 left-1/2 -translate-x-1/2 flex gap-3 opacity-0 group-hover:opacity-100 transition-opacity">
+<div class="glass-card px-4 py-2 rounded-full flex items-center gap-2 text-xs">
+<span class="material-symbols-outlined text-sm text-tertiary">verified_user</span>
+<span class="text-on-surface font-medium">Validación QR incluida</span>
+</div>
+<div class="glass-card px-4 py-2 rounded-full flex items-center gap-2 text-xs">
+<span class="material-symbols-outlined text-sm text-primary">palette</span>
+<span class="text-on-surface font-medium">Ajuste cromático activo</span>
+</div>
+</div>
+</div>
+</div>
+</div>
+</main>
+<!-- Vanilla Interactivity -->
+<script>
+        // Simple input to preview sync
+        const nameInput = document.querySelector('input[value="ADRIAN LEONEL MORALES CASTRO"]');
+        const previewName = document.getElementById('preview-name');
+
+        nameInput.addEventListener('input', (e) => {
+            previewName.textContent = e.target.value || "Nombre del Participante";
+        });
+
+        // Hover effect for tabs
+        const navItems = document.querySelectorAll('nav a');
+        navItems.forEach(item => {
+            item.addEventListener('mouseenter', () => {
+                if(!item.classList.contains('text-primary-fixed-dim')) {
+                    item.style.transform = 'translateX(4px)';
+                }
+            });
+            item.addEventListener('mouseleave', () => {
+                item.style.transform = 'translateX(0px)';
+            });
+        });
+    </script>
+</body></html>

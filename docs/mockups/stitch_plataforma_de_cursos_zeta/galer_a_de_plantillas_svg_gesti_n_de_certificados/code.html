@@ -1,0 +1,417 @@
+<!DOCTYPE html>
+
+<html class="light" lang="es"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Galería de Plantillas SVG - TEC Emprende Lab</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700;800&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            "colors": {
+                "on-secondary-fixed": "#1f1b17",
+                "on-primary-fixed": "#390b00",
+                "on-background": "#1d1c16",
+                "outline": "#8e7067",
+                "tertiary": "#5a601d",
+                "surface": "#fef9f0",
+                "on-primary-container": "#fffbff",
+                "on-error": "#ffffff",
+                "on-secondary-container": "#68615c",
+                "on-primary-fixed-variant": "#842500",
+                "surface-container": "#f2ede4",
+                "error-container": "#ffdad6",
+                "secondary-fixed": "#eae1da",
+                "surface-container-lowest": "#ffffff",
+                "on-tertiary-fixed-variant": "#444b07",
+                "surface-container-high": "#ece8df",
+                "on-tertiary-fixed": "#1a1d00",
+                "inverse-on-surface": "#f5f0e7",
+                "tertiary-container": "#727934",
+                "surface-bright": "#fef9f0",
+                "on-secondary": "#ffffff",
+                "surface-variant": "#e7e2d9",
+                "on-tertiary": "#ffffff",
+                "on-primary": "#ffffff",
+                "secondary-container": "#e7ded7",
+                "on-secondary-fixed-variant": "#4b4641",
+                "tertiary-fixed": "#e1e996",
+                "surface-container-highest": "#e7e2d9",
+                "secondary": "#645d58",
+                "primary-container": "#d24206",
+                "inverse-primary": "#ffb59e",
+                "surface-tint": "#ad3300",
+                "surface-container-low": "#f8f3ea",
+                "tertiary-fixed-dim": "#c5cc7d",
+                "error": "#ba1a1a",
+                "on-error-container": "#93000a",
+                "on-tertiary-container": "#feffdb",
+                "on-surface-variant": "#5a4139",
+                "primary-fixed-dim": "#ffb59e",
+                "background": "#fef9f0",
+                "secondary-fixed-dim": "#cec5be",
+                "outline-variant": "#e3bfb4",
+                "primary-fixed": "#ffdbd0",
+                "surface-dim": "#ded9d1",
+                "on-surface": "#1d1c16",
+                "inverse-surface": "#32302b",
+                "primary": "#a93200"
+            },
+            "borderRadius": {
+                "DEFAULT": "0.25rem",
+                "lg": "0.5rem",
+                "xl": "0.75rem",
+                "full": "9999px"
+            },
+            "spacing": {
+                "gutter": "24px",
+                "lg": "16px",
+                "margin-mobile": "12px",
+                "md": "12px",
+                "xl": "20px",
+                "sidebar-width": "220px",
+                "xs": "4px",
+                "margin-desktop": "32px",
+                "unit": "4px",
+                "sm": "8px"
+            },
+            "fontFamily": {
+                "body-base": ["Poppins"],
+                "display-lg": ["Poppins"],
+                "display-md": ["Poppins"],
+                "display-sm": ["Poppins"],
+                "body-bold": ["Poppins"],
+                "label-caps": ["Poppins"]
+            }
+          }
+        }
+      }
+    </script>
+<style>
+        body {
+            background-color: #FAF5EC; /* Custom Cream Background from Style Guidance */
+            font-family: 'Poppins', sans-serif;
+        }
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        .soft-card {
+            border: 1px solid #CEBF98;
+            box-shadow: 0 4px 6px -1px rgba(26, 22, 18, 0.04);
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        .soft-card:hover {
+            box-shadow: 0 10px 15px -3px rgba(26, 22, 18, 0.08);
+            transform: translateY(-2px);
+        }
+        .action-overlay {
+            background: rgba(254, 249, 240, 0.85);
+            backdrop-filter: blur(4px);
+            opacity: 0;
+            transition: opacity 0.2s ease;
+        }
+        .soft-card:hover .action-overlay {
+            opacity: 1;
+        }
+        .access-bar {
+            height: 6px;
+            border-radius: 999px;
+        }
+    </style>
+</head>
+<body class="text-on-surface">
+<!-- Fixed SideNav -->
+<aside class="fixed left-0 top-0 h-full w-[220px] bg-on-secondary-fixed flex flex-col py-lg shadow-md z-50">
+<div class="px-lg mb-xl">
+<h1 class="font-display-md text-display-md text-surface-container-lowest leading-tight">TEC Emprende Lab</h1>
+<p class="font-body-base text-secondary-fixed-dim text-xs opacity-70">Administración</p>
+</div>
+<nav class="flex-1 space-y-1 px-sm">
+<a class="flex items-center gap-3 px-md py-sm rounded-lg text-secondary-fixed-dim font-body-base hover:text-primary-fixed transition-colors active:scale-95 duration-200" href="#">
+<span class="material-symbols-outlined">dashboard</span> Dashboard
+            </a>
+<a class="flex items-center gap-3 px-md py-sm rounded-lg text-secondary-fixed-dim font-body-base hover:text-primary-fixed transition-colors active:scale-95 duration-200" href="#">
+<span class="material-symbols-outlined">groups</span> Participantes
+            </a>
+<a class="flex items-center gap-3 px-md py-sm rounded-lg text-secondary-fixed-dim font-body-base hover:text-primary-fixed transition-colors active:scale-95 duration-200" href="#">
+<span class="material-symbols-outlined">school</span> Cursos
+            </a>
+<a class="flex items-center gap-3 px-md py-sm rounded-lg text-secondary-fixed-dim font-body-base hover:text-primary-fixed transition-colors active:scale-95 duration-200" href="#">
+<span class="material-symbols-outlined">key</span> Control de Accesos
+            </a>
+<a class="flex items-center gap-3 px-md py-sm rounded-lg text-secondary-fixed-dim font-body-base hover:text-primary-fixed transition-colors active:scale-95 duration-200" href="#">
+<span class="material-symbols-outlined">alarm</span> Recordatorios
+            </a>
+<a class="flex items-center gap-3 px-md py-sm rounded-lg text-secondary-fixed-dim font-body-base hover:text-primary-fixed transition-colors active:scale-95 duration-200" href="#">
+<span class="material-symbols-outlined">label</span> Etiquetas
+            </a>
+<a class="flex items-center gap-3 px-md py-sm rounded-lg text-primary font-body-bold bg-white/5 border-r-4 border-primary transition-colors" href="#">
+<span class="material-symbols-outlined">workspace_premium</span> Certificados
+            </a>
+</nav>
+<div class="px-lg mt-auto pt-lg border-t border-white/10">
+<div class="flex items-center gap-3">
+<div class="w-8 h-8 rounded-full bg-primary-container flex items-center justify-center text-white font-bold text-xs">AD</div>
+<div>
+<p class="text-xs font-body-bold text-surface-container-lowest">Admin User</p>
+<p class="text-[10px] text-secondary-fixed-dim">Gestor Senior</p>
+</div>
+</div>
+</div>
+</aside>
+<!-- Top AppBar -->
+<header class="fixed top-0 right-0 w-[calc(100%-220px)] h-16 bg-surface flex justify-between items-center px-margin-desktop shadow-sm border-b border-outline-variant z-40">
+<div class="flex items-center gap-4 flex-1">
+<div class="relative w-full max-w-md group">
+<span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-on-surface-variant text-sm">search</span>
+<input class="w-full bg-surface-container-low border border-outline-variant rounded-lg py-2 pl-10 pr-4 text-body-base focus:ring-2 focus:ring-primary focus:border-primary transition-all outline-none" placeholder="Buscar por nombre o etiqueta..." type="text"/>
+</div>
+</div>
+<div class="flex items-center gap-6">
+<button class="text-on-surface-variant hover:bg-surface-container-high p-2 rounded-full transition-all">
+<span class="material-symbols-outlined">notifications</span>
+</button>
+<button class="text-on-surface-variant hover:bg-surface-container-high p-2 rounded-full transition-all">
+<span class="material-symbols-outlined">settings</span>
+</button>
+<div class="h-8 w-[1px] bg-outline-variant"></div>
+<img alt="User Profile" class="w-10 h-10 rounded-full border-2 border-primary object-cover" data-alt="A professional headshot of a smiling male administrative manager in a clean, modern office setting. The lighting is soft and natural, emphasizing the warm, accessible tone of the TEC Emprende Lab brand. The background shows a minimalist coworking space with light wood textures and soft cream walls." src="https://lh3.googleusercontent.com/aida-public/AB6AXuBpRgY3kBjDkjkkxkyRMqXKzCFEy_REhkbo5tH9jntO3pQogxT56P4Ph_5w6e3llzjwW5UHaKw8YoBMSrJVHp5dlnMjyOWqQJlT9FYZji-glXFqmHQcsC9m1LXpCJAjPLnFgs0n19XhGK5LVHta3BUne_4HevYjJwA78F6zHz7XdcJ4s9LrmrGLNX5ZlyuE9m6sr9wvgpq6ln1QFz6T6I3M66oXNdSUFH_G6LoZuTU6YNCDKErLprYI5wU1PMGcH8lDQU8n5Ru9rf5A"/>
+</div>
+</header>
+<!-- Main Content -->
+<main class="ml-[220px] pt-24 pb-margin-desktop px-margin-desktop min-h-screen">
+<!-- Section Header -->
+<div class="flex justify-between items-end mb-8">
+<div>
+<h2 class="font-display-lg text-display-lg text-on-surface mb-1">Galería de Plantillas SVG</h2>
+<p class="text-on-surface-variant font-body-base">Gestiona y personaliza las plantillas oficiales para la emisión de certificados digitales.</p>
+</div>
+<button class="bg-primary hover:bg-primary-container text-white px-lg py-2.5 rounded-lg flex items-center gap-2 font-body-bold shadow-md transition-all active:scale-95 focus:ring-2 focus:ring-primary focus:ring-offset-2" onclick="document.getElementById('upload-modal').classList.remove('hidden')">
+<span class="material-symbols-outlined text-[20px]">add_circle</span>
+                Subir plantilla
+            </button>
+</div>
+<!-- Filters / Stats Bar (Bento-lite) -->
+<div class="grid grid-cols-12 gap-gutter mb-8">
+<div class="col-span-3 bg-white soft-card p-lg rounded-xl flex items-center gap-4">
+<div class="p-3 bg-primary-fixed rounded-lg text-primary">
+<span class="material-symbols-outlined">verified</span>
+</div>
+<div>
+<p class="text-helper-text text-secondary">Total Plantillas</p>
+<p class="font-display-sm text-display-sm">24</p>
+</div>
+</div>
+<div class="col-span-3 bg-white soft-card p-lg rounded-xl flex items-center gap-4">
+<div class="p-3 bg-tertiary-fixed rounded-lg text-tertiary">
+<span class="material-symbols-outlined">history</span>
+</div>
+<div>
+<p class="text-helper-text text-secondary">Última emisión</p>
+<p class="font-display-sm text-display-sm">Hace 2h</p>
+</div>
+</div>
+<div class="col-span-6 bg-white soft-card p-lg rounded-xl flex items-center justify-between">
+<div class="flex gap-2">
+<span class="px-3 py-1 bg-surface-container-high rounded-full text-xs font-body-bold text-on-surface-variant">Todos</span>
+<span class="px-3 py-1 hover:bg-surface-container-high rounded-full text-xs font-body-base text-on-surface-variant cursor-pointer transition-colors">Taller</span>
+<span class="px-3 py-1 hover:bg-surface-container-high rounded-full text-xs font-body-base text-on-surface-variant cursor-pointer transition-colors">Seminario</span>
+<span class="px-3 py-1 hover:bg-surface-container-high rounded-full text-xs font-body-base text-on-surface-variant cursor-pointer transition-colors">Diplomado</span>
+</div>
+<div class="flex items-center gap-2 text-xs text-on-surface-variant font-body-base cursor-pointer hover:text-primary">
+<span class="material-symbols-outlined text-[16px]">filter_list</span>
+                    Filtrar por fecha
+                </div>
+</div>
+</div>
+<!-- Grid Cards -->
+<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-gutter">
+<!-- Card 1 -->
+<div class="group relative bg-white soft-card rounded-xl overflow-hidden flex flex-col">
+<div class="relative aspect-[1.4/1] overflow-hidden bg-surface-variant">
+<img alt="Certificado Taller 2026" class="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110" data-alt="A clean, minimalist certificate template layout displayed as a digital mockup. The design features elegant gold borders, a professional serif font for the recipient's name, and the official TEC Emprende Lab logo at the top. The background is a crisp, off-white textured paper effect with subtle corporate watermarks, illuminated by bright, studio-quality soft lighting." src="https://lh3.googleusercontent.com/aida-public/AB6AXuAFp2gZTzjpv0DpEZytcny6BCjBZ57tILbGG7pwjtmhJoX3w4p640VWodI6RJg9pU1l8AwkP1MdmAO06AFNXYbmXuVCekYAD93hz6Zx-4ieSakITyzCCGRnqxw3izTVezwMCDI2BBihPqwKacZQuk2lZCnLzX0zRhj2QYApP9G8JCiWh8JCdzdxQqdZopjT--xIT_8Dwo6rk32v8UXxKEv51rdknmpZr4o0uiyeF_bgHWqIPXowXaaPSuU2imzeO0L1kjo-3y72Vxfl"/>
+<!-- Hover Actions -->
+<div class="action-overlay absolute inset-0 flex items-center justify-center gap-3">
+<button class="w-10 h-10 bg-primary text-white rounded-full flex items-center justify-center shadow-lg hover:scale-110 transition-transform" title="Usar">
+<span class="material-symbols-outlined text-[20px]">check</span>
+</button>
+<button class="w-10 h-10 bg-on-secondary-fixed text-white rounded-full flex items-center justify-center shadow-lg hover:scale-110 transition-transform" title="Editar">
+<span class="material-symbols-outlined text-[20px]">edit</span>
+</button>
+<button class="w-10 h-10 bg-error text-white rounded-full flex items-center justify-center shadow-lg hover:scale-110 transition-transform" title="Eliminar">
+<span class="material-symbols-outlined text-[20px]">delete</span>
+</button>
+</div>
+</div>
+<div class="p-lg">
+<h3 class="font-body-bold text-on-surface mb-2 truncate">Taller Emprendedor 2026</h3>
+<div class="flex flex-wrap gap-2">
+<span class="px-3 py-1 bg-primary-fixed text-on-primary-fixed-variant rounded-full text-[10px] font-body-bold uppercase tracking-wider">Marketing</span>
+<span class="px-3 py-1 bg-tertiary-fixed text-on-tertiary-fixed-variant rounded-full text-[10px] font-body-bold uppercase tracking-wider">Oficial</span>
+</div>
+</div>
+</div>
+<!-- Card 2 -->
+<div class="group relative bg-white soft-card rounded-xl overflow-hidden flex flex-col">
+<div class="relative aspect-[1.4/1] overflow-hidden bg-surface-variant">
+<img alt="Certificado Ventas" class="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110" data-alt="A professional certificate design for a digital marketing workshop, featuring modern navy and orange accents. The mockup shows the document resting on a warm wooden desk with a minimalist office aesthetic. The layout is balanced with clean typography, a signature line, and a QR code in the bottom corner for digital verification." src="https://lh3.googleusercontent.com/aida-public/AB6AXuALigHCjQEqDmM900saR2nRV5kkG9qhFQHbaPSlcipDPRroorAVp3cYMS3c-OS5aCeUvn27DMdzgro4WGHBd_egf5gPWEPlnEDlAjNEvfmR0n3CAFXEkD0G_w1QQztmc9SggTwnDNr34AXFAOUgu7RATeYxn-P4_3EEWUyZAjPhQA7lFKU_Zowumw6WZv-vxFyWcsZ_qTL4kpj5BbrmR47pq4Wixdu_301fdYlfVogGQmfmv8RAJW8P5Gy4YGr4UUg7EP6YErk0nuoK"/>
+<div class="action-overlay absolute inset-0 flex items-center justify-center gap-3">
+<button class="w-10 h-10 bg-primary text-white rounded-full flex items-center justify-center shadow-lg hover:scale-110 transition-transform">
+<span class="material-symbols-outlined text-[20px]">check</span>
+</button>
+<button class="w-10 h-10 bg-on-secondary-fixed text-white rounded-full flex items-center justify-center shadow-lg hover:scale-110 transition-transform">
+<span class="material-symbols-outlined text-[20px]">edit</span>
+</button>
+<button class="w-10 h-10 bg-error text-white rounded-full flex items-center justify-center shadow-lg hover:scale-110 transition-transform">
+<span class="material-symbols-outlined text-[20px]">delete</span>
+</button>
+</div>
+</div>
+<div class="p-lg">
+<h3 class="font-body-bold text-on-surface mb-2 truncate">Seminario Ventas B2B</h3>
+<div class="flex flex-wrap gap-2">
+<span class="px-3 py-1 bg-secondary-container text-on-secondary-container rounded-full text-[10px] font-body-bold uppercase tracking-wider">Comercial</span>
+</div>
+</div>
+</div>
+<!-- Card 3 -->
+<div class="group relative bg-white soft-card rounded-xl overflow-hidden flex flex-col">
+<div class="relative aspect-[1.4/1] overflow-hidden bg-surface-variant">
+<img alt="Diplomado Innovación" class="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110" data-alt="An artistic certificate template with organic shapes and terracotta colors, reflecting a creative startup atmosphere. The digital mockup is presented in a bright, airy space with high-key lighting. The typography is modern and bold, emphasizing 'Innovation Award' at the center. The background features a very subtle grain texture to suggest high-quality tactile paper." src="https://lh3.googleusercontent.com/aida-public/AB6AXuD_AMJstzGhIZBQWPC1gJQ7Fz25JMYSeNthVtLsQPPCGkDOo45xqYhiCnOuw77FmW6n0KKVZEeP_oC7eVZqm5XGmvF64KMnSImGm9GIl6TtnW6F6ZPDF3v01EhMdP9EDAE01KtrXPimucd4IIugxHbcQrqVv-7Tgiy_FgP1-oZGYUzLr-Wd3biZZrxM6ryeu4WqL8AmXmtt2Ea4MNZYyDE-6yyOvqPsxicFY43AaK8m_nO2YDZzcBBPVmtWZwp9IdX_o71-97fLvKiC"/>
+<div class="action-overlay absolute inset-0 flex items-center justify-center gap-3">
+<button class="w-10 h-10 bg-primary text-white rounded-full flex items-center justify-center shadow-lg hover:scale-110 transition-transform">
+<span class="material-symbols-outlined text-[20px]">check</span>
+</button>
+<button class="w-10 h-10 bg-on-secondary-fixed text-white rounded-full flex items-center justify-center shadow-lg hover:scale-110 transition-transform">
+<span class="material-symbols-outlined text-[20px]">edit</span>
+</button>
+<button class="w-10 h-10 bg-error text-white rounded-full flex items-center justify-center shadow-lg hover:scale-110 transition-transform">
+<span class="material-symbols-outlined text-[20px]">delete</span>
+</button>
+</div>
+</div>
+<div class="p-lg">
+<h3 class="font-body-bold text-on-surface mb-2 truncate">Diplomado Innovación 4.0</h3>
+<div class="flex flex-wrap gap-2">
+<span class="px-3 py-1 bg-primary-fixed text-on-primary-fixed-variant rounded-full text-[10px] font-body-bold uppercase tracking-wider">Innovación</span>
+<span class="px-3 py-1 bg-error-container text-on-error-container rounded-full text-[10px] font-body-bold uppercase tracking-wider">Premium</span>
+</div>
+</div>
+</div>
+<!-- Card 4 -->
+<div class="group relative bg-white soft-card rounded-xl overflow-hidden flex flex-col">
+<div class="relative aspect-[1.4/1] overflow-hidden bg-surface-variant">
+<img alt="Certificado Desarrollo" class="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110" data-alt="A clean and minimalist official certification for software engineering, with a subtle blue and grey color scheme. The document is displayed in a perspective view, highlighting a silver foil embossed seal and professional typography. The lighting is crisp and cool, creating a sense of technical expertise and institutional authority." src="https://lh3.googleusercontent.com/aida-public/AB6AXuD49qsWNrsPpKA-3BIyg4-PBZev6PKyRF5_TQvvMps6rmVIQ9-d54xTuwzMKkpb2mvqftaidCD3YEh1Z8vVlTm7AHGxvcynzb47JlkRBl_JA4PFZsyY5OPNguS0imSlFd-ATICAOvOwnYAr_6JlJefBaFaDn8bItAFXngZAZ_R2feu6UHm-41sLrgms_NJLOdDAaCJ-YqPKtPQ36i8V6WGQckWPPR5i6bJfYuLyYPnNTuKUV5qBPXGiwyEvARFDTISbBzdF97oBYQOP"/>
+<div class="action-overlay absolute inset-0 flex items-center justify-center gap-3">
+<button class="w-10 h-10 bg-primary text-white rounded-full flex items-center justify-center shadow-lg hover:scale-110 transition-transform">
+<span class="material-symbols-outlined text-[20px]">check</span>
+</button>
+<button class="w-10 h-10 bg-on-secondary-fixed text-white rounded-full flex items-center justify-center shadow-lg hover:scale-110 transition-transform">
+<span class="material-symbols-outlined text-[20px]">edit</span>
+</button>
+<button class="w-10 h-10 bg-error text-white rounded-full flex items-center justify-center shadow-lg hover:scale-110 transition-transform">
+<span class="material-symbols-outlined text-[20px]">delete</span>
+</button>
+</div>
+</div>
+<div class="p-lg">
+<h3 class="font-body-bold text-on-surface mb-2 truncate">Bootcamp Fullstack</h3>
+<div class="flex flex-wrap gap-2">
+<span class="px-3 py-1 bg-tertiary-fixed text-on-tertiary-fixed-variant rounded-full text-[10px] font-body-bold uppercase tracking-wider">Tech</span>
+<span class="px-3 py-1 bg-secondary-container text-on-secondary-container rounded-full text-[10px] font-body-bold uppercase tracking-wider">Oficial</span>
+</div>
+</div>
+</div>
+</div>
+</main>
+<!-- Upload Modal -->
+<div class="hidden fixed inset-0 z-[100] flex items-center justify-center p-gutter" id="upload-modal">
+<!-- Backdrop -->
+<div class="absolute inset-0 bg-on-secondary-fixed/40 backdrop-blur-sm" onclick="document.getElementById('upload-modal').classList.add('hidden')"></div>
+<!-- Modal Body -->
+<div class="relative bg-surface w-full max-w-lg rounded-2xl shadow-2xl overflow-hidden border border-outline-variant animate-in fade-in zoom-in duration-200">
+<div class="p-lg bg-surface-container-high border-b border-outline-variant flex justify-between items-center">
+<h3 class="font-display-sm text-display-sm">Subir Nueva Plantilla</h3>
+<button class="p-1 hover:bg-surface-variant rounded-full transition-colors" onclick="document.getElementById('upload-modal').classList.add('hidden')">
+<span class="material-symbols-outlined">close</span>
+</button>
+</div>
+<div class="p-margin-desktop space-y-6">
+<!-- Name Field -->
+<div>
+<label class="block text-label-caps font-label-caps text-on-surface-variant mb-2">Nombre de la Plantilla</label>
+<input class="w-full bg-white border border-outline-variant rounded-lg px-4 py-3 text-body-base focus:ring-2 focus:ring-primary focus:border-primary outline-none transition-all" placeholder="Ej: Certificado Marketing 2026" type="text"/>
+</div>
+<!-- Tag Selector -->
+<div>
+<label class="block text-label-caps font-label-caps text-on-surface-variant mb-2">Categoría / Etiquetas</label>
+<div class="relative">
+<select class="w-full bg-white border border-outline-variant rounded-lg px-4 py-3 text-body-base appearance-none focus:ring-2 focus:ring-primary outline-none transition-all">
+<option value="">Seleccionar etiqueta...</option>
+<option value="marketing">Marketing</option>
+<option value="tech">Tecnología</option>
+<option value="ventas">Ventas</option>
+<option value="innovacion">Innovación</option>
+</select>
+<span class="material-symbols-outlined absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none text-on-surface-variant">expand_more</span>
+</div>
+<div class="mt-3 flex gap-2">
+<span class="px-2 py-1 bg-surface-container-highest rounded flex items-center gap-1 text-[11px] font-body-bold">
+                            Marketing <button class="material-symbols-outlined text-[14px]">close</button>
+</span>
+</div>
+</div>
+<!-- File Dropzone -->
+<div class="border-2 border-dashed border-outline-variant rounded-xl p-8 bg-surface-container-low flex flex-col items-center justify-center text-center cursor-pointer hover:bg-surface-container transition-colors group">
+<div class="w-12 h-12 bg-primary-fixed rounded-full flex items-center justify-center text-primary mb-4 group-hover:scale-110 transition-transform">
+<span class="material-symbols-outlined text-[28px]">upload_file</span>
+</div>
+<p class="font-body-bold text-on-surface mb-1">Haz clic o arrastra tu archivo SVG</p>
+<p class="text-helper-text text-secondary">Formatos permitidos: .svg (Máx 2MB)</p>
+</div>
+</div>
+<div class="p-lg bg-surface-container-low border-t border-outline-variant flex justify-end gap-3">
+<button class="px-lg py-2.5 rounded-lg font-body-bold text-on-surface-variant hover:bg-surface-variant transition-colors" onclick="document.getElementById('upload-modal').classList.add('hidden')">
+                    Cancelar
+                </button>
+<button class="bg-primary hover:bg-primary-container text-white px-xl py-2.5 rounded-lg font-body-bold shadow-md transition-all active:scale-95">
+                    Guardar Plantilla
+                </button>
+</div>
+</div>
+</div>
+<script>
+        // Simple search interactivity simulation
+        const searchInput = document.querySelector('input[type="text"]');
+        searchInput.addEventListener('input', (e) => {
+            const term = e.target.value.toLowerCase();
+            const cards = document.querySelectorAll('.soft-card');
+            
+            cards.forEach(card => {
+                if(card.querySelector('h3')) {
+                    const text = card.querySelector('h3').textContent.toLowerCase();
+                    if(text.includes(term)) {
+                        card.style.display = 'flex';
+                    } else {
+                        card.style.display = 'none';
+                    }
+                }
+            });
+        });
+
+        // Atmospheric micro-interaction for cards
+        document.querySelectorAll('.soft-card').forEach(card => {
+            card.addEventListener('mousedown', () => {
+                card.style.transform = 'scale(0.98)';
+            });
+            card.addEventListener('mouseup', () => {
+                card.style.transform = 'translateY(-2px)';
+            });
+        });
+    </script>
+</body></html>
