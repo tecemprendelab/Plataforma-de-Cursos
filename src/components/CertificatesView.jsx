@@ -443,9 +443,15 @@ function CertIndividual({ participants, courses = [], galleryTplPick, onGalleryC
   const [previewLoading,  setPreviewLoading]  = useState(false)
   const [errors,          setErrors]          = useState({})
   const [step,            setStep]            = useState(1)   // wizard: 1=plantilla 2=datos 3=generar
+  const [filterCourse,    setFilterCourse]    = useState('')   // filtra el select de participante por curso
 
   // IDs detectados que no son nombre ni fecha
   const extraIds = detectedIds.filter(({id}) => id !== nameId && id !== dateId)
+
+  // Participantes activos, filtrados por curso si hay uno seleccionado
+  const eligibleParticipants = participants.filter(p =>
+    p.status === 'activo' &&
+    (!filterCourse || (p.courses || []).includes(filterCourse)))
 
   const hasTemplate = !!(templateName || svgFile)
   const dataValid   = recipient.trim().length >= 2 && date.trim().length >= 4
@@ -598,13 +604,28 @@ function CertIndividual({ participants, courses = [], galleryTplPick, onGalleryC
 
           {participants.length > 0 && (
             <div style={{ marginBottom:12 }}>
+              {courses.length > 0 && (
+                <div style={{ marginBottom:8 }}>
+                  <label style={{ display:'block', fontSize:12, color:'var(--gray)', marginBottom:5 }}>
+                    Filtrar por curso / taller
+                  </label>
+                  <select value={filterCourse} onChange={e => setFilterCourse(e.target.value)}
+                    className="finput" style={{ background:'var(--cream-2)' }}>
+                    <option value="">Todos los cursos</option>
+                    {(courses.some(c => c.certEnabled)
+                      ? courses.filter(c => c.active && c.certEnabled)
+                      : courses.filter(c => c.active)
+                    ).map(c => <option key={c.id} value={c.id}>{c.short || c.name}</option>)}
+                  </select>
+                </div>
+              )}
               <label style={{ display:'block', fontSize:12, color:'var(--gray)', marginBottom:5 }}>
-                Participante
+                Participante {filterCourse && `(${eligibleParticipants.length})`}
               </label>
               <select onChange={e => { const p = participants.find(x => x.id === e.target.value); if (p) setRecipient(p.name) }}
                 className="finput" style={{ background:'var(--cream-2)' }}>
                 <option value="">— Elegir de la lista —</option>
-                {participants.filter(p => p.status === 'activo').map(p => (
+                {eligibleParticipants.map(p => (
                   <option key={p.id} value={p.id}>{p.name}</option>
                 ))}
               </select>
