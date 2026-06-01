@@ -27,38 +27,45 @@
 .poppins-black-italic   { font-family:"Poppins",sans-serif; font-weight:900; font-style:italic  }
 
 /* ── Design tokens ───────────────────────────────────────── */
+/*
+   Paleta oficial 2do semestre:
+   Oliva   #6E7530  ·  Arena #D8BA82  ·  Naranja #E8521A
+   Siena   #A84020  ·  Lavanda #8098C8
+*/
 :root {
   color-scheme: light;
 
-  /* Colores */
-  --cream:       #FAF6EE;
-  --cream-2:     #F2EBD9;
-  --cream-3:     #E8DCC8;
-  --orange:      #E8651A;
-  --orange-l:    #F4894A;
-  --orange-d:    #C04E0E;
+  /* Colores base */
+  --cream:       #FAF5EC;   /* fondo principal — blanco arenoso */
+  --cream-2:     #F2E8D0;   /* filas alternas / hover */
+  --cream-3:     #E8D8B4;   /* profundidad / separadores */
+  --orange:      #E8521A;   /* naranja-rojo oficial */
+  --orange-l:    #F07040;   /* naranja claro */
+  --orange-d:    #A84020;   /* siena (naranja oscuro) */
   --black:       #1A1612;
   --black-2:     #2E2820;
   --white:       #FFFFFF;
   --gray:        #8A8070;
-  --border:      #D4C8B0;
-  --green:       #3D7A5A;
-  --green-l:     #E4F0E8;
+  --border:      #CEBF98;   /* borde — tono arena */
+  --green:       #6E7530;   /* oliva oficial */
+  --green-l:     #EAF0D0;   /* oliva claro */
+  --blue:        #8098C8;   /* lavanda oficial — info / IA */
+  --blue-l:      #EEF3FF;   /* lavanda claro */
 
-  /* Tokens semánticos (sirven para soportar dark mode) */
+  /* Tokens semánticos */
   --sidebar-bg:   var(--black);
   --sidebar-text: var(--cream);
-  --row-hover:    #FDFAF5;
-  --row-exp-bg:   #FFF5F3;
-  --row-warn-bg:  #FFFAF5;
-  --row-exp-bd:   #F4C4B5;
-  --row-warn-bd:  #FDE8D3;
-  --alert-warm-bg: #FFF8F3;
-  --shadow-card:  0 1px 2px rgba(26,22,18,.03);
+  --row-hover:    #FDFBF4;
+  --row-exp-bg:   #FFF5F0;
+  --row-warn-bg:  #FFFAF2;
+  --row-exp-bd:   #F4C0A8;
+  --row-warn-bd:  #F0DFB8;
+  --alert-warm-bg: #FFF7EE;
+  --shadow-card:  0 1px 2px rgba(26,22,18,.04);
 
-  /* Tipografía — Poppins en todos los niveles */
-  --font-display: "Poppins", sans-serif;   /* títulos: semibold */
-  --font-body:    "Poppins", sans-serif;   /* cuerpo:  regular/medium */
+  /* Tipografía */
+  --font-display: "Poppins", sans-serif;
+  --font-body:    "Poppins", sans-serif;
   --font-mono:    "Courier New", monospace;
 
   /* Espaciado / radios */
@@ -72,28 +79,29 @@
 [data-theme="dark"] {
   color-scheme: dark;
 
-  --cream:       #1A1612;   /* page bg */
-  --cream-2:     #25201A;   /* alt rows / hover */
-  --cream-3:     #2E2820;   /* deeper */
-  --white:       #1F1B15;   /* card surface */
-  --border:      #3A332B;
-  --black:       #FAF6EE;   /* text (invertido) */
-  --black-2:     #E8DCC8;
+  --cream:       #19160F;   /* fondo oscuro con tinte oliva */
+  --cream-2:     #241F16;
+  --cream-3:     #2E2818;
+  --white:       #1E1A12;   /* superficie de cards */
+  --border:      #3A3220;
+  --black:       #FAF5EC;   /* texto (invertido) */
+  --black-2:     #E8D8B4;
   --gray:        #9C9485;
-  --green-l:     #1F3328;
+  --green-l:     #202E10;   /* oliva oscuro */
+  --blue-l:      #1A2030;   /* lavanda oscuro */
 
-  /* Sidebar queda oscuro siempre (no se invierte) */
-  --sidebar-bg:   #0E0B08;
-  --sidebar-text: #FAF6EE;
+  /* Sidebar queda oscuro siempre */
+  --sidebar-bg:   #0D0B06;
+  --sidebar-text: #FAF5EC;
 
-  /* Tintes cálidos en modo oscuro */
-  --row-hover:    #2A241C;
-  --row-exp-bg:   #3A1F1A;
-  --row-warn-bg:  #3A2D1A;
-  --row-exp-bd:   #5A2D24;
-  --row-warn-bd:  #5A4624;
-  --alert-warm-bg: #2E2218;
-  --shadow-card:  0 1px 2px rgba(0,0,0,.4);
+  /* Tintes cálidos oscuros */
+  --row-hover:    #2A2318;
+  --row-exp-bg:   #381E18;
+  --row-warn-bg:  #382A14;
+  --row-exp-bd:   #582A20;
+  --row-warn-bd:  #584020;
+  --alert-warm-bg: #2C2010;
+  --shadow-card:  0 1px 2px rgba(0,0,0,.45);
 }
 
 /* ── Reset ───────────────────────────────────────────────── */
@@ -205,7 +213,7 @@ input, select, button, textarea { font-family: var(--font-body) }
 .badge-orange { background:var(--orange);   color:#fff }
 .badge-gray   { background:var(--cream-3);  color:var(--gray) }
 .badge-red    { background:var(--orange-d); color:#fff }
-.badge-green  { background:#D1FAE5;         color:#065F46 }
+.badge-green  { background:var(--green-l);  color:var(--green) }
 
 /* ── Tabla ───────────────────────────────────────────────── */
 .table-wrap { width:100%; overflow-x:auto; -webkit-overflow-scrolling:touch }
@@ -261,7 +269,7 @@ input, select, button, textarea { font-family: var(--font-body) }
 .alert { border-radius:var(--radius-lg); padding:14px 18px; margin-bottom:16px }
 .alert-red    { background:var(--white);          border:2px solid var(--orange-d) }
 .alert-orange { background:var(--alert-warm-bg);  border:2px solid var(--orange) }
-.alert-green  { background:var(--green-l);        border:1px solid #86EFAC; color:#065F46 }
+.alert-green  { background:var(--green-l);  border:1px solid var(--green); color:var(--green) }
 .alert-title  { font-weight:600; font-size:13px; margin-bottom:8px; display:flex; align-items:center; gap:6px }
 .alert-red    .alert-title { color:var(--orange-d) }
 .alert-orange .alert-title { color:var(--orange-d) }
@@ -758,8 +766,8 @@ img, svg, video { max-width:100%; height:auto }
 [data-theme="dark"] .type-badge-charla    { background:#222020; color:#9C9485; border-color:#4A4540 }
 
 /* ── Correcciones dark mode: componentes con colores fijos ── */
-[data-theme="dark"] .badge-green { background:#1A3A25; color:#6FCF97 }
-[data-theme="dark"] .alert-green { border-color:#2A4030; color:#6FCF97 }
+[data-theme="dark"] .badge-green { background:#252E10; color:#A8B840 }
+[data-theme="dark"] .alert-green { border-color:#2A3010; color:#A8B840 }
 [data-theme="dark"] .login-error { background:#2E1A1A; border-color:#7A2020; color:#FC8181 }
 
 /* ── Dark mode: overrides Tailwind (CertificatesView, GalleryView) ── */

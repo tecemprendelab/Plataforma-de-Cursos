@@ -12,7 +12,7 @@ Reglas para cada tarea. Sesgo: cautela sobre velocidad en trabajo no trivial. Ju
 - **IA**: `api/analyze.js` usa GPT-4o para extraer participantes desde imagen (requiere `OPENAI_API_KEY`).
 - **Dominio**: gestión de acceso (45 días por defecto, ver `ACCESS_DAYS` en `src/data/constants.js`) a cursos virtuales del TEC Emprende Lab.
 - **Idioma**: UI, comentarios y commits en español. Identificadores en código en inglés.
-- **Paleta**: crema `#FAF6EE`, naranja `#E8651A`, negro `#1A1612`. Fuente Poppins.
+- **Paleta** (2do semestre): arena `#FAF5EC`, naranja `#E8521A`, siena `#A84020`, oliva `#6E7530`, lavanda `#8098C8`, negro `#1A1612`. Fuente Poppins.
 
 ---
 
