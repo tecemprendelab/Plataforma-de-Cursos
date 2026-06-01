@@ -824,8 +824,10 @@ function CertBatch({ participants = [], courses = [] }) {
   const [globalDate,     setGlobalDate]     = useState('')
   const [detectedIds,    setDetectedIds]    = useState([])
   const [extraFieldValues, setExtraFieldValues] = useState({})
+  const [step,           setStep]           = useState(1)   // wizard: 1=plantilla 2=participantes 3=generar
 
   const extraIds = detectedIds.filter(({id}) => id !== nameId && id !== dateId)
+  const hasTemplate = !!(templateName || svgFile)
 
   const parseIdsSvg = async (svgTextOrFile) => {
     const text = typeof svgTextOrFile === 'string' ? svgTextOrFile : await svgTextOrFile.text()
@@ -952,9 +954,71 @@ function CertBatch({ participants = [], courses = [] }) {
   const fInp = { background:'var(--cream-2)', color:'var(--black)', fontSize:12 }
 
   return (
-    <div style={{ display:'grid', gridTemplateColumns:'1fr auto', gap:20 }}>
+    <div style={{ maxWidth:760, margin:'0 auto' }}>
       <ConfettiBurst trigger={confetti} />
-      {/* Left: CSV + requisitos */}
+      <Stepper steps={['Plantilla', 'Participantes', 'Generar']} current={step} onStep={setStep} />
+
+      {/* ── Paso 1: Plantilla + mapeo ── */}
+      {step === 1 && (
+      <div style={{ display:'flex', flexDirection:'column', gap:14 }}>
+        {/* Plantilla */}
+        <div className="card" style={{ padding:16 }}>
+          <SectionHeader icon="layers" label="Plantilla SVG" />
+          <div style={{ marginBottom:10 }}>
+            <TemplateCarousel
+              templates={templates}
+              selectedValue={svgFile ? '' : (templateName || '')}
+              svgFile={svgFile}
+              onSelect={async val => {
+                if (!val) { setTemplateName(null); setSvgFile(null); setDetectedIds([]); return }
+                const builtin = BUILT_IN_TEMPLATES.find(t => t.file === val)
+                if (builtin) {
+                  setTemplateName(val); setSvgFile(null)
+                  try { const r = await fetch(`${CERT_API}/api/templates/${val}`); if (r.ok) parseIdsSvg(await r.text()) } catch(_) {}
+                  return
+                }
+                const tpl = templates.find(t => t.id === val)
+                if (tpl) {
+                  const svgText = await loadSvgContent(tpl)
+                  if (svgText) { const f = new File([svgText], tpl.file_name, { type:'image/svg+xml' }); setSvgFile(f); setTemplateName(null); parseIdsSvg(svgText) }
+                }
+              }}
+              certApi={CERT_API}
+              loadSvgContent={loadSvgContent}
+            />
+          </div>
+          <CertDropZone accept=".svg" title="O subir SVG propio" subtitle="Opcional"
+            icon="upload_file" file={svgFile} onFile={f => {
+              setSvgFile(f); if (f) { setTemplateName(null); parseIdsSvg(f) } else setDetectedIds([])
+            }} />
+        </div>
+
+        {/* Mapeo de IDs */}
+        <div className="card" style={{ padding:16 }}>
+          <SectionHeader icon="alt_route" label="Mapeo de campos" />
+          <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:8 }}>
+            <div>
+              <label style={{ display:'block', fontSize:11, color:'var(--gray)', marginBottom:4 }}>ID → Nombre</label>
+              <input value={nameId} onChange={e => setNameId(e.target.value)}
+                className="finput" style={{ background:'var(--cream-2)', fontFamily:'monospace', fontSize:11 }} />
+            </div>
+            <div>
+              <label style={{ display:'block', fontSize:11, color:'var(--gray)', marginBottom:4 }}>ID → Fecha</label>
+              <input value={dateId} onChange={e => setDateId(e.target.value)}
+                className="finput" style={{ background:'var(--cream-2)', fontFamily:'monospace', fontSize:11 }} />
+            </div>
+          </div>
+        </div>
+
+        <button onClick={() => setStep(2)} disabled={!hasTemplate}
+          className="btn btn-orange" style={{ width:'100%', justifyContent:'center', padding:'11px 0', fontSize:14 }}>
+          Siguiente <span className="material-symbols-outlined" style={{fontSize:16}}>arrow_forward</span>
+        </button>
+      </div>
+      )}
+
+      {/* ── Paso 2: Participantes / CSV ── */}
+      {step === 2 && (
       <div style={{ display:'flex', flexDirection:'column', gap:14 }}>
 
         {/* Filtros */}
@@ -1078,58 +1142,26 @@ function CertBatch({ participants = [], courses = [] }) {
             </div>
           </div>
         )}
-      </div>
-
-      {/* Right: plantilla + mapeo + generar */}
-      <div style={{ width:300, display:'flex', flexDirection:'column', gap:14 }}>
-
-        {/* Plantilla */}
-        <div className="card" style={{ padding:16 }}>
-          <SectionHeader icon="layers" label="Plantilla SVG" />
-          <div style={{ marginBottom:10 }}>
-            <TemplateCarousel
-              templates={templates}
-              selectedValue={svgFile ? '' : (templateName || '')}
-              svgFile={svgFile}
-              onSelect={async val => {
-                if (!val) { setTemplateName(null); setSvgFile(null); setDetectedIds([]); return }
-                const builtin = BUILT_IN_TEMPLATES.find(t => t.file === val)
-                if (builtin) {
-                  setTemplateName(val); setSvgFile(null)
-                  try { const r = await fetch(`${CERT_API}/api/templates/${val}`); if (r.ok) parseIdsSvg(await r.text()) } catch(_) {}
-                  return
-                }
-                const tpl = templates.find(t => t.id === val)
-                if (tpl) {
-                  const svgText = await loadSvgContent(tpl)
-                  if (svgText) { const f = new File([svgText], tpl.file_name, { type:'image/svg+xml' }); setSvgFile(f); setTemplateName(null); parseIdsSvg(svgText) }
-                }
-              }}
-              certApi={CERT_API}
-              loadSvgContent={loadSvgContent}
-            />
-          </div>
-          <CertDropZone accept=".svg" title="O subir SVG propio" subtitle="Opcional"
-            icon="upload_file" file={svgFile} onFile={f => {
-              setSvgFile(f); if (f) { setTemplateName(null); parseIdsSvg(f) } else setDetectedIds([])
-            }} />
+        <div style={{ display:'flex', gap:8 }}>
+          <button onClick={() => setStep(1)}
+            className="btn btn-ghost" style={{ flex:'0 0 auto', justifyContent:'center', padding:'11px 16px', fontSize:14 }}>
+            <span className="material-symbols-outlined" style={{fontSize:16}}>arrow_back</span> Atrás
+          </button>
+          <button onClick={() => setStep(3)} disabled={!csvFile}
+            className="btn btn-orange" style={{ flex:1, justifyContent:'center', padding:'11px 0', fontSize:14 }}>
+            Siguiente <span className="material-symbols-outlined" style={{fontSize:16}}>arrow_forward</span>
+          </button>
         </div>
+      </div>
+      )}
 
-        {/* Mapeo */}
+      {/* ── Paso 3: Generar ── */}
+      {step === 3 && (
+      <div style={{ display:'flex', flexDirection:'column', gap:14 }}>
+
+        {/* Configuración de salida */}
         <div className="card" style={{ padding:16 }}>
-          <SectionHeader icon="alt_route" label="Mapeo de campos" />
-          <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:8, marginBottom:10 }}>
-            <div>
-              <label style={{ display:'block', fontSize:11, color:'var(--gray)', marginBottom:4 }}>ID → Nombre</label>
-              <input value={nameId} onChange={e => setNameId(e.target.value)}
-                className="finput" style={{ background:'var(--cream-2)', fontFamily:'monospace', fontSize:11 }} />
-            </div>
-            <div>
-              <label style={{ display:'block', fontSize:11, color:'var(--gray)', marginBottom:4 }}>ID → Fecha</label>
-              <input value={dateId} onChange={e => setDateId(e.target.value)}
-                className="finput" style={{ background:'var(--cream-2)', fontFamily:'monospace', fontSize:11 }} />
-            </div>
-          </div>
+          <SectionHeader icon="tune" label="Configuración de salida" />
           <div style={{ marginBottom:10 }}>
             <label style={{ display:'block', fontSize:11, color:'var(--gray)', marginBottom:4 }}>
               Fecha global <span style={{ fontWeight:400 }}>(sobreescribe la del CSV)</span>
@@ -1205,7 +1237,13 @@ function CertBatch({ participants = [], courses = [] }) {
           </div>
         )}
         <CertAlert type={alert?.type} msg={alert?.msg} onDismiss={() => setAlert(null)} />
+
+        <button onClick={() => setStep(2)}
+          className="btn btn-ghost" style={{ width:'100%', justifyContent:'center', padding:'10px 0', fontSize:14 }}>
+          <span className="material-symbols-outlined" style={{fontSize:16}}>arrow_back</span> Atrás
+        </button>
       </div>
+      )}
     </div>
   )
 }
