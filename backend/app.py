@@ -259,32 +259,57 @@ def _fill_svg(svg_text: str, fields: dict) -> str:
         "line_fechas": _fechas_parts,
     }
 
+    processed_mixed = set()
+
     for line_id, parts_fn in MIXED_LINES.items():
-        pat = r'<text[^>]*id="' + _re.escape(line_id) + r'"[\s\S]*?</text>'
-        m = _re.search(pat, result)
+        # Soporta tanto id="..." como id='...'
+        pat = r'<text[^>]*id=["\']' + _re.escape(line_id) + r'["\'][\s\S]*?</text>'
+        m = _re.search(pat, result, _re.IGNORECASE)
         if not m:
             continue
         tag = m.group(0)
-        fill_m = _re.search(r'fill="([^"]+)"', tag)
-        ff_m   = _re.search(r'font-family="([^"]+)"', tag)
-        fs_m   = _re.search(r'font-size="([^"]+)"', tag)
-        x_m    = _re.search(r'<tspan[^>]*x="([^"]+)"', tag)
-        y_m    = _re.search(r'<tspan[^>]*y="([^"]+)"', tag)
-        fill = fill_m.group(1) if fill_m else "#666666"
-        ff   = ff_m.group(1) if ff_m else "Sen,sans-serif"
-        fs   = fs_m.group(1) if fs_m else "11"
-        x    = x_m.group(1) if x_m else "421"
-        y    = y_m.group(1) if y_m else "283"
         parts = parts_fn(fields)
         safe_parts = [
             (txt.replace("&","&amp;").replace("<","&lt;").replace(">","&gt;"), bold)
             for txt, bold in parts
         ]
-        new_tag = _build_mixed_line(safe_parts, x, y, fill, ff, fs)
-        result = result.replace(tag, new_tag, 1)
+
+        # Extraer x/y del primer tspan; si no hay, del propio <text>
+        x_m = (_re.search(r'<tspan[^>]*\bx=["\']([^"\']+)["\']', tag) or
+               _re.search(r'<text\b[^>]*\bx=["\']([^"\']+)["\']', tag))
+        y_m = (_re.search(r'<tspan[^>]*\by=["\']([^"\']+)["\']', tag) or
+               _re.search(r'<text\b[^>]*\by=["\']([^"\']+)["\']', tag))
+
+        # Construir spans preservando posición
+        spans = ""
+        first = True
+        for txt, bold in safe_parts:
+            if not txt:
+                continue
+            fw = "700" if bold else "400"
+            if first:
+                pos = ""
+                if x_m: pos += f' x="{x_m.group(1)}"'
+                if y_m: pos += f' y="{y_m.group(1)}"'
+                spans += f'<tspan{pos} font-weight="{fw}">{txt}</tspan>'
+                first = False
+            else:
+                spans += f'<tspan font-weight="{fw}">{txt}</tspan>'
+
+        if not spans:
+            continue
+
+        # Preservar el tag de apertura original (mantiene fill, font, transform, etc.)
+        open_m = _re.match(r'(<text\b[^>]*>)', tag)
+        if open_m:
+            new_tag = open_m.group(1) + spans + '</text>'
+            result = result.replace(tag, new_tag, 1)
+            processed_mixed.add(line_id)
 
     for field_id, value in fields.items():
         if not field_id or value is None:
+            continue
+        if field_id in processed_mixed:
             continue
         raw_val = str(value)
         if field_id == "recipient_name":
