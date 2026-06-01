@@ -30,14 +30,14 @@ function ExtraFieldInput({ id, value, onChange, size = 'sm', courses = [] }) {
   const [startIso, setStartIso] = useState('')
   const [endIso,   setEndIso]   = useState('')
 
-  const cls = `w-full border border-stone-200 rounded-lg px-3 py-2 text-${size} bg-amber-50 focus:outline-none focus:ring-2 focus:ring-orange-400`
+  const fst = { background:'var(--cream-2)', color:'var(--black)', fontSize: size === 'xs' ? 11 : 13 }
 
   if (isTipo) {
     const certCourses = courses.some(c => c.certEnabled)
       ? courses.filter(c => c.active && c.certEnabled)
       : courses.filter(c => c.active)
     return (
-      <select value={value} onChange={e => onChange(e.target.value)} className={cls}>
+      <select value={value} onChange={e => onChange(e.target.value)} className="finput" style={fst}>
         <option value="">— Seleccionar curso/taller —</option>
         {certCourses.map(c => {
           const prefix = TIPO_PREFIX[c.type] || 'Curso de'
@@ -54,24 +54,24 @@ function ExtraFieldInput({ id, value, onChange, size = 'sm', courses = [] }) {
       onChange(sf && ef ? `Del ${sf} al ${ef}` : sf || ef || '')
     }
     return (
-      <div className="space-y-1.5">
-        <div className="grid grid-cols-2 gap-2">
+      <div style={{ display:'flex', flexDirection:'column', gap:6 }}>
+        <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:8 }}>
           <div>
-            <p className="text-xs text-stone-400 mb-1">Fecha inicio</p>
+            <p style={{ fontSize:11, color:'var(--gray)', marginBottom:4 }}>Fecha inicio</p>
             <input type="date" value={startIso}
               onChange={e => { setStartIso(e.target.value); emit(e.target.value, endIso) }}
-              className={cls} />
+              className="finput" style={fst} />
           </div>
           <div>
-            <p className="text-xs text-stone-400 mb-1">Fecha fin</p>
+            <p style={{ fontSize:11, color:'var(--gray)', marginBottom:4 }}>Fecha fin</p>
             <input type="date" value={endIso}
               onChange={e => { setEndIso(e.target.value); emit(startIso, e.target.value) }}
-              className={cls} />
+              className="finput" style={fst} />
           </div>
         </div>
         {value && (
-          <p className="text-xs text-stone-500 italic px-1">
-            <span className="material-symbols-outlined align-middle mr-1" style={{fontSize:12}}>event</span>
+          <p style={{ fontSize:11, color:'var(--gray)', fontStyle:'italic', display:'flex', alignItems:'center', gap:4 }}>
+            <span className="material-symbols-outlined" style={{fontSize:12}}>event</span>
             {value}
           </p>
         )}
@@ -81,7 +81,7 @@ function ExtraFieldInput({ id, value, onChange, size = 'sm', courses = [] }) {
 
   return (
     <input value={value} onChange={e => onChange(e.target.value)}
-      placeholder={`Valor para ${id}`} className={cls} />
+      placeholder={`Valor para ${id}`} className="finput" style={fst} />
   )
 }
 
@@ -102,18 +102,18 @@ function useDebounce(fn, delay) {
 
 function CertAlert({ type, msg, onDismiss }) {
   if (!msg) return null
-  const s = {
-    success: 'bg-green-50 border-green-200 text-green-800',
-    error:   'bg-red-50 border-red-200 text-red-700',
-    info:    'bg-blue-50 border-blue-200 text-blue-800',
-  }[type] || 'bg-blue-50 border-blue-200 text-blue-800'
-  const icons = { success:'check_circle', error:'error', info:'info' }
+  const cfg = {
+    success: { bg:'var(--green-l)',      bc:'var(--green)',    tc:'var(--green)',    icon:'check_circle' },
+    error:   { bg:'var(--row-exp-bg)',   bc:'var(--orange-d)', tc:'var(--orange-d)', icon:'error'        },
+    info:    { bg:'var(--cream-2)',       bc:'var(--border)',   tc:'var(--gray)',     icon:'info'         },
+  }[type] || { bg:'var(--cream-2)',      bc:'var(--border)',   tc:'var(--gray)',     icon:'info'         }
   return (
-    <div className={`flex items-start gap-2 px-4 py-3 rounded-lg border text-sm mt-3 ${s}`}>
-      <span className="material-symbols-outlined mt-0.5 shrink-0" style={{fontSize:16}}>{icons[type]||'info'}</span>
-      <span className="flex-1 leading-relaxed">{msg}</span>
+    <div style={{ display:'flex', alignItems:'flex-start', gap:8, padding:'10px 14px', borderRadius:10,
+      border:`1px solid ${cfg.bc}`, background:cfg.bg, fontSize:13, marginTop:12 }}>
+      <span className="material-symbols-outlined" style={{fontSize:16, color:cfg.tc, marginTop:1, flexShrink:0}}>{cfg.icon}</span>
+      <span style={{ flex:1, lineHeight:1.6, color:'var(--black)' }}>{msg}</span>
       {onDismiss && (
-        <button onClick={onDismiss} className="opacity-60 hover:opacity-100 ml-1">
+        <button onClick={onDismiss} style={{ background:'none', border:'none', cursor:'pointer', color:'var(--gray)', opacity:.7 }}>
           <span className="material-symbols-outlined" style={{fontSize:14}}>close</span>
         </button>
       )}
@@ -124,34 +124,35 @@ function CertAlert({ type, msg, onDismiss }) {
 function CertDropZone({ accept, title, subtitle, icon, file, onFile }) {
   const [drag, setDrag] = useState(false)
   const ref = useRef()
+  const dzStyle = {
+    border: `2px dashed ${file ? 'var(--green)' : drag ? 'var(--orange)' : 'var(--border)'}`,
+    borderRadius: 'var(--radius-lg)',
+    padding: 20, textAlign:'center', cursor:'pointer',
+    transition:'all .2s',
+    background: file ? 'var(--green-l)' : drag ? 'var(--alert-warm-bg)' : 'var(--cream-2)',
+  }
   return (
-    <div
+    <div style={dzStyle}
       onClick={() => ref.current.click()}
       onDragOver={e => { e.preventDefault(); setDrag(true) }}
       onDragLeave={() => setDrag(false)}
       onDrop={e => { e.preventDefault(); setDrag(false); const f = e.dataTransfer.files[0]; if (f) onFile(f) }}
-      className={`border-2 border-dashed rounded-xl p-5 text-center cursor-pointer transition-all
-        ${file
-          ? 'border-green-400 bg-green-50'
-          : drag
-            ? 'border-orange-400 bg-orange-50/30'
-            : 'border-stone-300 bg-amber-50 hover:border-orange-400'}`}
     >
       <input ref={ref} type="file" accept={accept} className="hidden"
         onChange={e => { if (e.target.files[0]) onFile(e.target.files[0]); e.target.value = '' }} />
       {file ? (
-        <div className="flex items-center justify-center gap-2">
-          <span className="material-symbols-outlined text-green-600" style={{fontSize:20}}>check_circle</span>
-          <span className="text-sm font-medium text-green-700 truncate max-w-[200px]">{file.name}</span>
-          <button onClick={e => { e.stopPropagation(); onFile(null) }} className="ml-1 text-stone-400 hover:text-red-500 transition-colors">
+        <div style={{ display:'flex', alignItems:'center', justifyContent:'center', gap:8 }}>
+          <span className="material-symbols-outlined" style={{fontSize:20, color:'var(--green)'}}>check_circle</span>
+          <span style={{ fontSize:13, fontWeight:500, color:'var(--black)', overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap', maxWidth:200 }}>{file.name}</span>
+          <button onClick={e => { e.stopPropagation(); onFile(null) }} style={{ background:'none', border:'none', cursor:'pointer', color:'var(--gray)', marginLeft:2 }}>
             <span className="material-symbols-outlined" style={{fontSize:16}}>close</span>
           </button>
         </div>
       ) : (
         <>
-          <span className="material-symbols-outlined text-orange-400 text-3xl mb-2 block">{icon}</span>
-          <p className="text-sm font-medium text-gray-700">{title}</p>
-          {subtitle && <p className="text-xs text-stone-400 mt-0.5">{subtitle}</p>}
+          <span className="material-symbols-outlined" style={{fontSize:30, color:'var(--orange)', display:'block', marginBottom:8}}>{icon}</span>
+          <p style={{ fontSize:13, fontWeight:500, color:'var(--black)' }}>{title}</p>
+          {subtitle && <p style={{ fontSize:11, color:'var(--gray)', marginTop:2 }}>{subtitle}</p>}
         </>
       )}
     </div>
@@ -160,11 +161,14 @@ function CertDropZone({ accept, title, subtitle, icon, file, onFile }) {
 
 function CertFormatToggle({ value, onChange }) {
   return (
-    <div className="flex rounded-lg overflow-hidden border border-stone-200">
+    <div style={{ display:'flex', borderRadius:'var(--radius-md)', overflow:'hidden', border:'1px solid var(--border)' }}>
       {[{v:'pdf',icon:'picture_as_pdf',label:'PDF'},{v:'png',icon:'image',label:'PNG'}].map(f => (
         <button key={f.v} onClick={() => onChange(f.v)}
-          className={`flex-1 flex items-center justify-center gap-1.5 py-2 text-xs font-semibold transition-colors
-            ${value === f.v ? 'bg-gray-900 text-amber-50' : 'bg-white text-stone-500 hover:bg-stone-50'}`}>
+          style={{ flex:1, display:'flex', alignItems:'center', justifyContent:'center', gap:6, padding:'8px 0',
+            fontSize:12, fontWeight:600, cursor:'pointer', border:'none', transition:'all .15s', fontFamily:'var(--font-body)',
+            background: value === f.v ? 'var(--black)' : 'var(--white)',
+            color:      value === f.v ? 'var(--cream)' : 'var(--gray)',
+          }}>
           <span className="material-symbols-outlined" style={{fontSize:14}}>{f.icon}</span>{f.label}
         </button>
       ))}
@@ -184,6 +188,20 @@ function ConfidenceBadge({ level }) {
       <span className="material-symbols-outlined" style={{fontSize:12}}>{s.icon}</span>
       Confianza {level}
     </span>
+  )
+}
+
+/* ── Helper: encabezado de sección ─────────────────────────── */
+
+function SectionHeader({ icon, label, action }) {
+  return (
+    <div style={{ display:'flex', alignItems:'center', gap:8, marginBottom:14,
+      paddingBottom:12, borderBottom:'1px solid var(--cream-3)' }}>
+      <span className="material-symbols-outlined" style={{ fontSize:16, color:'var(--orange)' }}>{icon}</span>
+      <span style={{ fontSize:11, fontWeight:700, textTransform:'uppercase',
+        letterSpacing:'.6px', color:'var(--gray)', flex:1 }}>{label}</span>
+      {action}
+    </div>
   )
 }
 
@@ -325,16 +343,26 @@ function CertIndividual({ participants, courses = [], galleryTplPick, onGalleryC
     finally { setLoading(false) }
   }
 
+  const idPillStyle = (active) => ({
+    padding:'3px 10px', borderRadius:20, fontSize:11, fontFamily:'monospace', cursor:'pointer',
+    border:`1px solid ${active ? 'var(--black)' : 'var(--border)'}`,
+    background: active ? 'var(--black)' : 'transparent',
+    color: active ? 'var(--cream)' : 'var(--gray)',
+    transition:'all .15s',
+  })
+
   return (
-    <div className="flex gap-5">
+    <div style={{ display:'flex', gap:20 }}>
       {/* Left: form */}
-      <div className="w-[340px] shrink-0 space-y-4">
-        <div className="bg-white border border-stone-200 rounded-xl p-4">
-          <p className="text-xs font-semibold uppercase tracking-wider text-stone-500 mb-3">Plantilla</p>
+      <div style={{ width:340, flexShrink:0, display:'flex', flexDirection:'column', gap:14 }}>
+
+        {/* Plantilla */}
+        <div className="card" style={{ padding:16 }}>
+          <SectionHeader icon="layers" label="Plantilla" />
           <select
             value={svgFile ? '' : (templateName || '')}
             onChange={e => selectTemplate(e.target.value)}
-            className="w-full border border-stone-200 rounded-lg px-3 py-2 text-sm bg-amber-50 focus:outline-none focus:ring-2 focus:ring-orange-400 mb-3">
+            className="finput" style={{ background:'var(--cream-2)', marginBottom:12 }}>
             <option value="">— Seleccionar plantilla —</option>
             <optgroup label="Plantillas predefinidas">
               {BUILT_IN_TEMPLATES.map(t => <option key={t.id} value={t.file}>{t.name}</option>)}
@@ -349,10 +377,12 @@ function CertIndividual({ participants, courses = [], galleryTplPick, onGalleryC
           </select>
 
           {participants.length > 0 && (
-            <div className="mb-3">
-              <p className="text-xs text-stone-500 mb-1.5">Seleccionar participante</p>
+            <div style={{ marginBottom:12 }}>
+              <label style={{ display:'block', fontSize:12, color:'var(--gray)', marginBottom:5 }}>
+                Participante
+              </label>
               <select onChange={e => { const p = participants.find(x => x.id === e.target.value); if (p) setRecipient(p.name) }}
-                className="w-full border border-stone-200 rounded-lg px-3 py-2 text-sm bg-amber-50 focus:outline-none focus:ring-2 focus:ring-orange-400">
+                className="finput" style={{ background:'var(--cream-2)' }}>
                 <option value="">— Elegir de la lista —</option>
                 {participants.filter(p => p.status === 'activo').map(p => (
                   <option key={p.id} value={p.id}>{p.name}</option>
@@ -366,25 +396,22 @@ function CertIndividual({ participants, courses = [], galleryTplPick, onGalleryC
             onFile={f => { setSvgFile(f); if (f) { setTemplateName(null); parseIds(f) } else setDetectedIds([]) }} />
         </div>
 
+        {/* IDs detectados */}
         {detectedIds.length > 0 && (
-          <div className="bg-white border border-stone-200 rounded-xl p-4">
-            <p className="text-xs font-semibold uppercase tracking-wider text-stone-500 mb-2">IDs detectados</p>
-            <p className="text-xs text-stone-400 mb-1">Nombre →</p>
-            <div className="flex flex-wrap gap-1.5 mb-2">
+          <div className="card" style={{ padding:16 }}>
+            <SectionHeader icon="tag" label="IDs detectados" />
+            <p style={{ fontSize:11, color:'var(--gray)', marginBottom:6 }}>Campo → Nombre del participante</p>
+            <div style={{ display:'flex', flexWrap:'wrap', gap:6, marginBottom:10 }}>
               {detectedIds.map(({id, text}) => (
-                <button key={id} onClick={() => setNameId(id)} title={text}
-                  className={`px-2 py-0.5 rounded-full text-xs font-mono border transition-all
-                    ${nameId === id ? 'bg-gray-900 text-amber-50 border-gray-900' : 'border-stone-200 text-stone-600 hover:border-orange-400'}`}>
+                <button key={id} onClick={() => setNameId(id)} title={text} style={idPillStyle(nameId === id)}>
                   {id}
                 </button>
               ))}
             </div>
-            <p className="text-xs text-stone-400 mb-1">Fecha →</p>
-            <div className="flex flex-wrap gap-1.5">
+            <p style={{ fontSize:11, color:'var(--gray)', marginBottom:6 }}>Campo → Fecha de otorgación</p>
+            <div style={{ display:'flex', flexWrap:'wrap', gap:6 }}>
               {detectedIds.map(({id, text}) => (
-                <button key={id} onClick={() => setDateId(id)} title={text}
-                  className={`px-2 py-0.5 rounded-full text-xs font-mono border transition-all
-                    ${dateId === id ? 'bg-gray-900 text-amber-50 border-gray-900' : 'border-stone-200 text-stone-600 hover:border-orange-400'}`}>
+                <button key={id} onClick={() => setDateId(id)} title={text} style={idPillStyle(dateId === id)}>
                   {id}
                 </button>
               ))}
@@ -392,32 +419,35 @@ function CertIndividual({ participants, courses = [], galleryTplPick, onGalleryC
           </div>
         )}
 
-        <div className="bg-white border border-stone-200 rounded-xl p-4 space-y-3">
-          <p className="text-xs font-semibold uppercase tracking-wider text-stone-500">Datos del certificado</p>
-          <div>
-            <label className="block text-xs text-stone-500 mb-1">Nombre del participante</label>
+        {/* Datos del certificado */}
+        <div className="card" style={{ padding:16 }}>
+          <SectionHeader icon="badge" label="Datos del certificado" />
+          <div style={{ marginBottom:12 }}>
+            <label style={{ display:'block', fontSize:12, color:'var(--gray)', marginBottom:5 }}>Nombre del participante</label>
             <input value={recipient}
               onChange={e => { setRecipient(e.target.value); setErrors(p => ({...p, recipient:''})) }}
               placeholder="Ej: María González Rojas"
-              className={`w-full border rounded-lg px-3 py-2 text-sm bg-amber-50 focus:outline-none focus:ring-2 focus:ring-orange-400
-                ${errors.recipient ? 'border-red-400' : 'border-stone-200'}`} />
-            {errors.recipient && <p className="text-xs text-red-500 mt-1">{errors.recipient}</p>}
+              className="finput"
+              style={{ background:'var(--cream-2)', borderColor: errors.recipient ? 'var(--orange-d)' : 'var(--border)' }} />
+            {errors.recipient && <p style={{ fontSize:11, color:'var(--orange-d)', marginTop:4 }}>{errors.recipient}</p>}
           </div>
-          <div>
-            <label className="block text-xs text-stone-500 mb-1">Fecha de otorgación</label>
+          <div style={{ marginBottom:12 }}>
+            <label style={{ display:'block', fontSize:12, color:'var(--gray)', marginBottom:5 }}>Fecha de otorgación</label>
             <input value={date}
               onChange={e => { setDate(e.target.value); setErrors(p => ({...p, date:''})) }}
               placeholder="22 de mayo de 2026"
-              className={`w-full border rounded-lg px-3 py-2 text-sm bg-amber-50 focus:outline-none focus:ring-2 focus:ring-orange-400
-                ${errors.date ? 'border-red-400' : 'border-stone-200'}`} />
-            {errors.date && <p className="text-xs text-red-500 mt-1">{errors.date}</p>}
+              className="finput"
+              style={{ background:'var(--cream-2)', borderColor: errors.date ? 'var(--orange-d)' : 'var(--border)' }} />
+            {errors.date && <p style={{ fontSize:11, color:'var(--orange-d)', marginTop:4 }}>{errors.date}</p>}
           </div>
           {extraIds.length > 0 && (
-            <div className="pt-1 border-t border-stone-100 space-y-2">
-              <p className="text-xs font-semibold uppercase tracking-wider text-stone-400">Campos adicionales</p>
+            <div style={{ paddingTop:10, borderTop:'1px solid var(--cream-3)', display:'flex', flexDirection:'column', gap:10 }}>
+              <p style={{ fontSize:10, fontWeight:700, textTransform:'uppercase', letterSpacing:'.6px', color:'var(--gray)' }}>
+                Campos adicionales
+              </p>
               {extraIds.map(({id}) => (
                 <div key={id}>
-                  <label className="block text-xs text-stone-500 mb-1 font-mono">{id}</label>
+                  <label style={{ display:'block', fontSize:11, color:'var(--gray)', marginBottom:4, fontFamily:'monospace' }}>{id}</label>
                   <ExtraFieldInput id={id} courses={courses}
                     value={extraFieldValues[id] ?? ''}
                     onChange={v => setExtraFieldValues(prev => ({...prev, [id]: v}))} />
@@ -425,14 +455,14 @@ function CertIndividual({ participants, courses = [], galleryTplPick, onGalleryC
               ))}
             </div>
           )}
-          <div>
-            <label className="block text-xs text-stone-500 mb-1.5">Formato</label>
+          <div style={{ marginTop:12 }}>
+            <label style={{ display:'block', fontSize:12, color:'var(--gray)', marginBottom:6 }}>Formato de salida</label>
             <CertFormatToggle value={fmt} onChange={setFmt} />
           </div>
           <button onClick={generate} disabled={loading || (!templateName && !svgFile)}
-            className="w-full flex items-center justify-center gap-2 py-2.5 bg-orange-500 text-white text-sm font-semibold rounded-lg hover:bg-orange-600 disabled:opacity-40 transition-colors">
+            className="btn btn-orange" style={{ width:'100%', justifyContent:'center', marginTop:14, padding:'11px 0', fontSize:14 }}>
             {loading
-              ? <><span className="material-symbols-outlined animate-spin" style={{fontSize:16}}>refresh</span>Procesando…</>
+              ? <><span className="material-symbols-outlined spinner" style={{fontSize:16}}>refresh</span>Procesando…</>
               : <><span className="material-symbols-outlined" style={{fontSize:16}}>download</span>Generar y descargar</>}
           </button>
           <CertAlert type={alert?.type} msg={alert?.msg} onDismiss={() => setAlert(null)} />
@@ -440,22 +470,31 @@ function CertIndividual({ participants, courses = [], galleryTplPick, onGalleryC
       </div>
 
       {/* Right: live preview */}
-      <div className="flex-1 bg-white border border-stone-200 rounded-xl overflow-hidden flex flex-col">
-        <div className="flex items-center justify-between px-4 py-3 border-b border-stone-100">
-          <span className="text-sm font-medium text-stone-600">Vista previa en tiempo real</span>
-          <div className="flex items-center gap-1.5">
+      <div className="card" style={{ flex:1, overflow:'hidden', display:'flex', flexDirection:'column' }}>
+        <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between',
+          padding:'12px 16px', borderBottom:'1px solid var(--cream-3)' }}>
+          <div style={{ display:'flex', alignItems:'center', gap:8 }}>
+            <span className="material-symbols-outlined" style={{ fontSize:15, color:'var(--orange)' }}>preview</span>
+            <span style={{ fontSize:13, fontWeight:500, color:'var(--black)' }}>Vista previa en tiempo real</span>
+          </div>
+          <div style={{ display:'flex', alignItems:'center', gap:6 }}>
             {previewLoading
-              ? <><span className="material-symbols-outlined text-orange-400 animate-spin" style={{fontSize:14}}>refresh</span><span className="text-xs text-stone-400">Actualizando…</span></>
-              : <><span className="w-2 h-2 rounded-full bg-green-500 inline-block" /><span className="text-xs text-stone-400">Actualizado</span></>}
+              ? <><span className="material-symbols-outlined spinner" style={{fontSize:13, color:'var(--orange)'}}>refresh</span>
+                  <span style={{ fontSize:11, color:'var(--gray)' }}>Actualizando…</span></>
+              : <><span style={{ width:7, height:7, borderRadius:'50%', background:'var(--green)', display:'inline-block' }} />
+                  <span style={{ fontSize:11, color:'var(--gray)' }}>Actualizado</span></>}
           </div>
         </div>
-        <div className="flex-1 bg-stone-50 p-6 flex items-start justify-center overflow-auto">
+        <div style={{ flex:1, background:'var(--cream-2)', padding:24,
+          display:'flex', alignItems:'flex-start', justifyContent:'center', overflow:'auto' }}>
           {previewSvg
-            ? <div className={`bg-white rounded shadow-md w-full max-w-2xl transition-opacity ${previewLoading ? 'opacity-50' : 'opacity-100'}`}
+            ? <div style={{ background:'var(--white)', borderRadius:10, boxShadow:'0 4px 20px rgba(0,0,0,.12)',
+                width:'100%', maxWidth:700, transition:'opacity .2s', opacity: previewLoading ? .5 : 1 }}
                 dangerouslySetInnerHTML={{ __html: previewSvg.replace(/<svg/, '<svg style="display:block;width:100%;height:auto"') }} />
-            : <div className="flex flex-col items-center justify-center h-48 text-stone-300 gap-3">
-                <span className="material-symbols-outlined text-5xl">workspace_premium</span>
-                <p className="text-sm">Seleccioná una plantilla para ver la vista previa</p>
+            : <div style={{ display:'flex', flexDirection:'column', alignItems:'center', justifyContent:'center',
+                height:200, color:'var(--border)', gap:12 }}>
+                <span className="material-symbols-outlined" style={{fontSize:48}}>workspace_premium</span>
+                <p style={{ fontSize:13, color:'var(--gray)' }}>Seleccioná una plantilla para ver la vista previa</p>
               </div>}
         </div>
       </div>
@@ -603,138 +642,136 @@ function CertBatch({ participants = [], courses = [] }) {
     finally { setLoading(false); setTimeout(() => setProgress(0), 2000) }
   }
 
-  return (
-    <div className="grid grid-cols-12 gap-5">
-      <div className="col-span-7 space-y-4">
-        {participants.length > 0 && (
-          <div className="bg-white border border-stone-200 rounded-xl p-4 space-y-3">
-            <p className="text-xs font-semibold uppercase tracking-wider text-stone-500">Filtrar participantes</p>
+  const fInp = { background:'var(--cream-2)', color:'var(--black)', fontSize:12 }
 
-            <div className="grid grid-cols-3 gap-2">
+  return (
+    <div style={{ display:'grid', gridTemplateColumns:'1fr auto', gap:20 }}>
+      {/* Left: CSV + requisitos */}
+      <div style={{ display:'flex', flexDirection:'column', gap:14 }}>
+
+        {/* Filtros */}
+        {participants.length > 0 && (
+          <div className="card" style={{ padding:16 }}>
+            <SectionHeader icon="filter_list" label="Filtrar participantes" />
+            <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr 1fr', gap:8, marginBottom:10 }}>
               <div>
-                <label className="block text-xs text-stone-400 mb-1">Curso / taller</label>
+                <label style={{ display:'block', fontSize:11, color:'var(--gray)', marginBottom:4 }}>Curso / taller</label>
                 <select value={filterCourse} onChange={e => setFilterCourse(e.target.value)}
-                  className="w-full border border-stone-200 rounded-lg px-2 py-1.5 text-xs bg-amber-50 focus:outline-none focus:ring-2 focus:ring-orange-400">
+                  className="finput" style={fInp}>
                   <option value="">Todos</option>
                   {(courses.some(c => c.certEnabled)
                     ? courses.filter(c => c.active && c.certEnabled)
                     : courses.filter(c => c.active)
-                  ).map(c => (
-                    <option key={c.id} value={c.id}>{c.short || c.name}</option>
-                  ))}
+                  ).map(c => <option key={c.id} value={c.id}>{c.short || c.name}</option>)}
                 </select>
               </div>
               <div>
-                <label className="block text-xs text-stone-400 mb-1">Estado</label>
+                <label style={{ display:'block', fontSize:11, color:'var(--gray)', marginBottom:4 }}>Estado</label>
                 <select value={filterStatus} onChange={e => setFilterStatus(e.target.value)}
-                  className="w-full border border-stone-200 rounded-lg px-2 py-1.5 text-xs bg-amber-50 focus:outline-none focus:ring-2 focus:ring-orange-400">
+                  className="finput" style={fInp}>
                   <option value="">Todos</option>
                   <option value="activo">Activo</option>
                   <option value="inactivo">Inactivo</option>
                 </select>
               </div>
               <div>
-                <label className="block text-xs text-stone-400 mb-1">Pago</label>
+                <label style={{ display:'block', fontSize:11, color:'var(--gray)', marginBottom:4 }}>Pago</label>
                 <select value={filterPayment} onChange={e => setFilterPayment(e.target.value)}
-                  className="w-full border border-stone-200 rounded-lg px-2 py-1.5 text-xs bg-amber-50 focus:outline-none focus:ring-2 focus:ring-orange-400">
+                  className="finput" style={fInp}>
                   <option value="">Todos</option>
                   <option value="pagado">Pagado</option>
                   <option value="pendiente">Pendiente</option>
                 </select>
               </div>
             </div>
-
-            <div>
-              <label className="block text-xs text-stone-400 mb-1">Fecha del certificado</label>
+            <div style={{ marginBottom:10 }}>
+              <label style={{ display:'block', fontSize:11, color:'var(--gray)', marginBottom:4 }}>Fecha del certificado</label>
               <input value={certDate} onChange={e => setCertDate(e.target.value)}
-                className="w-full border border-stone-200 rounded-lg px-3 py-1.5 text-xs bg-amber-50 focus:outline-none focus:ring-2 focus:ring-orange-400"
-                placeholder="22 de mayo de 2026" />
+                className="finput" style={fInp} placeholder="22 de mayo de 2026" />
             </div>
-
-            <div className="flex items-center justify-between pt-1">
-              <span className={`text-xs font-semibold ${filteredParticipants.length ? 'text-gray-700' : 'text-stone-400'}`}>
+            <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', paddingTop:6 }}>
+              <span style={{ fontSize:12, fontWeight:600, color: filteredParticipants.length ? 'var(--black)' : 'var(--gray)' }}>
                 {filteredParticipants.length} participante{filteredParticipants.length !== 1 ? 's' : ''} coinciden
               </span>
               <button onClick={applyFilters} disabled={!filteredParticipants.length}
-                className="flex items-center gap-1.5 text-xs font-medium px-3 py-2 bg-orange-500 text-white rounded-lg hover:bg-orange-600 disabled:opacity-40 transition-colors">
+                className="btn btn-orange btn-sm">
                 <span className="material-symbols-outlined" style={{fontSize:14}}>group</span>
                 Usar estos {filteredParticipants.length}
               </button>
             </div>
           </div>
         )}
+
         <CertDropZone accept=".csv" title="Arrastrá tu archivo CSV aquí"
           subtitle="Columnas requeridas: nombre, fecha — límite 200 registros"
           icon="upload_file" file={csvFile} onFile={handleCsvFile} />
 
-        <div className="bg-white border border-stone-200 rounded-xl p-4">
-          <p className="text-xs font-semibold uppercase tracking-wider text-stone-500 mb-3">Requisitos del archivo</p>
-          <div className="grid grid-cols-2 gap-2 mb-3">
+        {/* Requisitos */}
+        <div className="card" style={{ padding:16 }}>
+          <SectionHeader icon="table_view" label="Requisitos del CSV" />
+          <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:8, marginBottom:10 }}>
             {[{col:'nombre',ej:'Juan Pérez'},{col:'fecha',ej:TODAY_ES}].map(c => (
-              <div key={c.col} className="bg-stone-50 rounded-lg p-3 border border-stone-200">
-                <p className="text-xs text-stone-400 mb-0.5">Columna requerida</p>
-                <p className="text-sm font-bold font-mono text-gray-900">{c.col}</p>
-                <p className="text-xs text-stone-400 italic mt-0.5">Ej: {c.ej}</p>
+              <div key={c.col} style={{ background:'var(--cream-2)', borderRadius:'var(--radius-md)',
+                padding:'10px 12px', border:'1px solid var(--border)' }}>
+                <p style={{ fontSize:10, color:'var(--gray)', marginBottom:2 }}>Columna requerida</p>
+                <p style={{ fontSize:14, fontWeight:700, fontFamily:'monospace', color:'var(--black)' }}>{c.col}</p>
+                <p style={{ fontSize:10, color:'var(--gray)', fontStyle:'italic', marginTop:2 }}>Ej: {c.ej}</p>
               </div>
             ))}
           </div>
-          <p className="text-xs text-stone-400 mb-2">También acepta: <code>name</code>, <code>participante</code>, <code>date</code>, <code>issue_date</code></p>
-          <button onClick={downloadSample} className="flex items-center gap-1.5 text-xs font-medium text-orange-600 hover:underline">
+          <p style={{ fontSize:11, color:'var(--gray)', marginBottom:8 }}>
+            También acepta: <code>name</code>, <code>participante</code>, <code>date</code>, <code>issue_date</code>
+          </p>
+          <button onClick={downloadSample} style={{ display:'flex', alignItems:'center', gap:6, fontSize:12,
+            fontWeight:500, color:'var(--orange)', background:'none', border:'none', cursor:'pointer', padding:0 }}>
             <span className="material-symbols-outlined" style={{fontSize:14}}>download</span> Descargar CSV de ejemplo
           </button>
         </div>
 
         {csvMeta && (
-          <div className="grid grid-cols-2 gap-3">
-            <div className="bg-white border border-stone-200 rounded-xl p-4">
-              <p className="text-xs text-stone-400">Filas detectadas</p>
-              <p className="text-3xl font-bold text-gray-900 mt-1">{csvMeta.rows}</p>
+          <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:10 }}>
+            <div className="card" style={{ padding:'14px 16px' }}>
+              <p style={{ fontSize:11, color:'var(--gray)' }}>Filas detectadas</p>
+              <p style={{ fontSize:28, fontWeight:700, color:'var(--black)', marginTop:2 }}>{csvMeta.rows}</p>
             </div>
-            <div className="bg-white border border-stone-200 rounded-xl p-4 overflow-hidden">
-              <p className="text-xs text-stone-400">Encabezado CSV</p>
-              <p className="text-xs font-mono text-stone-600 mt-1 truncate">{csvMeta.header}</p>
+            <div className="card" style={{ padding:'14px 16px', overflow:'hidden' }}>
+              <p style={{ fontSize:11, color:'var(--gray)' }}>Encabezado CSV</p>
+              <p style={{ fontSize:11, fontFamily:'monospace', color:'var(--black)', marginTop:4,
+                overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}>{csvMeta.header}</p>
             </div>
           </div>
         )}
       </div>
 
-      <div className="col-span-5 space-y-4">
-        <div className="bg-white border border-stone-200 rounded-xl p-4">
-          <p className="text-xs font-semibold uppercase tracking-wider text-stone-500 mb-3">Plantilla SVG</p>
+      {/* Right: plantilla + mapeo + generar */}
+      <div style={{ width:300, display:'flex', flexDirection:'column', gap:14 }}>
+
+        {/* Plantilla */}
+        <div className="card" style={{ padding:16 }}>
+          <SectionHeader icon="layers" label="Plantilla SVG" />
           <select value={templateName||''} onChange={async e => {
               const val = e.target.value
               if (!val) { setTemplateName(null); setSvgFile(null); setDetectedIds([]); return }
-              // Plantilla built-in
               const builtin = BUILT_IN_TEMPLATES.find(t => t.file === val)
               if (builtin) {
                 setTemplateName(val); setSvgFile(null)
-                try {
-                  const r = await fetch(`${CERT_API}/api/templates/${val}`)
-                  if (r.ok) parseIdsSvg(await r.text())
-                } catch(_) {}
+                try { const r = await fetch(`${CERT_API}/api/templates/${val}`); if (r.ok) parseIdsSvg(await r.text()) } catch(_) {}
                 return
               }
-              // Plantilla custom de Supabase — cargar SVG como File
               const tpl = templates.find(t => t.id === val)
               if (tpl) {
                 const svgText = await loadSvgContent(tpl)
-                if (svgText) {
-                  const f = new File([svgText], tpl.file_name, { type: 'image/svg+xml' })
-                  setSvgFile(f); setTemplateName(null)
-                  parseIdsSvg(svgText)
-                }
+                if (svgText) { const f = new File([svgText], tpl.file_name, { type:'image/svg+xml' }); setSvgFile(f); setTemplateName(null); parseIdsSvg(svgText) }
               }
             }}
-            className="w-full border border-stone-200 rounded-lg px-3 py-2 text-sm bg-amber-50 focus:outline-none focus:ring-2 focus:ring-orange-400 mb-3">
+            className="finput" style={{ background:'var(--cream-2)', marginBottom:10 }}>
             <option value="">— Seleccionar plantilla —</option>
             <optgroup label="Plantillas predefinidas">
               {BUILT_IN_TEMPLATES.map(t => <option key={t.id} value={t.file}>{t.name}</option>)}
             </optgroup>
             {templates.filter(t => !t.is_builtin).length > 0 && (
               <optgroup label="Mis plantillas">
-                {templates.filter(t => !t.is_builtin).map(t => (
-                  <option key={t.id} value={t.id}>{t.name}</option>
-                ))}
+                {templates.filter(t => !t.is_builtin).map(t => <option key={t.id} value={t.id}>{t.name}</option>)}
               </optgroup>
             )}
           </select>
@@ -744,34 +781,37 @@ function CertBatch({ participants = [], courses = [] }) {
             }} />
         </div>
 
-        <div className="bg-white border border-stone-200 rounded-xl p-4">
-          <p className="text-xs font-semibold uppercase tracking-wider text-stone-500 mb-3">Mapeo de campos</p>
-          <div className="grid grid-cols-2 gap-3 mb-3">
+        {/* Mapeo */}
+        <div className="card" style={{ padding:16 }}>
+          <SectionHeader icon="alt_route" label="Mapeo de campos" />
+          <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:8, marginBottom:10 }}>
             <div>
-              <label className="block text-xs text-stone-500 mb-1">ID → Nombre</label>
+              <label style={{ display:'block', fontSize:11, color:'var(--gray)', marginBottom:4 }}>ID → Nombre</label>
               <input value={nameId} onChange={e => setNameId(e.target.value)}
-                className="w-full border border-stone-200 rounded-lg px-3 py-2 text-xs font-mono bg-amber-50 focus:outline-none focus:ring-2 focus:ring-orange-400" />
+                className="finput" style={{ background:'var(--cream-2)', fontFamily:'monospace', fontSize:11 }} />
             </div>
             <div>
-              <label className="block text-xs text-stone-500 mb-1">ID → Fecha</label>
+              <label style={{ display:'block', fontSize:11, color:'var(--gray)', marginBottom:4 }}>ID → Fecha</label>
               <input value={dateId} onChange={e => setDateId(e.target.value)}
-                className="w-full border border-stone-200 rounded-lg px-3 py-2 text-xs font-mono bg-amber-50 focus:outline-none focus:ring-2 focus:ring-orange-400" />
+                className="finput" style={{ background:'var(--cream-2)', fontFamily:'monospace', fontSize:11 }} />
             </div>
           </div>
-          <div className="mb-3">
-            <label className="block text-xs text-stone-500 mb-1">
-              Fecha para todos <span className="text-stone-400 font-normal">(sobreescribe la del CSV)</span>
+          <div style={{ marginBottom:10 }}>
+            <label style={{ display:'block', fontSize:11, color:'var(--gray)', marginBottom:4 }}>
+              Fecha global <span style={{ fontWeight:400 }}>(sobreescribe la del CSV)</span>
             </label>
             <input value={globalDate} onChange={e => setGlobalDate(e.target.value)}
               placeholder={`Ej: ${TODAY_ES}`}
-              className="w-full border border-stone-200 rounded-lg px-3 py-2 text-xs bg-amber-50 focus:outline-none focus:ring-2 focus:ring-orange-400" />
+              className="finput" style={{ background:'var(--cream-2)', fontSize:11 }} />
           </div>
           {extraIds.length > 0 && (
-            <div className="pt-2 border-t border-stone-100 space-y-2">
-              <p className="text-xs font-semibold uppercase tracking-wider text-stone-400">Campos adicionales</p>
+            <div style={{ paddingTop:10, borderTop:'1px solid var(--cream-3)', display:'flex', flexDirection:'column', gap:8 }}>
+              <p style={{ fontSize:10, fontWeight:700, textTransform:'uppercase', letterSpacing:'.6px', color:'var(--gray)' }}>
+                Campos adicionales
+              </p>
               {extraIds.map(({id}) => (
                 <div key={id}>
-                  <label className="block text-xs text-stone-500 mb-1 font-mono">{id}</label>
+                  <label style={{ display:'block', fontSize:11, color:'var(--gray)', marginBottom:3, fontFamily:'monospace' }}>{id}</label>
                   <ExtraFieldInput id={id} size="xs" courses={courses}
                     value={extraFieldValues[id] ?? ''}
                     onChange={v => setExtraFieldValues(prev => ({...prev, [id]: v}))} />
@@ -779,42 +819,54 @@ function CertBatch({ participants = [], courses = [] }) {
               ))}
             </div>
           )}
-          <label className="block text-xs text-stone-500 mb-1.5">Formato</label>
-          <CertFormatToggle value={fmt} onChange={setFmt} />
+          <div style={{ marginTop:10 }}>
+            <label style={{ display:'block', fontSize:11, color:'var(--gray)', marginBottom:6 }}>Formato</label>
+            <CertFormatToggle value={fmt} onChange={setFmt} />
+          </div>
         </div>
 
-        <div className="bg-orange-50 border border-orange-200 rounded-xl p-4">
-          <div className="flex items-center gap-3 mb-3">
-            <div className="w-9 h-9 bg-orange-500 rounded-lg flex items-center justify-center shrink-0">
-              <span className="material-symbols-outlined text-white" style={{fontSize:18}}>folder_zip</span>
+        {/* Generar ZIP */}
+        <div style={{ background:'var(--alert-warm-bg)', border:'1px solid var(--border)',
+          borderRadius:'var(--radius-lg)', padding:16 }}>
+          <div style={{ display:'flex', alignItems:'center', gap:12, marginBottom:12 }}>
+            <div style={{ width:38, height:38, background:'var(--orange)', borderRadius:'var(--radius-md)',
+              display:'flex', alignItems:'center', justifyContent:'center', flexShrink:0 }}>
+              <span className="material-symbols-outlined" style={{fontSize:18, color:'#fff'}}>folder_zip</span>
             </div>
             <div>
-              <p className="text-sm font-semibold text-orange-900">{csvMeta ? `${csvMeta.rows} registros` : 'Sin CSV cargado'}</p>
-              <p className="text-xs text-orange-700">{(templateName||svgFile) ? 'Plantilla lista ✓' : 'Falta seleccionar plantilla'}</p>
+              <p style={{ fontSize:13, fontWeight:600, color:'var(--black)' }}>
+                {csvMeta ? `${csvMeta.rows} registros listos` : 'Sin CSV cargado'}
+              </p>
+              <p style={{ fontSize:11, color:'var(--gray)' }}>
+                {(templateName||svgFile) ? '✓ Plantilla seleccionada' : 'Falta seleccionar plantilla'}
+              </p>
             </div>
           </div>
           {progress > 0 && (
-            <div className="h-1.5 rounded-full bg-orange-200 overflow-hidden mb-3">
-              <div className="h-full bg-orange-500 rounded-full transition-all duration-500" style={{width:`${progress}%`}} />
+            <div style={{ height:4, borderRadius:20, background:'var(--cream-3)', overflow:'hidden', marginBottom:12 }}>
+              <div style={{ height:'100%', background:'var(--orange)', borderRadius:20, transition:'width .5s', width:`${progress}%` }} />
             </div>
           )}
           <button onClick={generate} disabled={loading || (!templateName && !svgFile) || !csvFile}
-            className="w-full flex items-center justify-center gap-2 py-2.5 bg-orange-500 text-white text-sm font-bold rounded-lg hover:bg-orange-600 disabled:opacity-40 transition-colors">
+            className="btn btn-orange" style={{ width:'100%', justifyContent:'center', padding:'11px 0', fontSize:14 }}>
             {loading
-              ? <><span className="material-symbols-outlined animate-spin" style={{fontSize:16}}>refresh</span>Procesando…</>
+              ? <><span className="material-symbols-outlined spinner" style={{fontSize:16}}>refresh</span>Procesando…</>
               : <><span className="material-symbols-outlined" style={{fontSize:16}}>folder_zip</span>Generar ZIP</>}
           </button>
         </div>
 
         {result && (
-          <div className="grid grid-cols-2 gap-3">
-            <div className="bg-green-50 border border-green-200 rounded-xl p-3 text-center">
-              <p className="text-xs text-green-600">Generados</p>
-              <p className="text-2xl font-bold text-green-800">{result.generated}</p>
+          <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:10 }}>
+            <div style={{ background:'var(--green-l)', border:'1px solid var(--green)', borderRadius:'var(--radius-lg)',
+              padding:'12px 16px', textAlign:'center' }}>
+              <p style={{ fontSize:11, color:'var(--green)' }}>Generados</p>
+              <p style={{ fontSize:24, fontWeight:700, color:'var(--green)' }}>{result.generated}</p>
             </div>
-            <div className={`${Number(result.errors) > 0 ? 'bg-red-50 border-red-200' : 'bg-stone-50 border-stone-200'} border rounded-xl p-3 text-center`}>
-              <p className={`text-xs ${Number(result.errors) > 0 ? 'text-red-600' : 'text-stone-400'}`}>Errores</p>
-              <p className={`text-2xl font-bold ${Number(result.errors) > 0 ? 'text-red-700' : 'text-gray-700'}`}>{result.errors}</p>
+            <div style={{ background: Number(result.errors) > 0 ? 'var(--row-exp-bg)' : 'var(--cream-2)',
+              border:`1px solid ${Number(result.errors) > 0 ? 'var(--orange-d)' : 'var(--border)'}`,
+              borderRadius:'var(--radius-lg)', padding:'12px 16px', textAlign:'center' }}>
+              <p style={{ fontSize:11, color: Number(result.errors) > 0 ? 'var(--orange-d)' : 'var(--gray)' }}>Errores</p>
+              <p style={{ fontSize:24, fontWeight:700, color: Number(result.errors) > 0 ? 'var(--orange-d)' : 'var(--black)' }}>{result.errors}</p>
             </div>
           </div>
         )}
@@ -890,9 +942,11 @@ function CertAnalyze({ aiAvailable }) {
             </button>
           )}
           {!aiAvailable && elements && (
-            <div className="flex items-center gap-1.5 px-3 py-2 bg-stone-100 border border-stone-200 rounded-lg text-xs text-stone-400">
+            <div style={{ display:'flex', alignItems:'center', gap:6, padding:'8px 12px',
+              background:'var(--cream-2)', border:'1px solid var(--border)', borderRadius:'var(--radius-md)',
+              fontSize:12, color:'var(--gray)' }}>
               <span className="material-symbols-outlined" style={{fontSize:14}}>key_off</span>
-              Configurá <code className="mx-1">ANTHROPIC_API_KEY</code> para activar sugerencia IA
+              Configurá <code style={{ margin:'0 4px' }}>ANTHROPIC_API_KEY</code> para activar sugerencia IA
             </div>
           )}
         </div>
@@ -924,36 +978,44 @@ function CertAnalyze({ aiAvailable }) {
         )}
 
         {elements && elements.length > 0 && (
-          <div className="bg-white border border-stone-200 rounded-xl overflow-hidden">
-            <div className="px-4 py-3 border-b border-stone-100 flex items-center justify-between">
-              <span className="text-sm font-semibold text-gray-900">Elementos detectados</span>
-              <span className="text-xs bg-orange-100 text-orange-800 px-2.5 py-0.5 rounded-full font-semibold">{elements.length} nodos &lt;text&gt;</span>
+          <div className="card" style={{ overflow:'hidden' }}>
+            <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between',
+              padding:'12px 16px', borderBottom:'1px solid var(--cream-3)' }}>
+              <span style={{ fontSize:13, fontWeight:600, color:'var(--black)' }}>Elementos detectados</span>
+              <span style={{ fontSize:11, background:'var(--alert-warm-bg)', color:'var(--orange-d)',
+                border:'1px solid var(--orange-l)', borderRadius:20, padding:'2px 10px', fontWeight:600 }}>
+                {elements.length} nodos &lt;text&gt;
+              </span>
             </div>
-            <table className="w-full text-left">
-              <thead className="bg-stone-50 border-b border-stone-100">
+            <table className="ttable">
+              <thead>
                 <tr>
                   {['ID Elemento','Contenido','X','Y','Tamaño'].map(h => (
-                    <th key={h} className="px-4 py-2.5 text-xs font-semibold uppercase tracking-wider text-stone-500">{h}</th>
+                    <th key={h}>{h}</th>
                   ))}
                 </tr>
               </thead>
-              <tbody className="divide-y divide-stone-100">
+              <tbody>
                 {elements.map((el, i) => {
                   const isName = aiSug?.name_id === el.id
                   const isDate = aiSug?.date_id === el.id
                   return (
-                    <tr key={el.id} className={`transition-colors ${isName||isDate ? 'bg-violet-50/50' : i%2===0 ? 'bg-white' : 'bg-stone-50/40'} hover:bg-amber-50/30`}>
-                      <td className="px-4 py-2.5">
-                        <div className="flex items-center gap-1.5">
-                          <span className="font-mono text-xs font-semibold text-gray-900">{el.id}</span>
-                          {isName && <span className="text-xs bg-violet-100 text-violet-700 px-1.5 py-0.5 rounded font-semibold">nombre ✨</span>}
-                          {isDate && <span className="text-xs bg-indigo-100 text-indigo-700 px-1.5 py-0.5 rounded font-semibold">fecha ✨</span>}
+                    <tr key={el.id}>
+                      <td>
+                        <div style={{ display:'flex', alignItems:'center', gap:6 }}>
+                          <span style={{ fontFamily:'monospace', fontSize:12, fontWeight:600,
+                            color: isName || isDate ? '#7C3AED' : 'var(--black)' }}>{el.id}</span>
+                          {isName && <span style={{ fontSize:10, background:'#EDE9FE', color:'#5B21B6',
+                            padding:'2px 6px', borderRadius:4, fontWeight:600 }}>nombre ✨</span>}
+                          {isDate && <span style={{ fontSize:10, background:'#E0E7FF', color:'#3730A3',
+                            padding:'2px 6px', borderRadius:4, fontWeight:600 }}>fecha ✨</span>}
                         </div>
                       </td>
-                      <td className="px-4 py-2.5 text-xs italic text-stone-500 max-w-[120px] truncate">{el.text||'—'}</td>
-                      <td className="px-4 py-2.5 text-xs text-stone-500">{el.x||'—'}</td>
-                      <td className="px-4 py-2.5 text-xs text-stone-500">{el.y||'—'}</td>
-                      <td className="px-4 py-2.5 text-xs text-stone-500">{el.font_size ? `${el.font_size}px` : '—'}</td>
+                      <td style={{ fontStyle:'italic', maxWidth:120, overflow:'hidden',
+                        textOverflow:'ellipsis', whiteSpace:'nowrap' }}>{el.text||'—'}</td>
+                      <td>{el.x||'—'}</td>
+                      <td>{el.y||'—'}</td>
+                      <td>{el.font_size ? `${el.font_size}px` : '—'}</td>
                     </tr>
                   )
                 })}
@@ -964,45 +1026,45 @@ function CertAnalyze({ aiAvailable }) {
       </div>
 
       <div className="col-span-4 space-y-4">
-        <div className="bg-white border border-stone-200 rounded-xl p-4 sticky top-4">
-          <p className="text-sm font-semibold text-gray-900 mb-1 flex items-center gap-2">
-            <span className="material-symbols-outlined text-stone-400" style={{fontSize:18}}>alt_route</span>
-            Mapeo de campos
-          </p>
-          <p className="text-xs text-stone-500 mb-4 leading-relaxed">
+        <div className="card" style={{ padding:16, position:'sticky', top:16 }}>
+          <SectionHeader icon="alt_route" label="Mapeo de campos" />
+          <p style={{ fontSize:12, color:'var(--gray)', marginBottom:16, lineHeight:1.6 }}>
             Asigná los IDs del SVG a los campos del sistema.
-            {aiSug && <span className="text-violet-600 font-medium"> Claude completó el mapeo.</span>}
+            {aiSug && <span style={{ color:'#7C3AED', fontWeight:500 }}> Claude completó el mapeo.</span>}
           </p>
-          <div className="space-y-3 mb-5">
+          <div style={{ display:'flex', flexDirection:'column', gap:12, marginBottom:16 }}>
             {[{l:'Nombre del participante',k:'name'},{l:'Fecha de emisión',k:'date'}].map(({l, k}) => (
               <div key={k}>
-                <label className="block text-xs text-stone-500 mb-1">{l}</label>
+                <label style={{ display:'block', fontSize:12, color:'var(--gray)', marginBottom:4 }}>{l}</label>
                 <select value={mapping[k]} onChange={e => setMapping(p => ({...p, [k]:e.target.value}))}
-                  className={`w-full border rounded-lg px-3 py-2 text-sm bg-amber-50 focus:outline-none focus:ring-2 focus:ring-orange-400
-                    ${aiSug?.[`${k}_id`] === mapping[k] ? 'border-violet-300' : 'border-stone-200'}`}>
+                  className="finput"
+                  style={{ background:'var(--cream-2)', borderColor: aiSug?.[`${k}_id`] === mapping[k] ? '#7C3AED' : 'var(--border)' }}>
                   <option value="">— Seleccionar ID —</option>
                   {idOptions.map(id => <option key={id} value={id}>{id}</option>)}
                 </select>
               </div>
             ))}
           </div>
-          <div className="pt-4 border-t border-stone-100">
+          <div style={{ paddingTop:14, borderTop:'1px solid var(--cream-3)' }}>
             <button onClick={() => { if (mapping.name && mapping.date) setConfirmed(true) }}
               disabled={!mapping.name || !mapping.date}
-              className="w-full flex items-center justify-center gap-2 py-2.5 bg-gray-900 text-amber-50 text-sm font-bold rounded-lg hover:bg-gray-800 disabled:opacity-40 transition-colors">
+              className="btn btn-black" style={{ width:'100%', justifyContent:'center' }}>
               <span className="material-symbols-outlined" style={{fontSize:16}}>check_circle</span>
               Confirmar mapeo
             </button>
             {confirmed && (
-              <div className="mt-3 p-3 bg-green-50 border border-green-200 rounded-lg">
-                <p className="text-xs font-semibold text-green-800 flex items-center gap-1 mb-2">
+              <div style={{ marginTop:12, padding:12, background:'var(--green-l)',
+                border:'1px solid var(--green)', borderRadius:'var(--radius-md)' }}>
+                <p style={{ fontSize:12, fontWeight:600, color:'var(--green)', display:'flex', alignItems:'center', gap:4, marginBottom:8 }}>
                   <span className="material-symbols-outlined" style={{fontSize:14}}>task_alt</span>¡Mapeo confirmado!
                 </p>
-                <div className="grid grid-cols-2 gap-2">
+                <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:8 }}>
                   {[{l:'Nombre',v:mapping.name},{l:'Fecha',v:mapping.date}].map(x => (
-                    <div key={x.l} className="bg-white rounded p-2 border border-green-100">
-                      <p className="text-xs text-stone-400">{x.l}</p>
-                      <p className="font-mono text-xs font-bold text-gray-900 truncate">{x.v}</p>
+                    <div key={x.l} style={{ background:'var(--white)', borderRadius:'var(--radius-sm)',
+                      padding:8, border:'1px solid var(--green)' }}>
+                      <p style={{ fontSize:10, color:'var(--gray)' }}>{x.l}</p>
+                      <p style={{ fontFamily:'monospace', fontSize:11, fontWeight:700, color:'var(--black)',
+                        overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}>{x.v}</p>
                     </div>
                   ))}
                 </div>
@@ -1010,11 +1072,12 @@ function CertAnalyze({ aiAvailable }) {
             )}
           </div>
         </div>
-        <div className="bg-amber-50 border border-stone-200 rounded-xl p-4 flex gap-2.5">
-          <i className="ti ti-bulb text-orange-400 text-base shrink-0 mt-0.5" />
+        <div style={{ background:'var(--cream-2)', border:'1px solid var(--border)',
+          borderRadius:'var(--radius-lg)', padding:14, display:'flex', gap:10 }}>
+          <i className="ti ti-bulb" style={{ color:'var(--orange)', fontSize:14, flexShrink:0, marginTop:1 }} />
           <div>
-            <p className="text-xs font-semibold text-gray-800 mb-1">Tip de diseño</p>
-            <p className="text-xs text-stone-500 leading-relaxed">En Inkscape o Illustrator, asigná un ID único a cada texto desde el panel "Propiedades del objeto" (Ctrl+Shift+O).</p>
+            <p style={{ fontSize:12, fontWeight:600, color:'var(--black)', marginBottom:4 }}>Tip de diseño</p>
+            <p style={{ fontSize:12, color:'var(--gray)', lineHeight:1.6 }}>En Inkscape o Illustrator, asigná un ID único a cada texto desde el panel "Propiedades del objeto" (Ctrl+Shift+O).</p>
           </div>
         </div>
       </div>
@@ -1039,41 +1102,43 @@ const FIELD_REFERENCE = [
 function CertFieldsReference() {
   const [open, setOpen] = useState(false)
   return (
-    <div className="mb-6 border border-stone-200 rounded-xl overflow-hidden bg-white">
-      <button
-        onClick={() => setOpen(o => !o)}
-        className="w-full flex items-center justify-between px-4 py-3 text-left hover:bg-stone-50 transition-colors">
-        <div className="flex items-center gap-2">
-          <span className="material-symbols-outlined text-orange-400" style={{fontSize:16}}>table_chart</span>
-          <span className="text-xs font-semibold uppercase tracking-wider text-stone-600">
+    <div className="card" style={{ marginBottom:20, overflow:'hidden' }}>
+      <button onClick={() => setOpen(o => !o)}
+        style={{ width:'100%', display:'flex', alignItems:'center', justifyContent:'space-between',
+          padding:'12px 16px', background:'none', border:'none', cursor:'pointer', textAlign:'left' }}>
+        <div style={{ display:'flex', alignItems:'center', gap:8 }}>
+          <span className="material-symbols-outlined" style={{fontSize:15, color:'var(--orange)'}}>table_chart</span>
+          <span style={{ fontSize:11, fontWeight:700, textTransform:'uppercase', letterSpacing:'.6px', color:'var(--gray)' }}>
             Referencia de campos SVG
           </span>
-          <span className="text-xs text-stone-400">— IDs que el backend reconoce y sus columnas CSV</span>
+          <span style={{ fontSize:11, color:'var(--gray)', opacity:.7 }}>— IDs y columnas CSV</span>
         </div>
-        <span className="material-symbols-outlined text-stone-400 transition-transform"
-          style={{fontSize:16, transform: open ? 'rotate(180deg)' : 'rotate(0deg)'}}>
+        <span className="material-symbols-outlined" style={{fontSize:16, color:'var(--gray)',
+          transition:'transform .2s', transform: open ? 'rotate(180deg)' : 'rotate(0deg)'}}>
           expand_more
         </span>
       </button>
 
       {open && (
-        <div className="border-t border-stone-100 overflow-x-auto">
-          <table className="w-full text-left text-xs">
-            <thead className="bg-stone-50">
+        <div style={{ borderTop:'1px solid var(--cream-3)', overflowX:'auto' }}>
+          <table className="ttable" style={{ minWidth:'unset' }}>
+            <thead>
               <tr>
-                {['Campo SVG (id=)', 'Columna CSV sugerida', 'Descripción'].map(h => (
-                  <th key={h} className="px-4 py-2.5 font-semibold uppercase tracking-wider text-stone-500">{h}</th>
+                {['Campo SVG (id=)', 'CSV sugerido', 'Descripción'].map(h => (
+                  <th key={h}>{h}</th>
                 ))}
               </tr>
             </thead>
-            <tbody className="divide-y divide-stone-100">
-              {FIELD_REFERENCE.map((row, i) => (
-                <tr key={row.id} className={i % 2 === 0 ? 'bg-white' : 'bg-stone-50/40'}>
-                  <td className="px-4 py-2.5">
-                    <code className="font-mono font-semibold text-orange-700 bg-orange-50 px-1.5 py-0.5 rounded">{row.id}</code>
+            <tbody>
+              {FIELD_REFERENCE.map((row) => (
+                <tr key={row.id}>
+                  <td>
+                    <code style={{ fontFamily:'monospace', fontWeight:700, fontSize:11,
+                      color:'var(--orange)', background:'var(--alert-warm-bg)',
+                      padding:'2px 6px', borderRadius:4 }}>{row.id}</code>
                   </td>
-                  <td className="px-4 py-2.5 font-mono text-stone-600">{row.csv}</td>
-                  <td className="px-4 py-2.5 text-stone-500">{row.desc}</td>
+                  <td style={{ fontFamily:'monospace', fontSize:11 }}>{row.csv}</td>
+                  <td style={{ fontSize:12 }}>{row.desc}</td>
                 </tr>
               ))}
             </tbody>
@@ -1107,26 +1172,36 @@ export default function CertificatesView({ participants, courses = [], galleryTp
     { id:'analyze',    icon:'search',      label:'Analizar SVG' },
   ]
 
+  const apiBadge = apiOk === true
+    ? { bg:'var(--green-l)', bc:'var(--green)', tc:'var(--green)', dot:'var(--green)' }
+    : apiOk === false
+    ? { bg:'var(--row-exp-bg)', bc:'var(--orange-d)', tc:'var(--orange-d)', dot:'var(--orange-d)' }
+    : { bg:'var(--cream-2)', bc:'var(--border)', tc:'var(--gray)', dot:'var(--gray)' }
+
   return (
     <div>
-      <div className="flex items-start justify-between mb-6">
+      {/* Header */}
+      <div style={{ display:'flex', alignItems:'flex-start', justifyContent:'space-between', marginBottom:24 }}>
         <div>
-          <h2 style={{ fontFamily:'var(--font-display)', fontSize:22, fontWeight:600, color:'var(--black)', display:'flex', alignItems:'center', gap:8 }}>
-            <span className="material-symbols-outlined text-orange-500">workspace_premium</span>
+          <h2 style={{ fontFamily:'var(--font-display)', fontSize:22, fontWeight:600, color:'var(--black)',
+            display:'flex', alignItems:'center', gap:8 }}>
+            <span className="material-symbols-outlined" style={{ color:'var(--orange)' }}>workspace_premium</span>
             Generador de Certificados
           </h2>
           <p style={{ fontSize:13, color:'var(--gray)', marginTop:4 }}>Emití certificados digitales para los participantes de los programas</p>
         </div>
-        <div className="flex items-center gap-2">
-          <div className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-semibold border
-            ${apiOk === true  ? 'bg-green-50 border-green-200 text-green-700'
-            : apiOk === false ? 'bg-red-50 border-red-200 text-red-600'
-            :                   'bg-stone-100 border-stone-200 text-stone-400'}`}>
-            <span className={`w-1.5 h-1.5 rounded-full ${apiOk === true ? 'bg-green-500' : apiOk === false ? 'bg-red-500' : 'bg-stone-400'}`} />
+        <div style={{ display:'flex', alignItems:'center', gap:8 }}>
+          <div style={{ display:'flex', alignItems:'center', gap:6, padding:'5px 12px', borderRadius:20,
+            fontSize:12, fontWeight:600, border:`1px solid ${apiBadge.bc}`,
+            background:apiBadge.bg, color:apiBadge.tc }}>
+            <span style={{ width:6, height:6, borderRadius:'50%', background:apiBadge.dot, display:'inline-block' }} />
             {apiOk === null ? 'Verificando…' : apiOk ? 'API activa' : 'API no disponible'}
           </div>
-          <div className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-semibold border
-            ${aiAvailable ? 'bg-violet-50 border-violet-200 text-violet-700' : 'bg-stone-100 border-stone-200 text-stone-400'}`}>
+          <div style={{ display:'flex', alignItems:'center', gap:6, padding:'5px 12px', borderRadius:20,
+            fontSize:12, fontWeight:600,
+            border: aiAvailable ? '1px solid #7C3AED' : '1px solid var(--border)',
+            background: aiAvailable ? '#F5F3FF' : 'var(--cream-2)',
+            color: aiAvailable ? '#6D28D9' : 'var(--gray)' }}>
             <span className="material-symbols-outlined" style={{fontSize:13}}>{aiAvailable ? 'auto_awesome' : 'key_off'}</span>
             {aiAvailable ? 'Claude activo' : 'IA inactiva'}
           </div>
@@ -1134,18 +1209,29 @@ export default function CertificatesView({ participants, courses = [], galleryTp
       </div>
 
       {apiOk === false && (
-        <div className="mb-5 flex items-center gap-2 px-4 py-3 bg-red-50 border border-red-200 rounded-xl text-sm text-red-700">
+        <div style={{ marginBottom:20, display:'flex', alignItems:'center', gap:8, padding:'12px 16px',
+          background:'var(--row-exp-bg)', border:'1px solid var(--orange-d)', borderRadius:'var(--radius-lg)',
+          fontSize:13, color:'var(--orange-d)' }}>
           <span className="material-symbols-outlined" style={{fontSize:16}}>warning</span>
-          El servidor Flask no está disponible. Ejecutá{' '}
-          <code className="mx-1 bg-red-100 px-1.5 py-0.5 rounded font-mono">cd backend && python3 app.py</code> para iniciarlo.
+          El servidor Flask no está disponible. Ejecutá
+          <code style={{ margin:'0 6px', background:'var(--cream-3)', padding:'2px 6px', borderRadius:4, fontFamily:'monospace' }}>cd backend && python3 app.py</code>
+          para iniciarlo.
         </div>
       )}
 
-      <div className="flex gap-1 p-1 bg-stone-100 rounded-xl mb-6 w-fit">
+      {/* Tabs */}
+      <div style={{ display:'flex', gap:4, padding:4, background:'var(--cream-2)',
+        borderRadius:'var(--radius-lg)', marginBottom:20, width:'fit-content',
+        border:'1px solid var(--border)' }}>
         {tabs.map(t => (
           <button key={t.id} onClick={() => setCertTab(t.id)}
-            className={`flex items-center gap-1.5 px-4 py-2 rounded-lg text-sm font-medium transition-all
-              ${certTab === t.id ? 'bg-white text-gray-900 shadow-sm' : 'text-stone-500 hover:text-gray-700'}`}>
+            style={{ display:'flex', alignItems:'center', gap:6, padding:'8px 16px',
+              borderRadius:'var(--radius-md)', fontSize:13, fontWeight:500, cursor:'pointer',
+              border:'none', transition:'all .15s', fontFamily:'var(--font-body)',
+              background: certTab === t.id ? 'var(--white)' : 'transparent',
+              color:      certTab === t.id ? 'var(--black)' : 'var(--gray)',
+              boxShadow:  certTab === t.id ? 'var(--shadow-card)' : 'none',
+            }}>
             <span className="material-symbols-outlined" style={{fontSize:16}}>{t.icon}</span>
             {t.label}
           </button>
