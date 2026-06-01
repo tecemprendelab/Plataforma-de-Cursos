@@ -105,6 +105,121 @@ const BUILT_IN_TEMPLATES = [
   { id: 'modern',  file: 'template_modern.svg',  name: 'Moderno' },
 ]
 
+/* ── TemplateCarousel ───────────────────────────────────────── */
+
+function TemplateCarousel({ templates, selectedValue, svgFile, onSelect, certApi }) {
+  const [idx, setIdx] = useState(0)
+  const [thumbs, setThumbs] = useState({})    // file/id → svg string
+  const VISIBLE = 3
+
+  // Construir lista plana de opciones
+  const options = [
+    ...BUILT_IN_TEMPLATES.map(t => ({ id: t.file, label: t.name, file: t.file, isBuiltin: true })),
+    ...templates.filter(t => !t.is_builtin).map(t => ({ id: t.id, label: t.name, file: t.file_name, isBuiltin: false })),
+  ]
+
+  const total   = options.length
+  const maxIdx  = Math.max(0, total - VISIBLE)
+  const visible = options.slice(idx, idx + VISIBLE)
+
+  // Cargar miniaturas SVG para built-ins
+  useEffect(() => {
+    BUILT_IN_TEMPLATES.forEach(async t => {
+      if (thumbs[t.file]) return
+      try {
+        const r = await fetch(`${certApi}/api/templates/${t.file}`)
+        if (r.ok) setThumbs(prev => ({ ...prev, [t.file]: await r.text() }))
+      } catch(_) {}
+    })
+  }, [certApi])
+
+  const activeId = svgFile ? '__file__' : (selectedValue || '')
+
+  return (
+    <div>
+      <div style={{ display:'flex', alignItems:'center', gap:6 }}>
+
+        {/* Flecha izquierda */}
+        <button
+          onClick={() => setIdx(i => Math.max(0, i - 1))}
+          disabled={idx === 0}
+          style={{ background:'none', border:'1px solid var(--border)', borderRadius:8,
+            width:28, height:28, display:'flex', alignItems:'center', justifyContent:'center',
+            cursor: idx === 0 ? 'default' : 'pointer', opacity: idx === 0 ? 0.3 : 1,
+            flexShrink:0, color:'var(--gray)', transition:'opacity .2s' }}>
+          <span className="material-symbols-outlined" style={{fontSize:16}}>chevron_left</span>
+        </button>
+
+        {/* Cards */}
+        <div style={{ flex:1, display:'grid', gridTemplateColumns:`repeat(${VISIBLE}, 1fr)`, gap:8 }}>
+          {visible.map(opt => {
+            const isSelected = opt.id === activeId
+            const svgRaw = thumbs[opt.file] || ''
+            return (
+              <button key={opt.id} onClick={() => onSelect(opt.id)}
+                style={{
+                  border: `2px solid ${isSelected ? 'var(--orange)' : 'var(--border)'}`,
+                  borderRadius: 10, padding: 6, background: isSelected ? 'var(--alert-warm-bg)' : 'var(--cream-2)',
+                  cursor: 'pointer', textAlign: 'center', transition: 'all .18s',
+                  display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 4,
+                }}>
+                {/* Thumbnail */}
+                <div style={{ width:'100%', aspectRatio:'4/3', borderRadius:6, overflow:'hidden',
+                  background:'#f5f5f5', display:'flex', alignItems:'center', justifyContent:'center' }}>
+                  {svgRaw
+                    ? <div style={{ width:'100%', height:'100%', transform:'scale(0.95)' }}
+                        dangerouslySetInnerHTML={{ __html: svgRaw.replace(/<svg/, '<svg style="width:100%;height:100%;display:block"') }} />
+                    : <span className="material-symbols-outlined" style={{ fontSize:28, color:'var(--gray)', opacity:.5 }}>
+                        workspace_premium
+                      </span>
+                  }
+                </div>
+                {/* Nombre */}
+                <span style={{ fontSize:11, fontWeight: isSelected ? 600 : 400,
+                  color: isSelected ? 'var(--orange)' : 'var(--gray)',
+                  whiteSpace:'nowrap', overflow:'hidden', textOverflow:'ellipsis', maxWidth:'100%' }}>
+                  {opt.label}
+                </span>
+                {isSelected && (
+                  <span className="material-symbols-outlined" style={{ fontSize:14, color:'var(--orange)' }}>check_circle</span>
+                )}
+              </button>
+            )
+          })}
+          {/* Relleno si hay menos de VISIBLE opciones */}
+          {visible.length < VISIBLE && Array(VISIBLE - visible.length).fill(0).map((_, i) => (
+            <div key={`empty-${i}`} style={{ border:'2px dashed var(--border)', borderRadius:10,
+              aspectRatio:'auto', background:'transparent', opacity:.3 }} />
+          ))}
+        </div>
+
+        {/* Flecha derecha */}
+        <button
+          onClick={() => setIdx(i => Math.min(maxIdx, i + 1))}
+          disabled={idx >= maxIdx}
+          style={{ background:'none', border:'1px solid var(--border)', borderRadius:8,
+            width:28, height:28, display:'flex', alignItems:'center', justifyContent:'center',
+            cursor: idx >= maxIdx ? 'default' : 'pointer', opacity: idx >= maxIdx ? 0.3 : 1,
+            flexShrink:0, color:'var(--gray)', transition:'opacity .2s' }}>
+          <span className="material-symbols-outlined" style={{fontSize:16}}>chevron_right</span>
+        </button>
+      </div>
+
+      {/* Indicador de posición */}
+      {total > VISIBLE && (
+        <div style={{ display:'flex', justifyContent:'center', gap:4, marginTop:8 }}>
+          {Array(total).fill(0).map((_, i) => (
+            <div key={i} onClick={() => setIdx(Math.min(maxIdx, Math.max(0, i - Math.floor(VISIBLE/2))))}
+              style={{ width: i >= idx && i < idx + VISIBLE ? 16 : 6, height:6, borderRadius:3,
+                background: i >= idx && i < idx + VISIBLE ? 'var(--orange)' : 'var(--border)',
+                transition:'all .2s', cursor:'pointer' }} />
+          ))}
+        </div>
+      )}
+    </div>
+  )
+}
+
 function useDebounce(fn, delay) {
   const t = useRef(null)
   return useCallback((...args) => {
@@ -374,22 +489,15 @@ function CertIndividual({ participants, courses = [], galleryTplPick, onGalleryC
         {/* Plantilla */}
         <div className="card" style={{ padding:16 }}>
           <SectionHeader icon="layers" label="Plantilla" />
-          <select
-            value={svgFile ? '' : (templateName || '')}
-            onChange={e => selectTemplate(e.target.value)}
-            className="finput" style={{ background:'var(--cream-2)', marginBottom:12 }}>
-            <option value="">— Seleccionar plantilla —</option>
-            <optgroup label="Plantillas predefinidas">
-              {BUILT_IN_TEMPLATES.map(t => <option key={t.id} value={t.file}>{t.name}</option>)}
-            </optgroup>
-            {templates.filter(t => !t.is_builtin).length > 0 && (
-              <optgroup label="Mis plantillas">
-                {templates.filter(t => !t.is_builtin).map(t => (
-                  <option key={t.id} value={t.id}>{t.name}</option>
-                ))}
-              </optgroup>
-            )}
-          </select>
+          <div style={{ marginBottom:12 }}>
+            <TemplateCarousel
+              templates={templates}
+              selectedValue={svgFile ? '' : (templateName || '')}
+              svgFile={svgFile}
+              onSelect={selectTemplate}
+              certApi={CERT_API}
+            />
+          </div>
 
           {participants.length > 0 && (
             <div style={{ marginBottom:12 }}>
@@ -791,32 +899,28 @@ function CertBatch({ participants = [], courses = [] }) {
         {/* Plantilla */}
         <div className="card" style={{ padding:16 }}>
           <SectionHeader icon="layers" label="Plantilla SVG" />
-          <select value={templateName||''} onChange={async e => {
-              const val = e.target.value
-              if (!val) { setTemplateName(null); setSvgFile(null); setDetectedIds([]); return }
-              const builtin = BUILT_IN_TEMPLATES.find(t => t.file === val)
-              if (builtin) {
-                setTemplateName(val); setSvgFile(null)
-                try { const r = await fetch(`${CERT_API}/api/templates/${val}`); if (r.ok) parseIdsSvg(await r.text()) } catch(_) {}
-                return
-              }
-              const tpl = templates.find(t => t.id === val)
-              if (tpl) {
-                const svgText = await loadSvgContent(tpl)
-                if (svgText) { const f = new File([svgText], tpl.file_name, { type:'image/svg+xml' }); setSvgFile(f); setTemplateName(null); parseIdsSvg(svgText) }
-              }
-            }}
-            className="finput" style={{ background:'var(--cream-2)', marginBottom:10 }}>
-            <option value="">— Seleccionar plantilla —</option>
-            <optgroup label="Plantillas predefinidas">
-              {BUILT_IN_TEMPLATES.map(t => <option key={t.id} value={t.file}>{t.name}</option>)}
-            </optgroup>
-            {templates.filter(t => !t.is_builtin).length > 0 && (
-              <optgroup label="Mis plantillas">
-                {templates.filter(t => !t.is_builtin).map(t => <option key={t.id} value={t.id}>{t.name}</option>)}
-              </optgroup>
-            )}
-          </select>
+          <div style={{ marginBottom:10 }}>
+            <TemplateCarousel
+              templates={templates}
+              selectedValue={svgFile ? '' : (templateName || '')}
+              svgFile={svgFile}
+              onSelect={async val => {
+                if (!val) { setTemplateName(null); setSvgFile(null); setDetectedIds([]); return }
+                const builtin = BUILT_IN_TEMPLATES.find(t => t.file === val)
+                if (builtin) {
+                  setTemplateName(val); setSvgFile(null)
+                  try { const r = await fetch(`${CERT_API}/api/templates/${val}`); if (r.ok) parseIdsSvg(await r.text()) } catch(_) {}
+                  return
+                }
+                const tpl = templates.find(t => t.id === val)
+                if (tpl) {
+                  const svgText = await loadSvgContent(tpl)
+                  if (svgText) { const f = new File([svgText], tpl.file_name, { type:'image/svg+xml' }); setSvgFile(f); setTemplateName(null); parseIdsSvg(svgText) }
+                }
+              }}
+              certApi={CERT_API}
+            />
+          </div>
           <CertDropZone accept=".svg" title="O subir SVG propio" subtitle="Opcional"
             icon="upload_file" file={svgFile} onFile={f => {
               setSvgFile(f); if (f) { setTemplateName(null); parseIdsSvg(f) } else setDetectedIds([])
