@@ -100,10 +100,7 @@ function ExtraFieldInput({ id, value, onChange, size = 'sm', courses = [] }) {
   )
 }
 
-const BUILT_IN_TEMPLATES = [
-  { id: 'classic', file: 'template_classic.svg', name: 'Clásico' },
-  { id: 'modern',  file: 'template_modern.svg',  name: 'Moderno' },
-]
+const BUILT_IN_TEMPLATES = []
 
 /* ── TemplateCarousel ───────────────────────────────────────── */
 
@@ -344,7 +341,7 @@ function SectionHeader({ icon, label, action }) {
 
 function CertIndividual({ participants, courses = [], galleryTplPick, onGalleryConsumed }) {
   const { templates, loadSvgContent } = useTemplates()
-  const [templateName,    setTemplateName]    = useState('template_classic.svg')
+  const [templateName,    setTemplateName]    = useState(null)
   const [svgFile,         setSvgFile]         = useState(null)
   const [nameId,          setNameId]          = useState('recipient_name')
   const [dateId,          setDateId]          = useState('issue_date')
