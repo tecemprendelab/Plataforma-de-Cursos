@@ -307,6 +307,28 @@ def _title_case_es(name: str) -> str:
     return " ".join(out)
 
 
+def _shift_text_y(svg: str, field_id: str, dy: float) -> str:
+    """Desplaza verticalmente (dy px) el <text> con id dado y sus tspans,
+    sumando dy a cada atributo y= dentro del elemento."""
+    import re as _re
+    elem_pat = _re.compile(
+        r'(<text\b[^>]*\bid=["\']' + _re.escape(field_id) + r'["\'][^>]*>)([\s\S]*?)(</text>)',
+        _re.IGNORECASE)
+
+    def bump_y(s):
+        def _y(mm):
+            try:
+                return f'y="{float(mm.group(1)) + dy:.1f}"'
+            except ValueError:
+                return mm.group(0)
+        return _re.sub(r'y=["\']([-\d.]+)["\']', _y, s)
+
+    def repl(m):
+        return bump_y(m.group(1)) + bump_y(m.group(2)) + m.group(3)
+
+    return elem_pat.sub(repl, svg, count=1)
+
+
 def _set_text_font(svg: str, field_id: str, family: str, size=None) -> str:
     """Fuerza font-family (y font-size opcional) en el <text> completo con
     id dado. Modifica el tag de apertura y limpia font-family/font-size de
@@ -362,6 +384,8 @@ def _fill_svg(svg_text: str, fields: dict) -> str:
         result = _set_text_font(result, "recipient_name", "MonteCarlo", 45)
         result = _set_text_font(result, "line_fechas",   "Poppins",    12)
         result = _set_text_font(result, "issue_date",    "Poppins",    12)
+        # Bajar un poco la fecha de otorgación para separarla del texto superior
+        result = _shift_text_y(result, "issue_date", 14)
 
     MIXED_LINES = {
         "line_curso": lambda f: [
