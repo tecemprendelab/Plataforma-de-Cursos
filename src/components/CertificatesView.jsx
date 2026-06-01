@@ -107,71 +107,79 @@ const BUILT_IN_TEMPLATES = [
 
 /* ── TemplateCarousel ───────────────────────────────────────── */
 
-function TemplateCarousel({ templates, selectedValue, svgFile, onSelect, certApi }) {
+function TemplateCarousel({ templates, selectedValue, svgFile, onSelect, certApi, loadSvgContent }) {
   const [idx, setIdx] = useState(0)
-  const [thumbs, setThumbs] = useState({})    // file/id → svg string
-  const VISIBLE = 3
+  const [thumbs, setThumbs] = useState({})    // optionId → svg string
+  const VISIBLE = 2
 
-  // Construir lista plana de opciones
+  // Construir lista plana de opciones (built-in primero, luego custom)
   const options = [
-    ...BUILT_IN_TEMPLATES.map(t => ({ id: t.file, label: t.name, file: t.file, isBuiltin: true })),
-    ...templates.filter(t => !t.is_builtin).map(t => ({ id: t.id, label: t.name, file: t.file_name, isBuiltin: false })),
+    ...BUILT_IN_TEMPLATES.map(t => ({ id: t.file, label: t.name, isBuiltin: true })),
+    ...templates.filter(t => !t.is_builtin).map(t => ({ id: t.id, label: t.name, isBuiltin: false, tpl: t })),
   ]
 
   const total   = options.length
   const maxIdx  = Math.max(0, total - VISIBLE)
   const visible = options.slice(idx, idx + VISIBLE)
 
-  // Cargar miniaturas SVG para built-ins
+  // Cargar miniaturas SVG para TODAS las opciones (built-in vía backend,
+  // custom vía loadSvgContent del hook de Supabase)
   useEffect(() => {
-    BUILT_IN_TEMPLATES.forEach(async t => {
-      if (thumbs[t.file]) return
+    options.forEach(async opt => {
+      if (thumbs[opt.id]) return
       try {
-        const r = await fetch(`${certApi}/api/templates/${t.file}`)
-        if (r.ok) {
-          const txt = await r.text()
-          setThumbs(prev => ({ ...prev, [t.file]: txt }))
+        let txt = null
+        if (opt.isBuiltin) {
+          const r = await fetch(`${certApi}/api/templates/${opt.id}`)
+          if (r.ok) txt = await r.text()
+        } else if (opt.tpl && loadSvgContent) {
+          txt = await loadSvgContent(opt.tpl)
         }
+        if (txt) setThumbs(prev => ({ ...prev, [opt.id]: txt }))
       } catch(_) {}
     })
-  }, [certApi])
+  }, [certApi, templates.length])
+
+  // Mantener idx dentro de rango si cambia el total
+  useEffect(() => { if (idx > maxIdx) setIdx(maxIdx) }, [maxIdx])
 
   const activeId = svgFile ? '__file__' : (selectedValue || '')
+
+  const arrowStyle = (disabled) => ({
+    background:'none', border:'1px solid var(--border)', borderRadius:8,
+    width:30, height:30, display:'flex', alignItems:'center', justifyContent:'center',
+    cursor: disabled ? 'default' : 'pointer', opacity: disabled ? 0.3 : 1,
+    flexShrink:0, color:'var(--gray)', transition:'opacity .2s',
+  })
 
   return (
     <div>
       <div style={{ display:'flex', alignItems:'center', gap:6 }}>
 
         {/* Flecha izquierda */}
-        <button
-          onClick={() => setIdx(i => Math.max(0, i - 1))}
-          disabled={idx === 0}
-          style={{ background:'none', border:'1px solid var(--border)', borderRadius:8,
-            width:28, height:28, display:'flex', alignItems:'center', justifyContent:'center',
-            cursor: idx === 0 ? 'default' : 'pointer', opacity: idx === 0 ? 0.3 : 1,
-            flexShrink:0, color:'var(--gray)', transition:'opacity .2s' }}>
-          <span className="material-symbols-outlined" style={{fontSize:16}}>chevron_left</span>
+        <button onClick={() => setIdx(i => Math.max(0, i - 1))} disabled={idx === 0} style={arrowStyle(idx === 0)}>
+          <span className="material-symbols-outlined" style={{fontSize:18}}>chevron_left</span>
         </button>
 
         {/* Cards */}
-        <div style={{ flex:1, display:'grid', gridTemplateColumns:`repeat(${VISIBLE}, 1fr)`, gap:8 }}>
+        <div style={{ flex:1, minWidth:0, display:'grid', gridTemplateColumns:`repeat(${VISIBLE}, 1fr)`, gap:8 }}>
           {visible.map(opt => {
             const isSelected = opt.id === activeId
-            const svgRaw = thumbs[opt.file] || ''
+            const svgRaw = thumbs[opt.id] || ''
             return (
               <button key={opt.id} onClick={() => onSelect(opt.id)}
                 style={{
                   border: `2px solid ${isSelected ? 'var(--orange)' : 'var(--border)'}`,
                   borderRadius: 10, padding: 6, background: isSelected ? 'var(--alert-warm-bg)' : 'var(--cream-2)',
-                  cursor: 'pointer', textAlign: 'center', transition: 'all .18s',
+                  cursor: 'pointer', textAlign: 'center', transition: 'all .18s', minWidth:0,
                   display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 4,
                 }}>
                 {/* Thumbnail */}
                 <div style={{ width:'100%', aspectRatio:'4/3', borderRadius:6, overflow:'hidden',
                   background:'#f5f5f5', display:'flex', alignItems:'center', justifyContent:'center' }}>
                   {svgRaw
-                    ? <div style={{ width:'100%', height:'100%', transform:'scale(0.95)' }}
-                        dangerouslySetInnerHTML={{ __html: svgRaw.replace(/<svg/, '<svg style="width:100%;height:100%;display:block"') }} />
+                    ? <div style={{ width:'100%', height:'100%' }}
+                        dangerouslySetInnerHTML={{ __html: svgRaw.replace(/<svg/, '<svg preserveAspectRatio="xMidYMid meet" style="width:100%;height:100%;display:block"') }} />
                     : <span className="material-symbols-outlined" style={{ fontSize:28, color:'var(--gray)', opacity:.5 }}>
                         workspace_premium
                       </span>
@@ -192,19 +200,13 @@ function TemplateCarousel({ templates, selectedValue, svgFile, onSelect, certApi
           {/* Relleno si hay menos de VISIBLE opciones */}
           {visible.length < VISIBLE && Array(VISIBLE - visible.length).fill(0).map((_, i) => (
             <div key={`empty-${i}`} style={{ border:'2px dashed var(--border)', borderRadius:10,
-              aspectRatio:'auto', background:'transparent', opacity:.3 }} />
+              aspectRatio:'4/3', background:'transparent', opacity:.3 }} />
           ))}
         </div>
 
         {/* Flecha derecha */}
-        <button
-          onClick={() => setIdx(i => Math.min(maxIdx, i + 1))}
-          disabled={idx >= maxIdx}
-          style={{ background:'none', border:'1px solid var(--border)', borderRadius:8,
-            width:28, height:28, display:'flex', alignItems:'center', justifyContent:'center',
-            cursor: idx >= maxIdx ? 'default' : 'pointer', opacity: idx >= maxIdx ? 0.3 : 1,
-            flexShrink:0, color:'var(--gray)', transition:'opacity .2s' }}>
-          <span className="material-symbols-outlined" style={{fontSize:16}}>chevron_right</span>
+        <button onClick={() => setIdx(i => Math.min(maxIdx, i + 1))} disabled={idx >= maxIdx} style={arrowStyle(idx >= maxIdx)}>
+          <span className="material-symbols-outlined" style={{fontSize:18}}>chevron_right</span>
         </button>
       </div>
 
@@ -499,6 +501,7 @@ function CertIndividual({ participants, courses = [], galleryTplPick, onGalleryC
               svgFile={svgFile}
               onSelect={selectTemplate}
               certApi={CERT_API}
+              loadSvgContent={loadSvgContent}
             />
           </div>
 
@@ -922,6 +925,7 @@ function CertBatch({ participants = [], courses = [] }) {
                 }
               }}
               certApi={CERT_API}
+              loadSvgContent={loadSvgContent}
             />
           </div>
           <CertDropZone accept=".svg" title="O subir SVG propio" subtitle="Opcional"
