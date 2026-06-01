@@ -332,6 +332,44 @@ def _fill_svg(svg_text: str, fields: dict) -> str:
         raw_val = str(value)
         if field_id == "recipient_name":
             raw_val = _fix_tildes(raw_val)
+
+        # FIDEIMAS: el nombre debe ir en dos líneas (nombres / apellidos).
+        # Solo aplica a esta plantilla, detectada por la palabra "fideimas".
+        if field_id == "recipient_name" and "fideimas" in svg_text.lower():
+            linea1, linea2 = _split_name_lines(raw_val)
+            if linea2:
+                safe_l1 = linea1.replace("&","&amp;").replace("<","&lt;").replace(">","&gt;")
+                safe_l2 = linea2.replace("&","&amp;").replace("<","&lt;").replace(">","&gt;")
+                safe_id = _re.escape(field_id)
+                def make_two_line(l1, l2):
+                    def _r(m):
+                        tag   = m.group(1)
+                        inner = m.group(2)
+                        xm = _re.search(r'<tspan[^>]+x=["\']([^"\']*)["\']', inner)
+                        ym = _re.search(r'<tspan[^>]+y=["\']([^"\']*)["\']', inner)
+                        if not xm:
+                            xm = _re.search(r'\bx=["\']([^"\']*)["\']', tag)
+                        if not ym:
+                            ym = _re.search(r'\by=["\']([^"\']*)["\']', tag)
+                        x_val = xm.group(1) if xm else "421"
+                        y_val = float(ym.group(1)) if ym else 218.0
+                        fs_m  = _re.search(r'font-size=["\']([^"\']+)["\']', tag)
+                        fs    = float(fs_m.group(1)) if fs_m else 32.0
+                        lh    = fs * 1.3
+                        y1    = y_val - lh * 0.5
+                        new_inner = (
+                            f'<tspan x="{x_val}" y="{y1:.1f}">{l1}</tspan>'
+                            f'<tspan x="{x_val}" dy="{lh:.1f}">{l2}</tspan>'
+                        )
+                        return m.group(1) + new_inner + m.group(3)
+                    return _r
+                result = _re.sub(
+                    r'(<text\b[^>]*\bid=["\']' + safe_id + r'["\'][^>]*>)([\s\S]*?)(</text>)',
+                    make_two_line(safe_l1, safe_l2),
+                    result, flags=_re.IGNORECASE
+                )
+                continue
+
         safe_id  = _re.escape(str(field_id))
         safe_val = raw_val.replace("&","&amp;").replace("<","&lt;").replace(">","&gt;")
         def make_replacer(val):
