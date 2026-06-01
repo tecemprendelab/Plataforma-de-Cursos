@@ -83,16 +83,17 @@ export default function CourseModal({ course, onSave, onClose }) {
       {/* Nombre + nombre corto */}
       <div className="modal-grid-2" style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:12, marginBottom:12 }}>
         <div style={{ gridColumn:'1/-1' }}>
-          <label className="text-sm text-muted" style={{ display:'block', marginBottom:4 }}>
+          <label className="text-sm text-muted" htmlFor="cm-name" style={{ display:'block', marginBottom:4 }}>
             Nombre completo *
           </label>
-          <input className="finput" value={form.name}
+          <input id="cm-name" className="finput" value={form.name}
+            aria-invalid={!!errors.name} aria-describedby={errors.name ? 'cm-name-err' : undefined}
             onChange={e => {
               f('name', e.target.value)
               if (!form.short || form.short === form.name.slice(0,24))
                 f('short', e.target.value.slice(0,24))
             }}/>
-          {errors.name && <span style={{ fontSize:11, color:'var(--orange-d)' }}>{errors.name}</span>}
+          {errors.name && <span id="cm-name-err" style={{ fontSize:11, color:'var(--orange-d)' }}>{errors.name}</span>}
         </div>
         <div>
           <label className="text-sm text-muted" style={{ display:'block', marginBottom:4 }}>
@@ -116,14 +117,16 @@ export default function CourseModal({ course, onSave, onClose }) {
       {/* Fechas + capacidad + precio */}
       <div className="modal-grid-4" style={{ display:'grid', gridTemplateColumns:'1fr 1fr 1fr 1fr', gap:12, marginBottom:12 }}>
         <div>
-          <label className="text-sm text-muted" style={{ display:'block', marginBottom:4 }}>Inicio *</label>
-          <input className="finput" type="date" value={form.start} onChange={e => f('start', e.target.value)}/>
-          {errors.start && <span style={{ fontSize:11, color:'var(--orange-d)' }}>{errors.start}</span>}
+          <label className="text-sm text-muted" htmlFor="cm-start" style={{ display:'block', marginBottom:4 }}>Inicio *</label>
+          <input id="cm-start" className="finput" type="date" value={form.start} onChange={e => f('start', e.target.value)}
+            aria-invalid={!!errors.start} aria-describedby={errors.start ? 'cm-start-err' : undefined}/>
+          {errors.start && <span id="cm-start-err" style={{ fontSize:11, color:'var(--orange-d)' }}>{errors.start}</span>}
         </div>
         <div>
-          <label className="text-sm text-muted" style={{ display:'block', marginBottom:4 }}>Fin *</label>
-          <input className="finput" type="date" value={form.end} onChange={e => f('end', e.target.value)}/>
-          {errors.end && <span style={{ fontSize:11, color:'var(--orange-d)' }}>{errors.end}</span>}
+          <label className="text-sm text-muted" htmlFor="cm-end" style={{ display:'block', marginBottom:4 }}>Fin *</label>
+          <input id="cm-end" className="finput" type="date" value={form.end} onChange={e => f('end', e.target.value)}
+            aria-invalid={!!errors.end} aria-describedby={errors.end ? 'cm-end-err' : undefined}/>
+          {errors.end && <span id="cm-end-err" style={{ fontSize:11, color:'var(--orange-d)' }}>{errors.end}</span>}
         </div>
         <div>
           <label className="text-sm text-muted" style={{ display:'block', marginBottom:4 }}>Capacidad</label>

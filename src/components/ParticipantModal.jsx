@@ -73,18 +73,20 @@ export default function ParticipantModal({ participant, courses, tags, onSave, o
       {/* Datos personales */}
       <div className="modal-grid-2" style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:12, marginBottom:12 }}>
         <div>
-          <label className="text-sm text-muted" style={{ display:'block', marginBottom:4 }}>Nombre completo *</label>
-          <input className="finput" value={form.name} onChange={e => f('name', e.target.value)}/>
-          {errors.name && <span style={{ fontSize:11, color:'var(--orange-d)' }}>{errors.name}</span>}
+          <label className="text-sm text-muted" htmlFor="pm-name" style={{ display:'block', marginBottom:4 }}>Nombre completo *</label>
+          <input id="pm-name" className="finput" value={form.name} onChange={e => f('name', e.target.value)}
+            aria-invalid={!!errors.name} aria-describedby={errors.name ? 'pm-name-err' : undefined}/>
+          {errors.name && <span id="pm-name-err" style={{ fontSize:11, color:'var(--orange-d)' }}>{errors.name}</span>}
         </div>
         <div>
           <label className="text-sm text-muted" style={{ display:'block', marginBottom:4 }}>Teléfono</label>
           <input className="finput" value={form.phone} onChange={e => f('phone', e.target.value)}/>
         </div>
         <div style={{ gridColumn:'1/-1' }}>
-          <label className="text-sm text-muted" style={{ display:'block', marginBottom:4 }}>Correo electrónico *</label>
-          <input className="finput" type="email" value={form.email} onChange={e => f('email', e.target.value)}/>
-          {errors.email && <span style={{ fontSize:11, color:'var(--orange-d)' }}>{errors.email}</span>}
+          <label className="text-sm text-muted" htmlFor="pm-email" style={{ display:'block', marginBottom:4 }}>Correo electrónico *</label>
+          <input id="pm-email" className="finput" type="email" value={form.email} onChange={e => f('email', e.target.value)}
+            aria-invalid={!!errors.email} aria-describedby={errors.email ? 'pm-email-err' : undefined}/>
+          {errors.email && <span id="pm-email-err" style={{ fontSize:11, color:'var(--orange-d)' }}>{errors.email}</span>}
         </div>
       </div>
 
