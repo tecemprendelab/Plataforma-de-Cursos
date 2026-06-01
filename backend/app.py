@@ -280,24 +280,16 @@ def _fill_svg(svg_text: str, fields: dict) -> str:
         y_m = (_re.search(r'<tspan[^>]*\by=["\']([^"\']+)["\']', tag) or
                _re.search(r'<text\b[^>]*\by=["\']([^"\']+)["\']', tag))
 
-        # Construir spans preservando posición
-        spans = ""
-        first = True
-        for txt, bold in safe_parts:
-            if not txt:
-                continue
-            fw = "700" if bold else "400"
-            if first:
-                pos = ""
-                if x_m: pos += f' x="{x_m.group(1)}"'
-                if y_m: pos += f' y="{y_m.group(1)}"'
-                spans += f'<tspan{pos} font-weight="{fw}">{txt}</tspan>'
-                first = False
-            else:
-                spans += f'<tspan font-weight="{fw}">{txt}</tspan>'
-
-        if not spans:
+        # Concatenar todas las partes en un solo tspan.
+        # cairosvg aplica text-anchor="middle" a cada tspan por separado,
+        # lo que causa superposición cuando hay múltiples tspans sin x/y.
+        combined = "".join(txt for txt, _ in safe_parts if txt)
+        if not combined:
             continue
+        pos = ""
+        if x_m: pos += f' x="{x_m.group(1)}"'
+        if y_m: pos += f' y="{y_m.group(1)}"'
+        spans = f'<tspan{pos}>{combined}</tspan>'
 
         # Preservar el tag de apertura original (mantiene fill, font, transform, etc.)
         open_m = _re.match(r'(<text\b[^>]*>)', tag)
