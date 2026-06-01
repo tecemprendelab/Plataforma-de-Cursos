@@ -256,7 +256,14 @@ def _fechas_parts(f):
     # Formatear si están en ISO
     d1 = _format_date_es(d1)
     d2 = _format_date_es(d2)
-    return [("desde el ", False), (d1, True), (" al ", False), (d2, True)]
+    # Detectar si es Corbana (tiene ambas fechas) o cursos (tiene horas)
+    has_horas = "line_horas" in f or "hours_issue" in f
+    if has_horas:
+        # Formato cursos: "desde el ... al ..."
+        return [("desde el ", False), (d1, True), (" al ", False), (d2, True)]
+    else:
+        # Formato Corbana: solo fechas sin "desde el"
+        return [(d1, True), (" al ", False), (d2, True)]
 
 
 def _fill_svg(svg_text: str, fields: dict) -> str:
