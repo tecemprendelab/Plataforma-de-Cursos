@@ -25,10 +25,12 @@ const fmtDateEs = iso => {
 const TIPO_PREFIX = { taller:'Taller de', curso:'Curso de', seminario:'Seminario de', bootcamp:'Bootcamp de', charla:'Charla sobre' }
 
 function ExtraFieldInput({ id, value, onChange, size = 'sm', courses = [] }) {
-  const isTipo      = /line_curso|tipo_curso/i.test(id)
-  const isDateRange = /line_fechas|fecha_rango|date_range/i.test(id)
-  const [startIso, setStartIso] = useState('')
-  const [endIso,   setEndIso]   = useState('')
+  const isTipo       = /line_curso|tipo_curso/i.test(id)
+  const isDateRange  = /line_fechas|fecha_rango|date_range/i.test(id)
+  const isSingleDate = /date_issue_[12]|fecha_inicio|fecha_fin/i.test(id)
+  const [startIso,  setStartIso]  = useState('')
+  const [endIso,    setEndIso]    = useState('')
+  const [singleIso, setSingleIso] = useState('')
 
   const fst = { background:'var(--cream-2)', color:'var(--black)', fontSize: size === 'xs' ? 11 : 13 }
 
@@ -75,6 +77,19 @@ function ExtraFieldInput({ id, value, onChange, size = 'sm', courses = [] }) {
             {value}
           </p>
         )}
+      </div>
+    )
+  }
+
+  if (isSingleDate) {
+    return (
+      <div>
+        <p style={{ fontSize:11, color:'var(--gray)', marginBottom:4 }}>
+          {id === 'date_issue_1' ? 'Fecha de inicio' : 'Fecha de finalización'}
+        </p>
+        <input type="date" value={value}
+          onChange={e => onChange(e.target.value)}
+          className="finput" style={fst} />
       </div>
     )
   }
@@ -386,6 +401,29 @@ function CertIndividual({ participants, courses = [], galleryTplPick, onGalleryC
                 <option value="">— Elegir de la lista —</option>
                 {participants.filter(p => p.status === 'activo').map(p => (
                   <option key={p.id} value={p.id}>{p.name}</option>
+                ))}
+              </select>
+            </div>
+          )}
+
+          {courses.length > 0 && detectedIds.some(({id}) => /date_issue_[12]/.test(id)) && (
+            <div style={{ marginBottom:12 }}>
+              <label style={{ display:'block', fontSize:12, color:'var(--gray)', marginBottom:5 }}>
+                Curso/Taller (auto-llenar fechas)
+              </label>
+              <select onChange={e => {
+                const c = courses.find(x => x.id === e.target.value)
+                if (c && c.start && c.end) {
+                  setExtraFieldValues(prev => ({
+                    ...prev,
+                    date_issue_1: c.start,
+                    date_issue_2: c.end,
+                  }))
+                }
+              }} className="finput" style={{ background:'var(--cream-2)' }}>
+                <option value="">— Elegir para auto-llenar —</option>
+                {courses.filter(c => c.active).map(c => (
+                  <option key={c.id} value={c.id}>{c.name}</option>
                 ))}
               </select>
             </div>
