@@ -10,7 +10,12 @@ asistido por IA). Por cada pantalla encontrarás:
 
 > **Cómo usarlo:** copiá el bloque "Prompt para Stitch" de la pantalla que querés rediseñar
 > y pegalo en Stitch. Empezá siempre dándole el **Sistema de diseño global** (sección 0)
-> como contexto para que respete la identidad de marca.
+> como contexto para que respete la identidad de marca. Cuando una sección tenga **captura
+> de referencia**, adjuntala también en Stitch (acepta imágenes como referencia visual).
+
+> **Capturas disponibles:** hoy existen capturas reales de **Dashboard** y **Participantes**
+> (escritorio, tablet y móvil) en [`docs/screenshots/`](screenshots/). Las demás pantallas
+> aún no tienen captura; ver la nota al final sobre cómo generarlas.
 
 ---
 
@@ -79,6 +84,13 @@ Activos, Con acceso, Expiran ≤7 días, Accesos expirados. Debajo, grilla de ta
 cursos activos y una tarjeta con la lista de participantes recientes (avatar + nombre +
 correo + `AccessBar` + `TimerBadge`).
 
+**Captura de referencia (escritorio):**
+
+![Dashboard — escritorio](screenshots/desktop-dashboard.png)
+
+**Móvil:** ver [`screenshots/mobile-dashboard.png`](screenshots/mobile-dashboard.png) y el
+drawer de navegación [`screenshots/mobile-drawer.png`](screenshots/mobile-drawer.png).
+
 **Prompt para Stitch:**
 > Diseñá el dashboard de un panel de gestión de cursos. Encabezado con título "Dashboard"
 > y fecha actual. Una fila de 5 tarjetas de métricas (número grande + etiqueta): Total
@@ -95,10 +107,18 @@ correo + `AccessBar` + `TimerBadge`).
 **Propósito:** CRUD y gestión de participantes.
 
 **Layout actual:** título "Participantes", botones "Verificar cédulas" y "Nuevo
-participante" (naranja). Barra de búsqueda (nombre/correo/teléfono) + filtros por etiqueta.
-Tabla `ttable` con columnas: Participante, Cursos, Tiempo de acceso (AccessBar), Etiquetas
-(TagPills), Estado, Acciones (editar, perfil, alternar acceso, eliminar). Modal de
-creación/edición con validación accesible.
+participante" (naranja). Barra de búsqueda (nombre/correo/teléfono) + filtros por curso,
+estado, etiqueta y orden. Tabla `ttable` con columnas: Participante, Cursos, Tiempo de
+acceso (AccessBar), Etiquetas (TagPills), Estado, Acciones (editar, perfil, alternar
+acceso, eliminar). Modal de creación/edición con validación accesible.
+
+**Captura de referencia (escritorio):**
+
+![Participantes — escritorio](screenshots/desktop-participants.png)
+
+**Tablet / móvil:** ver [`screenshots/tablet-participants.png`](screenshots/tablet-participants.png),
+[`screenshots/mobile-participants.png`](screenshots/mobile-participants.png) y el modal de
+edición [`screenshots/mobile-modal.png`](screenshots/mobile-modal.png).
 
 **Prompt para Stitch:**
 > Diseñá una vista de tabla para administrar "Participantes" de cursos. Encabezado con
@@ -282,3 +302,28 @@ del SVG, nombre y etiquetas; modal para subir nueva plantilla (nombre + etiqueta
 - Contraste de texto secundario conforme a WCAG AA.
 
 Pedile a Stitch que **preserve estos comportamientos** y siga las pautas WCAG 2.2 AA.
+
+---
+
+## Capturas: estado y cómo generar las faltantes
+
+**Ya disponibles** (en [`docs/screenshots/`](screenshots/)):
+
+| Pantalla | Archivos |
+|----------|----------|
+| Dashboard | `desktop-dashboard.png`, `mobile-dashboard.png`, `mobile-drawer.png` |
+| Participantes | `desktop-participants.png`, `tablet-participants.png`, `tablet-participants2.png`, `mobile-participants.png`, `mobile-modal.png` |
+
+**Pendientes de capturar:** Login, Perfil, Cursos y Talleres, Control de Accesos,
+Recordatorios, Etiquetas, Importar CSV, Exportar datos, Certificados, Galería SVG.
+
+**Cómo generarlas** (recomendado, app desplegada en Vercel):
+1. Iniciá sesión en la plataforma.
+2. Entrá a cada sección y tomá captura de pantalla completa (escritorio ~1440px; opcional
+   móvil ~390px).
+3. Guardá los archivos en `docs/screenshots/` con nombres consistentes, p. ej.
+   `desktop-courses.png`, `desktop-access.png`, `desktop-certificates.png`, etc.
+4. Enlazalas en la sección correspondiente con `![Título](screenshots/archivo.png)`.
+
+> Avisá si querés que actualice este informe enlazando las nuevas capturas una vez tomadas.
+
