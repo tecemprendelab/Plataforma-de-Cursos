@@ -243,7 +243,7 @@ def _fechas_parts(f):
 def _fill_svg(svg_text: str, fields: dict) -> str:
     import re as _re
     result = svg_text
-    LINE_HEIGHT = 44
+    DEFAULT_LINE_HEIGHT = 44
 
     MIXED_LINES = {
         "line_curso": lambda f: [
@@ -312,7 +312,7 @@ def _fill_svg(svg_text: str, fields: dict) -> str:
             if linea2:
                 safe_l2 = linea2.replace("&","&amp;").replace("<","&lt;").replace(">","&gt;")
                 safe_id = _re.escape(field_id)
-                def make_two_line(l1, l2, lh):
+                def make_two_line(l1, l2):
                     def _r(m):
                         tag   = m.group(1)
                         inner = m.group(2)
@@ -325,16 +325,20 @@ def _fill_svg(svg_text: str, fields: dict) -> str:
                             ym = _re.search(r'\by=["\']([^"\']*)["\']', tag)
                         x_val = xm.group(1) if xm else "600"
                         y_val = float(ym.group(1)) if ym else 400.0
+                        # Detectar font-size para calcular line-height dinámicamente
+                        fs_m = _re.search(r'font-size=["\']([^"\']+)["\']', tag)
+                        fs = float(fs_m.group(1)) if fs_m else 32.0
+                        lh = fs * 1.3  # 1.3x el font-size como separación entre líneas
                         y1 = y_val - lh * 0.5
                         new_inner = (
                             f'<tspan x="{x_val}" y="{y1:.1f}">{l1}</tspan>'
-                            f'<tspan x="{x_val}" dy="{lh}">{l2}</tspan>'
+                            f'<tspan x="{x_val}" dy="{lh:.1f}">{l2}</tspan>'
                         )
                         return m.group(1) + new_inner + m.group(3)
                     return _r
                 result = _re.sub(
                     r'(<text\b[^>]*\bid=["\']' + safe_id + r'["\'][^>]*>)([\s\S]*?)(</text>)',
-                    make_two_line(safe_l1, safe_l2, LINE_HEIGHT),
+                    make_two_line(safe_l1, safe_l2),
                     result, flags=_re.IGNORECASE
                 )
                 continue
