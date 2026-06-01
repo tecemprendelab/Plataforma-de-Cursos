@@ -4,6 +4,7 @@
 // ============================================================
 
 import { useState } from 'react'
+import Logo from './Logo.jsx'
 
 export default function LoginView({ onSignIn }) {
   const [email,    setEmail]    = useState('')
@@ -24,7 +25,7 @@ export default function LoginView({ onSignIn }) {
     <div className="login-shell">
       <form className="login-card" onSubmit={handleSubmit}>
         <div className="login-brand">
-          <h1 className="poppins-semibold">TEC Emprende Lab</h1>
+          <Logo height={36} style={{ margin:'0 auto 10px' }} />
           <p className="poppins-regular">Gestión de cursos virtuales</p>
         </div>
 

@@ -3,6 +3,7 @@
 // ============================================================
 
 import { isExpired, needsExamReminder, getAccessDays } from '../utils/time.js'
+import Logo from './Logo.jsx'
 
 export const NAV = [
   { section:'Principal' },
@@ -43,13 +44,7 @@ export default function Sidebar({ view, setView, participants, courses = [], use
           flexShrink:0, position:'fixed', top:0, left:0, height:'100vh', overflowY:'auto', zIndex:50 }}>
         <div style={{ padding:'0 20px 28px', display:'flex', alignItems:'flex-start', gap:10 }}>
           <div style={{ flex:1, minWidth:0 }}>
-            <div style={{ width:36, height:36, background:'var(--orange)', borderRadius:8,
-              display:'flex', alignItems:'center', justifyContent:'center', marginBottom:10 }}>
-              <span style={{ color:'#fff', fontFamily:'var(--font-display)', fontSize:15 }}>T</span>
-            </div>
-            <div style={{ color:'var(--sidebar-text)', fontFamily:'var(--font-display)', fontSize:15, lineHeight:1.2 }}>
-              TEC Emprende Lab
-            </div>
+            <Logo height={26} style={{ marginBottom:6 }} />
             <div style={{ color:'var(--sidebar-muted)', fontSize:11, marginTop:3 }}>Panel de gestión</div>
           </div>
           {onToggleTheme && (
