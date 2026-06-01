@@ -731,9 +731,9 @@ function CertBatch({ participants = [], courses = [] }) {
   const [alert,          setAlert]          = useState(null)
   const [result,         setResult]         = useState(null)
   const [confetti,       setConfetti]       = useState(0)
-  const [filterCourse,   setFilterCourse]   = useState('')
-  const [filterStatus,   setFilterStatus]   = useState('activo')
-  const [filterPayment,  setFilterPayment]  = useState('pagado')
+  const [filterCourses,  setFilterCourses]  = useState([])   // selección múltiple
+  const [filterStatus,   setFilterStatus]   = useState('')    // opcional (Todos por defecto)
+  const [filterPayment,  setFilterPayment]  = useState('')    // opcional (Todos por defecto)
   const [certDate,       setCertDate]       = useState(TODAY_ES)
   const [globalDate,     setGlobalDate]     = useState('')
   const [detectedIds,    setDetectedIds]    = useState([])
@@ -756,11 +756,16 @@ function CertBatch({ participants = [], courses = [] }) {
   }
 
   const filteredParticipants = participants.filter(p => {
-    const matchCourse  = !filterCourse  || (p.courses || []).includes(filterCourse)
+    // Sin cursos seleccionados → no filtra por curso; si hay, basta pertenecer a uno
+    const matchCourse  = filterCourses.length === 0 ||
+                         (p.courses || []).some(cid => filterCourses.includes(cid))
     const matchStatus  = !filterStatus  || p.status  === filterStatus
     const matchPayment = !filterPayment || p.payment === filterPayment
     return matchCourse && matchStatus && matchPayment
   })
+
+  const toggleCourse = (cid) => setFilterCourses(prev =>
+    prev.includes(cid) ? prev.filter(x => x !== cid) : [...prev, cid])
 
   const applyFilters = () => {
     if (!filteredParticipants.length) return
@@ -769,10 +774,11 @@ function CertBatch({ participants = [], courses = [] }) {
     handleCsvFile(new File([blob], 'participantes_filtrados.csv', { type: 'text/csv' }))
   }
 
-  // Auto-rellenar campos de fecha y tipo desde el curso seleccionado
+  // Auto-rellenar campos de fecha y tipo desde el curso seleccionado.
+  // Solo aplica cuando hay exactamente UN curso elegido (con varios sería ambiguo).
   useEffect(() => {
-    if (!filterCourse) return
-    const course = courses.find(c => c.id === filterCourse)
+    if (filterCourses.length !== 1) return
+    const course = courses.find(c => c.id === filterCourses[0])
     if (!course) return
     setExtraFieldValues(prev => {
       const next = { ...prev }
@@ -792,7 +798,7 @@ function CertBatch({ participants = [], courses = [] }) {
       })
       return next
     })
-  }, [filterCourse, courses])
+  }, [filterCourses, courses])
 
   const handleCsvFile = async (file) => {
     if (!file) { setCsvFile(null); setCsvMeta(null); return }
@@ -869,18 +875,47 @@ function CertBatch({ participants = [], courses = [] }) {
         {participants.length > 0 && (
           <div className="card" style={{ padding:16 }}>
             <SectionHeader icon="filter_list" label="Filtrar participantes" />
-            <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr 1fr', gap:8, marginBottom:10 }}>
-              <div>
-                <label style={{ display:'block', fontSize:11, color:'var(--gray)', marginBottom:4 }}>Curso / taller</label>
-                <select value={filterCourse} onChange={e => setFilterCourse(e.target.value)}
-                  className="finput" style={fInp}>
-                  <option value="">Todos</option>
-                  {(courses.some(c => c.certEnabled)
-                    ? courses.filter(c => c.active && c.certEnabled)
-                    : courses.filter(c => c.active)
-                  ).map(c => <option key={c.id} value={c.id}>{c.short || c.name}</option>)}
-                </select>
+
+            {/* Cursos — selección múltiple por chips */}
+            <div style={{ marginBottom:10 }}>
+              <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', marginBottom:4 }}>
+                <label style={{ fontSize:11, color:'var(--gray)' }}>
+                  Cursos / talleres {filterCourses.length > 0 && `(${filterCourses.length} seleccionado${filterCourses.length !== 1 ? 's' : ''})`}
+                </label>
+                {filterCourses.length > 0 && (
+                  <button onClick={() => setFilterCourses([])}
+                    style={{ background:'none', border:'none', cursor:'pointer', fontSize:11,
+                      color:'var(--orange)', fontWeight:600 }}>
+                    Limpiar
+                  </button>
+                )}
               </div>
+              <div style={{ display:'flex', flexWrap:'wrap', gap:6 }}>
+                {(courses.some(c => c.certEnabled)
+                  ? courses.filter(c => c.active && c.certEnabled)
+                  : courses.filter(c => c.active)
+                ).map(c => {
+                  const on = filterCourses.includes(c.id)
+                  return (
+                    <button key={c.id} onClick={() => toggleCourse(c.id)} title={c.name}
+                      style={{
+                        display:'inline-flex', alignItems:'center', gap:4,
+                        padding:'4px 10px', borderRadius:999, cursor:'pointer',
+                        fontSize:12, fontWeight: on ? 600 : 400,
+                        border:`1px solid ${on ? 'var(--orange)' : 'var(--border)'}`,
+                        background: on ? 'var(--alert-warm-bg)' : 'var(--cream-2)',
+                        color: on ? 'var(--orange-d)' : 'var(--gray)',
+                        transition:'all .15s',
+                      }}>
+                      {on && <span className="material-symbols-outlined" style={{fontSize:13}}>check</span>}
+                      {c.short || c.name}
+                    </button>
+                  )
+                })}
+              </div>
+            </div>
+
+            <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:8, marginBottom:10 }}>
               <div>
                 <label style={{ display:'block', fontSize:11, color:'var(--gray)', marginBottom:4 }}>Estado</label>
                 <select value={filterStatus} onChange={e => setFilterStatus(e.target.value)}
