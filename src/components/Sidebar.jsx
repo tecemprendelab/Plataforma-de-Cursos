@@ -50,12 +50,12 @@ export default function Sidebar({ view, setView, participants, courses = [], use
             <div style={{ color:'var(--sidebar-text)', fontFamily:'var(--font-display)', fontSize:15, lineHeight:1.2 }}>
               TEC Emprende Lab
             </div>
-            <div style={{ color:'var(--gray)', fontSize:11, marginTop:3 }}>Panel de gestión</div>
+            <div style={{ color:'var(--sidebar-muted)', fontSize:11, marginTop:3 }}>Panel de gestión</div>
           </div>
           {onToggleTheme && (
             <button onClick={onToggleTheme} title={isDark ? 'Modo claro' : 'Modo oscuro'}
               aria-label={isDark ? 'Activar modo claro' : 'Activar modo oscuro'}
-              style={{ background:'transparent', border:'1px solid #3A332B', color:'var(--sidebar-text)',
+              style={{ background:'transparent', border:'1px solid var(--sidebar-border)', color:'var(--sidebar-text)',
                 borderRadius:8, padding:'6px 8px', cursor:'pointer', fontSize:14, lineHeight:1,
                 display:'inline-flex', alignItems:'center', justifyContent:'center', flexShrink:0 }}>
               <i className={`ti ${isDark ? 'ti-sun' : 'ti-moon'}`}/>
@@ -65,8 +65,8 @@ export default function Sidebar({ view, setView, participants, courses = [], use
         <nav aria-label="Navegación principal" style={{ padding:'0 10px', flex:1 }}>
           {NAV.map((item, i) => {
             if (item.section) return (
-              <div key={i} style={{ padding:'8px 12px 4px', fontSize:10, fontWeight:600,
-                letterSpacing:1, color:'#4A4540', textTransform:'uppercase', marginTop: i > 0 ? 4 : 0 }}>
+              <div key={i} style={{ padding:'8px 12px 4px', fontSize:10, fontWeight:700,
+                letterSpacing:1, color:'var(--sidebar-muted)', textTransform:'uppercase', marginTop: i > 0 ? 4 : 0 }}>
                 {item.section}
               </div>
             )
@@ -79,8 +79,8 @@ export default function Sidebar({ view, setView, participants, courses = [], use
                   borderRadius:8, cursor:'pointer', marginBottom:2, width:'100%',
                   textAlign:'left', border:'none', fontFamily:'inherit',
                   background: isActive ? 'var(--orange)' : 'transparent',
-                  transition:'all .15s', color: isActive ? '#fff' : 'var(--gray)',
-                  fontSize:13, fontWeight: isActive ? 500 : 400 }}>
+                  transition:'all .15s', color: isActive ? '#fff' : 'var(--sidebar-muted)',
+                  fontSize:13, fontWeight: isActive ? 600 : 400 }}>
                 <i className={`ti ${item.icon}`} style={{ fontSize:15 }} aria-hidden="true"/>
                 {item.label}
                 {badge > 0 && <span className="notif-dot">{badge}</span>}
@@ -89,21 +89,21 @@ export default function Sidebar({ view, setView, participants, courses = [], use
           })}
         </nav>
         {userEmail && (
-          <div style={{ padding:'12px 20px', borderTop:'1px solid #3A332B',
+          <div style={{ padding:'12px 20px', borderTop:'1px solid var(--sidebar-border)',
             display:'flex', alignItems:'center', gap:8 }}>
             <div style={{ flex:1, minWidth:0, color:'var(--sidebar-text)', fontSize:12,
               overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }} title={userEmail}>
               {userEmail}
             </div>
             <button onClick={onSignOut} title="Cerrar sesión"
-              style={{ background:'transparent', border:'1px solid #3A332B', color:'var(--gray)',
+              style={{ background:'transparent', border:'1px solid var(--sidebar-border)', color:'var(--sidebar-muted)',
                 borderRadius:6, padding:'4px 8px', fontSize:11, cursor:'pointer' }}>
               Salir
             </button>
           </div>
         )}
-        <div style={{ padding:'16px 20px', borderTop:'1px solid #3A332B',
-          fontSize:11, color:'var(--gray)' }}>
+        <div style={{ padding:'16px 20px', borderTop:'1px solid var(--sidebar-border)',
+          fontSize:11, color:'var(--sidebar-muted)' }}>
           v4.2 · TEC Emprende Lab
         </div>
       </aside>

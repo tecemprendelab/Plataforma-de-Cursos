@@ -53,8 +53,10 @@
   --blue-l:      #EEF3FF;   /* lavanda claro */
 
   /* Tokens semánticos */
-  --sidebar-bg:   var(--black);
-  --sidebar-text: var(--cream);
+  --sidebar-bg:     var(--black);
+  --sidebar-text:   var(--cream);
+  --sidebar-muted:  #B3A892;   /* texto secundario del sidebar — contraste AA sobre fondo oscuro */
+  --sidebar-border: #3A332B;
   --row-hover:    #FDFBF4;
   --row-exp-bg:   #FFF5F0;
   --row-warn-bg:  #FFFAF2;
