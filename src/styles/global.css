@@ -45,7 +45,7 @@
   --black:       #1A1612;
   --black-2:     #2E2820;
   --white:       #FFFFFF;
-  --gray:        #8A8070;
+  --gray:        #6E6553;   /* gris cálido — oscurecido para contraste AA 4.5:1 sobre crema */
   --border:      #CEBF98;   /* borde — tono arena */
   --green:       #6E7530;   /* oliva oficial */
   --green-l:     #EAF0D0;   /* oliva claro */
@@ -194,10 +194,35 @@ input, select, button, textarea { font-family: var(--font-body) }
 /* ── Focus visible accesible ─────────────────────────────── */
 .btn:focus-visible,
 .btn-icon:focus-visible,
-.finput:focus-visible {
+.finput:focus-visible,
+a:focus-visible,
+button:focus-visible,
+[role="button"]:focus-visible,
+[tabindex]:focus-visible,
+input:focus-visible,
+select:focus-visible,
+textarea:focus-visible {
   outline:2px solid var(--orange);
   outline-offset:2px;
   border-color:var(--orange);
+}
+
+/* ── Accesibilidad: lector de pantalla y skip-link ───────── */
+/* Oculta visualmente pero mantiene el contenido para lectores de pantalla */
+.sr-only {
+  position:absolute; width:1px; height:1px; padding:0; margin:-1px;
+  overflow:hidden; clip:rect(0,0,0,0); white-space:nowrap; border:0;
+}
+
+/* Enlace "Saltar al contenido": invisible hasta recibir foco por teclado */
+.skip-link {
+  position:absolute; left:8px; top:-48px; z-index:1000;
+  background:var(--orange); color:#fff; padding:10px 16px;
+  border-radius:8px; font-size:14px; font-weight:600;
+  text-decoration:none; transition:top .15s;
+}
+.skip-link:focus {
+  top:8px; outline:2px solid var(--black); outline-offset:2px;
 }
 
 /* ── Cards ───────────────────────────────────────────────── */

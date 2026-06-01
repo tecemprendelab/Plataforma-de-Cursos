@@ -5,7 +5,7 @@
 //  Todos los componentes están documentados con JSDoc.
 // ============================================================
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { accessPct, daysLeft, isExpired, isWarning, ACCESS_DAYS } from '../utils/time.js'
 
 // Re-export constante para uso externo
@@ -108,11 +108,53 @@ export function Toast({ message, onHide }) {
 }
 
 // ── Modal base ────────────────────────────────────────────
-/** Envuelve contenido en el overlay de modal */
-export function Modal({ onClose, children, width = 560 }) {
+/** Envuelve contenido en el overlay de modal.
+ *  Accesible: role="dialog" + aria-modal, cierre con Esc, atrapa el
+ *  foco dentro del diálogo y lo devuelve al elemento que lo abrió. */
+export function Modal({ onClose, children, width = 560, label = 'Diálogo' }) {
+  const boxRef     = useRef(null)
+  const restoreRef = useRef(null)
+
+  useEffect(() => {
+    // Recordar el elemento enfocado antes de abrir, para restaurarlo al cerrar
+    restoreRef.current = document.activeElement
+
+    // Enfocar el primer elemento interactivo del modal
+    const focusables = () => boxRef.current
+      ? boxRef.current.querySelectorAll(
+          'a[href], button:not([disabled]), textarea, input:not([disabled]), select:not([disabled]), [tabindex]:not([tabindex="-1"])')
+      : []
+    const first = focusables()[0]
+    if (first) first.focus()
+    else if (boxRef.current) boxRef.current.focus()
+
+    const onKeyDown = (e) => {
+      if (e.key === 'Escape') { e.preventDefault(); onClose(); return }
+      if (e.key !== 'Tab') return
+      // Focus-trap: ciclar dentro del modal
+      const items = Array.from(focusables())
+      if (items.length === 0) return
+      const firstEl = items[0]
+      const lastEl  = items[items.length - 1]
+      if (e.shiftKey && document.activeElement === firstEl) {
+        e.preventDefault(); lastEl.focus()
+      } else if (!e.shiftKey && document.activeElement === lastEl) {
+        e.preventDefault(); firstEl.focus()
+      }
+    }
+
+    document.addEventListener('keydown', onKeyDown)
+    return () => {
+      document.removeEventListener('keydown', onKeyDown)
+      // Devolver el foco al disparador
+      if (restoreRef.current && restoreRef.current.focus) restoreRef.current.focus()
+    }
+  }, [onClose])
+
   return (
     <div className="overlay" onClick={e => e.target === e.currentTarget && onClose()}>
-      <div className="modal-box" style={{ width }}>
+      <div ref={boxRef} className="modal-box" style={{ width }}
+        role="dialog" aria-modal="true" aria-label={label} tabIndex={-1}>
         {children}
       </div>
     </div>

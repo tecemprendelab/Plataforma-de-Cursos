@@ -187,6 +187,7 @@ function AuthenticatedApp({ user, onSignOut, theme, toggleTheme }) {
 
   return (
     <div className="app-shell">
+      <a href="#main-content" className="skip-link">Saltar al contenido</a>
       <Sidebar view={view} setView={setView} participants={participants} courses={courses}
         userEmail={user?.email} onSignOut={onSignOut}
         open={sidebarOpen} onClose={closeSidebar}
@@ -201,7 +202,7 @@ function AuthenticatedApp({ user, onSignOut, theme, toggleTheme }) {
             <div className="mt-title">{currentTitle}</div>
           </div>
         </div>
-        <main className="main-content">{renderView()}</main>
+        <main id="main-content" className="main-content">{renderView()}</main>
       </div>
       <Toast message={toastMsg} onHide={() => setToast('')}/>
       <CommandPalette open={paletteOpen} onClose={closePalette}
