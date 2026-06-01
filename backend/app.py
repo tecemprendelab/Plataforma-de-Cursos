@@ -785,9 +785,23 @@ def _svg_to_output(svg_text: str, fmt: str) -> bytes:
         raise RuntimeError("cairosvg no instalado en el servidor")
     svg_text = _embed_fonts(svg_text)
     enc = svg_text.encode("utf-8")
-    if fmt == "pdf":
-        return cairosvg.svg2pdf(bytestring=enc)
-    return cairosvg.svg2png(bytestring=enc, scale=2)
+    png_bytes = cairosvg.svg2png(bytestring=enc, scale=2)
+    if fmt != "pdf":
+        return png_bytes
+    # PDF = PNG renderizado a alta resolución y envuelto en PDF con Pillow.
+    # Produce salida idéntica a la vista previa del browser.
+    from PIL import Image
+    import io as _io
+    img = Image.open(_io.BytesIO(png_bytes))
+    if img.mode == "RGBA":
+        bg = Image.new("RGB", img.size, (255, 255, 255))
+        bg.paste(img, mask=img.split()[3])
+        img = bg
+    elif img.mode != "RGB":
+        img = img.convert("RGB")
+    pdf_buf = _io.BytesIO()
+    img.save(pdf_buf, format="PDF", resolution=150)
+    return pdf_buf.getvalue()
 
 
 # Cache para consultas de cédulas al TSE
