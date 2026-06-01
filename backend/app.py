@@ -387,6 +387,18 @@ def _fill_svg(svg_text: str, fields: dict) -> str:
         # Bajar un poco la fecha de otorgación para separarla del texto superior
         result = _shift_text_y(result, "issue_date", 14)
 
+    # ── Tipografía específica del certificado de Cursos ───────────
+    # Todo en Sen: nombre 32 (en dos líneas), resto 14.
+    _is_cursos = (
+        "line_curso" in _low or "line_horas" in _low or "course_name" in _low
+    )
+    if _is_cursos:
+        result = _set_text_font(result, "recipient_name", "Sen", 32)
+        result = _set_text_font(result, "line_curso",     "Sen", 14)
+        result = _set_text_font(result, "line_horas",     "Sen", 14)
+        result = _set_text_font(result, "line_fechas",    "Sen", 14)
+        result = _set_text_font(result, "issue_date",     "Sen", 14)
+
     MIXED_LINES = {
         "line_curso": lambda f: [
             ("Por haber concluido con exito el ", False),
