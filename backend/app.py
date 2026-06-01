@@ -93,6 +93,31 @@ def _install_fonts():
 _install_fonts()
 
 
+def _install_repo_fonts():
+    """Copia todas las fuentes incluidas en el repo (backend/fonts/*.ttf)
+    al directorio de fuentes del sistema y refresca la caché de fontconfig.
+    cairosvg resuelve font-family vía fontconfig, así que las fuentes deben
+    estar instaladas en el sistema (no basta con el embebido base64)."""
+    try:
+        import os, shutil
+        src_dir  = os.path.join(os.path.dirname(os.path.abspath(__file__)), "fonts")
+        font_dir = "/usr/local/share/fonts/custom"
+        os.makedirs(font_dir, exist_ok=True)
+        if not os.path.isdir(src_dir):
+            return
+        for fn in os.listdir(src_dir):
+            if fn.lower().endswith((".ttf", ".otf")):
+                dst = os.path.join(font_dir, fn)
+                if not os.path.exists(dst):
+                    shutil.copy2(os.path.join(src_dir, fn), dst)
+                    print(f"[fonts] {fn} copiada a {font_dir}")
+        _sp.run(["fc-cache", "-f", font_dir], capture_output=True)
+    except Exception as e:
+        print(f"[fonts] Error copiando fuentes del repo: {e}")
+
+_install_repo_fonts()
+
+
 app = Flask(__name__)
 CORS(app, expose_headers=["X-Generated-Count", "X-Error-Count", "X-Total-Count"])
 
