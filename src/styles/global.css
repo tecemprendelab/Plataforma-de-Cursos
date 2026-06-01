@@ -131,6 +131,28 @@ body {
 
 input, select, button, textarea { font-family: var(--font-body) }
 
+/* ── Transición suave al cambiar de tema (claro ⇄ oscuro) ──── */
+body,
+.app-shell, .main-content, .main-wrapper,
+.sidebar, aside,
+.card, .modal-box, .overlay,
+.finput, input, select, textarea,
+.badge, .btn, .btn-icon,
+.pbar-wrap, .stat-card,
+svg {
+  transition: background-color .35s ease, color .35s ease,
+              border-color .35s ease, fill .35s ease;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  body, .app-shell, .main-content, .main-wrapper,
+  .sidebar, aside, .card, .modal-box, .overlay,
+  .finput, input, select, textarea,
+  .badge, .btn, .btn-icon, .pbar-wrap, .stat-card, svg {
+    transition: none;
+  }
+}
+
 /* ── Scrollbar ───────────────────────────────────────────── */
 ::-webkit-scrollbar           { width:6px }
 ::-webkit-scrollbar-track     { background:transparent }
