@@ -9,19 +9,12 @@ import { fmtPrice }   from '../data/courses.js'
 import { Badge }      from './UI.jsx'
 import CourseModal    from './CourseModal.jsx'
 
-const TYPE_COLORS = {
-  curso:     { bg:'#E6F1FB', color:'#0C447C', border:'#185FA5' },
-  taller:    { bg:'#FEF0E7', color:'#C04E0E', border:'#E8651A' },
-  seminario: { bg:'#EEEDFE', color:'#3C3489', border:'#534AB7' },
-  bootcamp:  { bg:'#E4F0E8', color:'#2A5940', border:'#3D7A5A' },
-  charla:    { bg:'#F1EFE8', color:'#5F5E5A', border:'#8A8070' },
-}
+const VALID_TYPES = ['curso','taller','seminario','bootcamp','charla']
 
 function TypeBadge({ type }) {
-  const s = TYPE_COLORS[type] || TYPE_COLORS.curso
+  const t = VALID_TYPES.includes(type) ? type : 'curso'
   return (
-    <span style={{ padding:'2px 9px', borderRadius:20, fontSize:10, fontWeight:500,
-      background:s.bg, color:s.color, border:`1px solid ${s.border}` }}>
+    <span className={`type-badge type-badge-${t}`}>
       {type?.charAt(0).toUpperCase() + type?.slice(1)}
     </span>
   )
