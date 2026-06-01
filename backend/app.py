@@ -424,6 +424,16 @@ def _fix_cursos_svg(svg_text: str) -> str:
     if not is_cursos:
         return svg_text
 
+    # Si ya tiene todos los <text> necesarios no procesar de nuevo.
+    # Un SVG ya procesado volvería a recibir un rect blanco encima de los campos.
+    required_ids = ['recipient_name', 'line_curso', 'line_horas', 'line_fechas', 'issue_date']
+    all_present = all(
+        _re.search(r'<text\b[^>]*id=["\']' + _re.escape(rid) + r'["\']', svg_text, _re.IGNORECASE)
+        for rid in required_ids
+    )
+    if all_present:
+        return svg_text
+
     paths_keywords = [
         'Por haber',
         'course_name_1',
