@@ -406,7 +406,7 @@ function CertIndividual({ participants, courses = [], galleryTplPick, onGalleryC
             </div>
           )}
 
-          {courses.length > 0 && detectedIds.some(({id}) => /date_issue_[12]/.test(id)) && (
+          {courses.length > 0 && detectedIds.some(({id}) => /line_fechas|date_issue_[12]/.test(id)) && (
             <div style={{ marginBottom:12 }}>
               <label style={{ display:'block', fontSize:12, color:'var(--gray)', marginBottom:5 }}>
                 Curso/Taller (auto-llenar fechas)
@@ -414,8 +414,12 @@ function CertIndividual({ participants, courses = [], galleryTplPick, onGalleryC
               <select onChange={e => {
                 const c = courses.find(x => x.id === e.target.value)
                 if (c && c.start && c.end) {
+                  const sf = fmtDateEs(c.start), ef = fmtDateEs(c.end)
                   setExtraFieldValues(prev => ({
                     ...prev,
+                    // Para line_fechas (certificado de Corbana)
+                    line_fechas: sf && ef ? `Del ${sf} al ${ef}` : '',
+                    // Para date_issue_1 y date_issue_2 (si existen)
                     date_issue_1: c.start,
                     date_issue_2: c.end,
                   }))
