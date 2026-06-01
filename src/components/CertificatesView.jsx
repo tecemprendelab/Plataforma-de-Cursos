@@ -368,6 +368,48 @@ function CertFormatToggle({ value, onChange }) {
   )
 }
 
+// Indicador de pasos del asistente (wizard)
+function Stepper({ steps, current, onStep }) {
+  return (
+    <div style={{ display:'flex', alignItems:'center', gap:4, marginBottom:14 }}>
+      {steps.map((label, i) => {
+        const n = i + 1
+        const done = n < current
+        const active = n === current
+        return (
+          <div key={label} style={{ display:'flex', alignItems:'center', flex: i < steps.length - 1 ? 1 : 'unset' }}>
+            <button
+              onClick={() => onStep && n <= current && onStep(n)}
+              disabled={n > current}
+              style={{
+                display:'flex', alignItems:'center', gap:6, background:'none', border:'none',
+                cursor: n <= current ? 'pointer' : 'default', padding:0, fontFamily:'var(--font-body)',
+              }}>
+              <span style={{
+                width:24, height:24, borderRadius:'50%', display:'inline-flex',
+                alignItems:'center', justifyContent:'center', fontSize:12, fontWeight:700,
+                flexShrink:0, transition:'all .15s',
+                background: active ? 'var(--orange)' : done ? 'var(--green)' : 'var(--cream-3)',
+                color: active || done ? '#fff' : 'var(--gray)',
+              }}>
+                {done ? <span className="material-symbols-outlined" style={{fontSize:14}}>check</span> : n}
+              </span>
+              <span style={{ fontSize:12, fontWeight: active ? 600 : 400,
+                color: active ? 'var(--black)' : 'var(--gray)', whiteSpace:'nowrap' }}>
+                {label}
+              </span>
+            </button>
+            {i < steps.length - 1 && (
+              <div style={{ flex:1, height:2, margin:'0 8px', borderRadius:2,
+                background: done ? 'var(--green)' : 'var(--cream-3)' }} />
+            )}
+          </div>
+        )
+      })}
+    </div>
+  )
+}
+
 function ConfidenceBadge({ level }) {
   const map = {
     alta:  { cls:'bg-green-100 text-green-800 border-green-300',   icon:'verified' },
@@ -415,9 +457,13 @@ function CertIndividual({ participants, courses = [], galleryTplPick, onGalleryC
   const [previewSvg,      setPreviewSvg]      = useState(null)
   const [previewLoading,  setPreviewLoading]  = useState(false)
   const [errors,          setErrors]          = useState({})
+  const [step,            setStep]            = useState(1)   // wizard: 1=plantilla 2=datos 3=generar
 
   // IDs detectados que no son nombre ni fecha
   const extraIds = detectedIds.filter(({id}) => id !== nameId && id !== dateId)
+
+  const hasTemplate = !!(templateName || svgFile)
+  const dataValid   = recipient.trim().length >= 2 && date.trim().length >= 4
 
   // Construye el objeto fields completo para enviar al backend
   const buildFields = (rcp, dt, nId, dId, extra) => {
@@ -545,10 +591,13 @@ function CertIndividual({ participants, courses = [], galleryTplPick, onGalleryC
 
   return (
     <div style={{ display:'flex', gap:20 }}>
-      {/* Left: form */}
+      {/* Left: wizard */}
       <div style={{ width:340, flexShrink:0, display:'flex', flexDirection:'column', gap:14 }}>
 
-        {/* Plantilla */}
+        <Stepper steps={['Plantilla', 'Datos', 'Generar']} current={step} onStep={setStep} />
+
+        {/* ── Paso 1: Plantilla ── */}
+        {step === 1 && (<>
         <div className="card" style={{ padding:16 }}>
           <SectionHeader icon="layers" label="Plantilla" />
           <div style={{ marginBottom:12 }}>
@@ -609,6 +658,14 @@ function CertIndividual({ participants, courses = [], galleryTplPick, onGalleryC
             onFile={f => { setSvgFile(f); if (f) { setTemplateName(null); parseIds(f) } else setDetectedIds([]) }} />
         </div>
 
+        <button onClick={() => setStep(2)} disabled={!hasTemplate}
+          className="btn btn-orange" style={{ width:'100%', justifyContent:'center', padding:'11px 0', fontSize:14 }}>
+          Siguiente <span className="material-symbols-outlined" style={{fontSize:16}}>arrow_forward</span>
+        </button>
+        </>)}
+
+        {/* ── Paso 2: Datos ── */}
+        {step === 2 && (<>
         {/* IDs detectados */}
         {detectedIds.length > 0 && (
           <div className="card" style={{ padding:16 }}>
@@ -668,18 +725,47 @@ function CertIndividual({ participants, courses = [], galleryTplPick, onGalleryC
               ))}
             </div>
           )}
-          <div style={{ marginTop:12 }}>
+        </div>
+
+        <div style={{ display:'flex', gap:8 }}>
+          <button onClick={() => setStep(1)}
+            className="btn btn-ghost" style={{ flex:'0 0 auto', justifyContent:'center', padding:'11px 16px', fontSize:14 }}>
+            <span className="material-symbols-outlined" style={{fontSize:16}}>arrow_back</span> Atrás
+          </button>
+          <button onClick={() => { if (validate()) setStep(3) }} disabled={!dataValid}
+            className="btn btn-orange" style={{ flex:1, justifyContent:'center', padding:'11px 0', fontSize:14 }}>
+            Siguiente <span className="material-symbols-outlined" style={{fontSize:16}}>arrow_forward</span>
+          </button>
+        </div>
+        </>)}
+
+        {/* ── Paso 3: Generar ── */}
+        {step === 3 && (<>
+        <div className="card" style={{ padding:16 }}>
+          <SectionHeader icon="download" label="Generar certificado" />
+          <div style={{ background:'var(--cream-2)', borderRadius:'var(--radius-md)', padding:12, marginBottom:12 }}>
+            <p style={{ fontSize:11, color:'var(--gray)', marginBottom:2 }}>Participante</p>
+            <p style={{ fontSize:14, fontWeight:600, color:'var(--black)', marginBottom:8 }}>{recipient.trim() || '—'}</p>
+            <p style={{ fontSize:11, color:'var(--gray)', marginBottom:2 }}>Fecha de otorgación</p>
+            <p style={{ fontSize:13, color:'var(--black)' }}>{date.trim() || '—'}</p>
+          </div>
+          <div style={{ marginBottom:12 }}>
             <label style={{ display:'block', fontSize:12, color:'var(--gray)', marginBottom:6 }}>Formato de salida</label>
             <CertFormatToggle value={fmt} onChange={setFmt} />
           </div>
-          <button onClick={generate} disabled={loading || (!templateName && !svgFile)}
-            className="btn btn-orange" style={{ width:'100%', justifyContent:'center', marginTop:14, padding:'11px 0', fontSize:14 }}>
+          <button onClick={generate} disabled={loading || !hasTemplate}
+            className="btn btn-orange" style={{ width:'100%', justifyContent:'center', padding:'11px 0', fontSize:14 }}>
             {loading
               ? <><span className="material-symbols-outlined spinner" style={{fontSize:16}}>refresh</span>Procesando…</>
               : <><span className="material-symbols-outlined" style={{fontSize:16}}>download</span>Generar y descargar</>}
           </button>
           <CertAlert type={alert?.type} msg={alert?.msg} onDismiss={() => setAlert(null)} />
         </div>
+        <button onClick={() => setStep(2)}
+          className="btn btn-ghost" style={{ width:'100%', justifyContent:'center', padding:'10px 0', fontSize:14 }}>
+          <span className="material-symbols-outlined" style={{fontSize:16}}>arrow_back</span> Atrás
+        </button>
+        </>)}
       </div>
 
       {/* Right: live preview */}
