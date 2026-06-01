@@ -228,6 +228,22 @@ def _build_mixed_line(parts, x, y, fill, font_family, font_size):
     )
 
 
+def _format_date_es(iso_date: str) -> str:
+    """Convierte ISO (YYYY-MM-DD) a español (D de MMMM de YYYY)."""
+    if not iso_date:
+        return ""
+    try:
+        parts = iso_date.strip().split('-')
+        if len(parts) != 3:
+            return iso_date
+        y, m, d = int(parts[0]), int(parts[1]), int(parts[2])
+        meses = ['enero','febrero','marzo','abril','mayo','junio','julio','agosto',
+                 'septiembre','octubre','noviembre','diciembre']
+        return f"{d} de {meses[m-1]} de {y}"
+    except:
+        return iso_date
+
+
 def _fechas_parts(f):
     d1 = f.get("date_issue_1", "")
     d2 = f.get("date_issue_2", "")
@@ -237,6 +253,9 @@ def _fechas_parts(f):
             m = re.match(r'^Del?\s+(.+?)\s+al\s+(.+)$', raw, re.IGNORECASE)
             if m:
                 d1, d2 = m.group(1).strip(), m.group(2).strip()
+    # Formatear si están en ISO
+    d1 = _format_date_es(d1)
+    d2 = _format_date_es(d2)
     return [("desde el ", False), (d1, True), (" al ", False), (d2, True)]
 
 
@@ -375,12 +394,12 @@ def _fix_cursos_svg(svg_text: str) -> str:
     """
     import re as _re
 
-    is_cursos = any(k in svg_text for k in [
-        'line_curso', 'line_horas', 'line_fechas',
-        'course_name_1', 'course_name_2',
-        'participant_name', 'con un total de', 'impartidas',
-        'Por haber concluido',
-    ])
+    # Certificado de cursos: DEBE tener line_curso Y line_horas (o al menos uno)
+    # No confundir con otros certificados que tengan line_fechas
+    has_line_curso = _re.search(r'<text\b[^>]*id=["\']line_curso["\']', svg_text, _re.IGNORECASE) or 'line_curso' in svg_text
+    has_line_horas = _re.search(r'<text\b[^>]*id=["\']line_horas["\']', svg_text, _re.IGNORECASE) or 'line_horas' in svg_text
+
+    is_cursos = has_line_curso or has_line_horas
     if not is_cursos:
         return svg_text
 
