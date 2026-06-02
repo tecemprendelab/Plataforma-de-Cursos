@@ -3,7 +3,7 @@
 // ============================================================
 import { isExpired, isWarning, daysLeft, getAccessDays } from '../utils/time.js'
 
-import { StatCard, AccessBar } from './UI.jsx'
+import { StatCard, AccessBar, TimerBadge } from './UI.jsx'
 import { openEmailClient } from '../utils/email.js'
 
 export default function AccessView({ participants, courses = [], onToggleAccess, onRenew }) {
@@ -79,7 +79,7 @@ export default function AccessView({ participants, courses = [], onToggleAccess,
       <h3 className="h3" style={{marginBottom:12}}>Todos los participantes</h3>
       <div className="card ttable-responsive">
         <table className="ttable">
-          <thead><tr><th style={{width:'26%'}}>Participante</th><th style={{width:'22%'}}>Cursos</th><th style={{width:'34%'}}>Tiempo de acceso</th><th style={{width:'18%'}}>Acción</th></tr></thead>
+          <thead><tr><th style={{width:'24%'}}>Participante</th><th style={{width:'18%'}}>Cursos</th><th style={{width:'28%'}}>Tiempo de acceso</th><th style={{width:'15%'}}>Estado</th><th style={{width:'15%'}}>Acción</th></tr></thead>
           <tbody>
             {participants.map(p => {
               const days = getAccessDays(p, courses)
@@ -88,6 +88,7 @@ export default function AccessView({ participants, courses = [], onToggleAccess,
                   <td style={{fontWeight:500}}>{p.name}</td>
                   <td className="text-xs text-muted">{p.courses.map(shortName).join(', ')}</td>
                   <td>{p.access ? <AccessBar fecha={p.fecha} days={days}/> : <span className="text-sm text-muted">Sin acceso</span>}</td>
+                  <td><TimerBadge fecha={p.fecha} access={p.access} days={days}/></td>
                   <td>
                     <button onClick={() => onToggleAccess(p.id)}
                       style={{background:'none',border:`1px solid ${p.access?'var(--orange)':'var(--border)'}`,borderRadius:6,padding:'5px 12px',fontSize:11,cursor:'pointer',color:p.access?'var(--orange)':'var(--gray)',fontFamily:'var(--font-body)'}}>
@@ -114,6 +115,7 @@ export default function AccessView({ participants, courses = [], onToggleAccess,
                   <div className="pname">{p.name}</div>
                   <div className="pemail">{p.courses.map(shortName).join(', ') || 'Sin cursos'}</div>
                 </div>
+                <TimerBadge fecha={p.fecha} access={p.access} days={days}/>
               </div>
               {p.access
                 ? <AccessBar fecha={p.fecha} days={days}/>
