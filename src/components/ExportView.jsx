@@ -22,6 +22,20 @@ export default function ExportView({ participants, courses, tags = [] }) {
   })
   const toggle = (k) => setSections(s => ({ ...s, [k]: !s[k] }))
   const anyChecked = Object.values(sections).some(Boolean)
+  const [format, setFormat] = useState('excel')   // excel | csv | pdf
+
+  const FORMATS = [
+    { id:'excel', icon:'table_view',      label:'Excel', hint:'.xlsx · análisis', color:'var(--green)' },
+    { id:'csv',   icon:'data_object',     label:'CSV',   hint:'universal',         color:'var(--orange)' },
+    { id:'pdf',   icon:'picture_as_pdf',  label:'PDF',   hint:'informe ejecutivo', color:'var(--orange-d)' },
+  ]
+
+  const doExport = () => {
+    if (format === 'excel') return exportToExcel(participants, courses)
+    if (format === 'csv')   return exportToCSV(participants, courses)
+    if (format === 'pdf' && anyChecked) return exportReportToPDF({ participants, courses, tags, sections })
+  }
+  const exportDisabled = format === 'pdf' && !anyChecked
 
   return (
     <div>
@@ -29,86 +43,101 @@ export default function ExportView({ participants, courses, tags = [] }) {
         <div>
           <h2 className="h1">Exportar datos</h2>
           <p className="text-muted" style={{ fontSize: 13, marginTop: 3 }}>
-            Descargá la lista en el formato que necesitás
+            Generá reportes en el formato que necesités para el seguimiento institucional
           </p>
         </div>
       </div>
 
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: 16, marginBottom: 24 }}>
-        {/* Excel */}
-        <div className="card card-padded">
-          <i className="ti ti-file-spreadsheet" style={{ fontSize: 32, color: 'var(--green)', marginBottom: 12, display: 'block' }}/>
-          <div style={{ fontWeight: 500, fontSize: 15, marginBottom: 6 }}>Exportar a Excel (.xlsx)</div>
-          <div className="text-sm text-muted" style={{ marginBottom: 16 }}>
-            Incluye todos los campos, días restantes y fechas de expiración.
+      <div className="export-grid" style={{ display:'grid', gridTemplateColumns:'360px 1fr', gap:20, alignItems:'start' }}>
+
+        {/* Izquierda: selección + formato + acción */}
+        <div style={{ display:'flex', flexDirection:'column', gap:16 }}>
+
+          {/* Selección de datos (informe PDF) */}
+          <div className="card card-padded">
+            <div style={{ fontWeight:600, fontSize:13, marginBottom:4 }}>Selección de datos</div>
+            <p className="text-xs text-muted" style={{ marginBottom:12 }}>
+              Secciones a incluir en el <strong>informe PDF</strong>. Excel y CSV exportan la lista completa.
+            </p>
+            <div style={{ display:'flex', flexDirection:'column', gap:8 }}>
+              {SECTION_LABELS.map(({ key, label }) => (
+                <label key={key} style={{ display:'flex', alignItems:'center', gap:8, fontSize:13,
+                  cursor: format === 'pdf' ? 'pointer' : 'default',
+                  opacity: format === 'pdf' ? 1 : .5 }}>
+                  <input type="checkbox" checked={sections[key]} onChange={() => toggle(key)}
+                    disabled={format !== 'pdf'}/>
+                  {label}
+                </label>
+              ))}
+            </div>
           </div>
-          <button className="btn btn-orange" onClick={() => exportToExcel(participants, courses)}>
-            <i className="ti ti-download"/> Descargar Excel ({participants.length})
+
+          {/* Formato de salida */}
+          <div className="card card-padded">
+            <div style={{ fontWeight:600, fontSize:13, marginBottom:12 }}>Formato de salida</div>
+            <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr 1fr', gap:8 }}>
+              {FORMATS.map(f => {
+                const on = format === f.id
+                return (
+                  <button key={f.id} onClick={() => setFormat(f.id)}
+                    aria-pressed={on}
+                    style={{ display:'flex', flexDirection:'column', alignItems:'center', gap:4,
+                      padding:'14px 8px', borderRadius:'var(--radius-md)', cursor:'pointer',
+                      fontFamily:'inherit', transition:'all .15s',
+                      border:`2px solid ${on ? 'var(--orange)' : 'var(--border)'}`,
+                      background: on ? 'var(--alert-warm-bg)' : 'var(--white)' }}>
+                    <span className="material-symbols-outlined" aria-hidden="true"
+                      style={{ fontSize:26, color:f.color }}>{f.icon}</span>
+                    <span style={{ fontSize:13, fontWeight:600, color: on ? 'var(--orange-d)' : 'var(--black)' }}>{f.label}</span>
+                    <span style={{ fontSize:10, color:'var(--gray)' }}>{f.hint}</span>
+                  </button>
+                )
+              })}
+            </div>
+          </div>
+
+          <button className="btn btn-orange" disabled={exportDisabled}
+            style={{ justifyContent:'center', padding:'12px 0', fontSize:14,
+              ...(exportDisabled ? { opacity:.5, cursor:'not-allowed' } : {}) }}
+            onClick={doExport}>
+            <i className="ti ti-download"/>
+            {format === 'pdf' ? ' Generar informe PDF' : ` Descargar ${format === 'excel' ? 'Excel' : 'CSV'} (${participants.length})`}
           </button>
         </div>
 
-        {/* CSV */}
-        <div className="card card-padded">
-          <i className="ti ti-file-text" style={{ fontSize: 32, color: 'var(--orange)', marginBottom: 12, display: 'block' }}/>
-          <div style={{ fontWeight: 500, fontSize: 15, marginBottom: 6 }}>Exportar a CSV</div>
-          <div className="text-sm text-muted" style={{ marginBottom: 16 }}>
-            Formato universal compatible con cualquier sistema.
+        {/* Derecha: vista previa */}
+        <div className="card" style={{ overflow:'hidden' }}>
+          <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between',
+            padding:'12px 16px', borderBottom:'1px solid var(--cream-3)' }}>
+            <span style={{ fontSize:13, fontWeight:600 }}>Vista previa</span>
+            <span className="text-xs text-muted">
+              Mostrando {Math.min(participants.length, 8)} de {participants.length}
+            </span>
           </div>
-          <button className="btn btn-black" onClick={() => exportToCSV(participants, courses)}>
-            <i className="ti ti-download"/> Descargar CSV ({participants.length})
-          </button>
+          <div style={{ overflowX:'auto' }}>
+            <table className="ttable" style={{ minWidth:520 }}>
+              <thead>
+                <tr><th>Nombre</th><th>Correo</th><th>Cursos</th><th>Acceso</th><th>Días restantes</th></tr>
+              </thead>
+              <tbody>
+                {participants.slice(0, 8).map(p => (
+                  <tr key={p.id}>
+                    <td style={{ fontWeight: 500 }}>{p.name}</td>
+                    <td className="text-sm text-muted">{p.email}</td>
+                    <td className="text-xs text-muted">{p.courses.map(shortName).join(', ')}</td>
+                    <td><span className={`badge badge-${p.access ? 'black' : 'gray'}`}>{p.access ? 'Sí' : 'No'}</span></td>
+                    <td style={{ fontSize: 13 }}>{p.access ? daysLeft(p.fecha, getAccessDays(p, courses)) + 'd' : '—'}</td>
+                  </tr>
+                ))}
+                {participants.length > 8 && (
+                  <tr><td colSpan={5} style={{ textAlign: 'center', color: 'var(--gray)', fontSize: 12 }}>
+                    … y {participants.length - 8} más
+                  </td></tr>
+                )}
+              </tbody>
+            </table>
+          </div>
         </div>
-
-        {/* Informe PDF */}
-        <div className="card card-padded">
-          <i className="ti ti-report" style={{ fontSize: 32, color: 'var(--black)', marginBottom: 12, display: 'block' }}/>
-          <div style={{ fontWeight: 500, fontSize: 15, marginBottom: 6 }}>Informe ejecutivo (PDF)</div>
-          <div className="text-sm text-muted" style={{ marginBottom: 12 }}>
-            Documento corporativo con portada, índice, resumen ejecutivo y secciones detalladas.
-          </div>
-
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 6, marginBottom: 12 }}>
-            {SECTION_LABELS.map(({ key, label }) => (
-              <label key={key} style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 12, cursor: 'pointer' }}>
-                <input type="checkbox" checked={sections[key]} onChange={() => toggle(key)}/>
-                {label}
-              </label>
-            ))}
-          </div>
-
-          <button
-            className="btn btn-orange"
-            disabled={!anyChecked}
-            style={!anyChecked ? { opacity: 0.5, cursor: 'not-allowed' } : undefined}
-            onClick={() => exportReportToPDF({ participants, courses, tags, sections })}>
-            <i className="ti ti-download"/> Generar informe
-          </button>
-        </div>
-      </div>
-
-      <h3 className="h3" style={{ marginBottom: 12 }}>Vista previa</h3>
-      <div className="card" style={{ overflowX:'auto' }}>
-        <table className="ttable" style={{ minWidth:520 }}>
-          <thead>
-            <tr><th>Nombre</th><th>Correo</th><th>Cursos</th><th>Acceso</th><th>Días restantes</th></tr>
-          </thead>
-          <tbody>
-            {participants.slice(0, 8).map(p => (
-              <tr key={p.id}>
-                <td style={{ fontWeight: 500 }}>{p.name}</td>
-                <td className="text-sm text-muted">{p.email}</td>
-                <td className="text-xs text-muted">{p.courses.map(shortName).join(', ')}</td>
-                <td><span className={`badge badge-${p.access ? 'black' : 'gray'}`}>{p.access ? 'Sí' : 'No'}</span></td>
-                <td style={{ fontSize: 13 }}>{p.access ? daysLeft(p.fecha, getAccessDays(p, courses)) + 'd' : '—'}</td>
-              </tr>
-            ))}
-            {participants.length > 8 && (
-              <tr><td colSpan={5} style={{ textAlign: 'center', color: 'var(--gray)', fontSize: 12 }}>
-                ... y {participants.length - 8} más
-              </td></tr>
-            )}
-          </tbody>
-        </table>
       </div>
     </div>
   )
