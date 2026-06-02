@@ -3,7 +3,7 @@
 // ============================================================
 import { needsExamReminder, daysLeft, examDeadlineDate, expiryDate, getAccessDays } from '../utils/time.js'
 
-import { AccessBar, Badge } from './UI.jsx'
+import { AccessBar, Avatar } from './UI.jsx'
 import { buildReminderEmail, openEmailClient, copyEmailToClipboard } from '../utils/email.js'
 import { useState } from 'react'
 import { Modal } from './UI.jsx'
@@ -38,34 +38,61 @@ export default function RemindersView({ participants, courses = [], setView }) {
   return (
     <div>
       {previewP && <EmailModal participant={previewP} onClose={() => setPreviewId(null)}/>}
-      <div className="page-header"><div><h2 className="h1">Recordatorios</h2><p className="text-muted" style={{fontSize:13,marginTop:3}}>Participantes que deben realizar su prueba esta semana</p></div></div>
+      <div className="page-header"><div><h2 className="h1">Recordatorios de pruebas</h2><p className="text-muted" style={{fontSize:13,marginTop:3}}>Participantes que deben realizar su prueba final durante esta semana</p></div></div>
 
-      {pending.length === 0
-        ? <div className="alert alert-green"><i className="ti ti-check"/> No hay recordatorios pendientes por ahora.</div>
-        : pending.map(p => {
-          const days = getAccessDays(p, courses)
-          const courseNames = p.courses.map(id => courses.find(c => c.id === id)?.short || id).join(', ')
-          return (
-            <div key={p.id} className="card" style={{padding:20,marginBottom:16}}>
-              <div style={{display:'flex',justifyContent:'space-between',alignItems:'flex-start',marginBottom:14}}>
-                <div>
-                  <div style={{fontWeight:500,fontSize:14}}>{p.name}</div>
-                  <div className="text-xs text-muted">{p.email} · {courseNames}</div>
+      {pending.length === 0 ? (
+        <div className="alert alert-green"><i className="ti ti-check"/> No hay recordatorios pendientes por ahora.</div>
+      ) : (
+        <div style={{ display:'grid', gridTemplateColumns:'repeat(auto-fill, minmax(290px, 1fr))', gap:14 }}>
+          {pending.map(p => {
+            const days = getAccessDays(p, courses)
+            const left = daysLeft(p.fecha, days)
+            const courseNames = p.courses.map(id => courses.find(c => c.id === id)?.short || id).join(', ')
+            const urgencia = left <= 1 ? 'Última oportunidad'
+              : left <= 3 ? `Faltan ${left} días — urgente`
+              : `Faltan ${left} días`
+            return (
+              <div key={p.id} className="card" style={{ padding:16, display:'flex', flexDirection:'column', gap:10 }}>
+                {/* Cabecera: avatar + nombre + curso */}
+                <div style={{ display:'flex', alignItems:'center', gap:10 }}>
+                  <Avatar name={p.name} variant="warn"/>
+                  <div style={{ minWidth:0, flex:1 }}>
+                    <div style={{ fontWeight:600, fontSize:13, overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}>{p.name}</div>
+                    <div className="text-xs text-muted" style={{ overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}>{courseNames || p.email}</div>
+                  </div>
                 </div>
-                <Badge type="orange"><i className="ti ti-clock" style={{fontSize:11,verticalAlign:-1,marginRight:3}}/>{daysLeft(p.fecha, days)}d para expirar</Badge>
+
+                {/* Vencimiento */}
+                <div style={{ display:'flex', alignItems:'center', gap:6, fontSize:13 }}>
+                  <span className="material-symbols-outlined" aria-hidden="true"
+                    style={{ fontSize:16, color: left <= 1 ? 'var(--orange-d)' : 'var(--orange)' }}>
+                    {left <= 1 ? 'warning' : 'event'}
+                  </span>
+                  <span>Acceso expira: <b style={{ color:'var(--orange-d)' }}>{expiryDate(p.fecha, days)}</b></span>
+                </div>
+                <div className="text-xs" style={{ color: left <= 3 ? 'var(--orange-d)' : 'var(--gray)', fontWeight: left <= 3 ? 600 : 400, marginTop:-4 }}>
+                  {urgencia} · prueba antes del {examDeadlineDate(p.fecha, days)}
+                </div>
+
+                <AccessBar fecha={p.fecha} days={days} compact/>
+
+                {/* Acciones */}
+                <div style={{ display:'flex', gap:8, marginTop:2 }}>
+                  <button className="btn btn-orange btn-sm" style={{ flex:1, justifyContent:'center' }}
+                    onClick={() => setPreviewId(p.id)}>
+                    <i className="ti ti-mail-forward"/> Enviar recordatorio
+                  </button>
+                  <button className="btn btn-ghost btn-sm" title="Ver perfil"
+                    aria-label={`Ver perfil de ${p.name}`}
+                    onClick={() => setView(`profile_${p.id}`)}>
+                    <i className="ti ti-user"/>
+                  </button>
+                </div>
               </div>
-              <AccessBar fecha={p.fecha} days={days}/>
-              <div style={{display:'flex',gap:8,alignItems:'center',flexWrap:'wrap',marginTop:10,fontSize:12,color:'var(--gray)'}}>
-                <span>Prueba antes del: <b style={{color:'var(--black)'}}>{examDeadlineDate(p.fecha, days)}</b></span>
-                <span>· Acceso expira: <b style={{color:'var(--orange-d)'}}>{expiryDate(p.fecha, days)}</b></span>
-              </div>
-              <div style={{marginTop:14,display:'flex',gap:8}}>
-                <button className="btn btn-orange btn-sm" onClick={() => setPreviewId(p.id)}><i className="ti ti-mail-forward"/> Ver correo y enviar</button>
-                <button className="btn btn-ghost btn-sm" onClick={() => setView(`profile_${p.id}`)}><i className="ti ti-user"/> Ver perfil</button>
-              </div>
-            </div>
-          )
-        })}
+            )
+          })}
+        </div>
+      )}
     </div>
   )
 }
