@@ -153,6 +153,30 @@ export default function ProfileView({ id, participants, courses, tags, onToggleA
         )}
       </div>
 
+      {/* Contacto rápido */}
+      <div className="card card-padded" style={{ marginBottom:16 }}>
+        <div className="text-xs text-muted" style={{ marginBottom:12, fontWeight:600, letterSpacing:.5 }}>
+          CONTACTO RÁPIDO
+        </div>
+        <div style={{ display:'flex', gap:8, flexWrap:'wrap' }}>
+          {p.email && (
+            <a href={`mailto:${p.email}`}
+              className="btn btn-ghost btn-sm" style={{ textDecoration:'none' }}>
+              <i className="ti ti-mail"/> {p.email}
+            </a>
+          )}
+          {p.phone && (
+            <a href={`tel:${p.phone.replace(/\s/g,'')}`}
+              className="btn btn-ghost btn-sm" style={{ textDecoration:'none' }}>
+              <i className="ti ti-phone"/> {p.phone}
+            </a>
+          )}
+          {!p.email && !p.phone && (
+            <span className="text-sm text-muted" style={{ fontStyle:'italic' }}>Sin datos de contacto</span>
+          )}
+        </div>
+      </div>
+
       {/* Recordatorio */}
       {(examRemind || warn) && (
         <div className="alert alert-orange" style={{ marginBottom:16 }}>
