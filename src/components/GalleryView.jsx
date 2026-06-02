@@ -361,6 +361,26 @@ export default function GalleryView({ onUseCertificate }) {
         </div>
       </div>
 
+      {/* Stats */}
+      <div style={{ display:'grid', gridTemplateColumns:'repeat(auto-fit, minmax(180px, 1fr))', gap:12, marginBottom:20 }}>
+        {[
+          { icon:'workspace_premium', label:'Total plantillas', value: templates.length,                              color:'var(--orange)' },
+          { icon:'star',              label:'Tuyas',            value: templates.filter(t => !t.is_builtin).length,    color:'var(--green)' },
+          { icon:'shield',            label:'Predefinidas',     value: templates.filter(t => t.is_builtin).length,     color:'var(--gray)' },
+        ].map(s => (
+          <div key={s.label} className="card" style={{ padding:'14px 16px', display:'flex', alignItems:'center', gap:12 }}>
+            <div style={{ width:40, height:40, borderRadius:'var(--radius-md)', flexShrink:0,
+              display:'flex', alignItems:'center', justifyContent:'center', background:'var(--cream-2)', color:s.color }}>
+              <span className="material-symbols-outlined" aria-hidden="true" style={{ fontSize:20 }}>{s.icon}</span>
+            </div>
+            <div>
+              <p className="text-xs text-muted" style={{ margin:0 }}>{s.label}</p>
+              <p style={{ margin:0, fontSize:22, fontWeight:700, color:'var(--black)' }}>{s.value}</p>
+            </div>
+          </div>
+        ))}
+      </div>
+
       {/* Filtros */}
       <div className="flex gap-3 mb-6 flex-wrap">
         <div className="relative flex-1 min-w-[180px] max-w-xs">
