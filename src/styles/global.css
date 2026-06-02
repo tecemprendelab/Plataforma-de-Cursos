@@ -684,6 +684,9 @@ textarea:focus-visible {
   .dash-bento { grid-template-columns:1fr !important }
   .export-grid { grid-template-columns:1fr !important }
 }
+@media (max-width: 767px) {
+  .courses-grid { grid-template-columns:1fr !important }
+}
 
 /* ── ≤767px (móvil): layout de una columna ───────────────── */
 @media (max-width: 767px) {

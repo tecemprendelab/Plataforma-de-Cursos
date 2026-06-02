@@ -115,12 +115,12 @@ export default function CoursesView({ courses, participants, setView, onAdd, onU
       </div>
 
       {/* Lista de cursos */}
-      {filtered.length === 0 && (
+      {filtered.length === 0 ? (
         <div className="card" style={{ padding:40, textAlign:'center', color:'var(--gray)' }}>
           No se encontraron programas. {!showInactive && 'Activá "Mostrar inactivos" para ver todos.'}
         </div>
-      )}
-
+      ) : (
+       <div className="courses-grid" style={{ display:'grid', gridTemplateColumns:'repeat(auto-fill, minmax(440px, 1fr))', gap:14 }}>
       {filtered.map(c => {
         const enr = enrolled(c.id)
         const pct = Math.round(enr / c.capacity * 100)
@@ -128,7 +128,7 @@ export default function CoursesView({ courses, participants, setView, onAdd, onU
 
         return (
           <div key={c.id} className="card"
-            style={{ padding:'18px 20px', marginBottom:14,
+            style={{ padding:'18px 20px',
               opacity: c.active ? 1 : .55, transition:'opacity .2s' }}>
 
             {/* Header de la card */}
@@ -220,6 +220,8 @@ export default function CoursesView({ courses, participants, setView, onAdd, onU
           </div>
         )
       })}
+       </div>
+      )}
     </div>
   )
 }
