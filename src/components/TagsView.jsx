@@ -85,67 +85,70 @@ export default function TagsView({ tags, participants, onAdd, onEdit, onDelete }
         )}
       </div>
 
-      {/* Lista con uso */}
-      <div className="card" style={{ marginBottom:16 }}>
-        <div style={{ padding:'10px 14px', background:'var(--cream-2)',
-          fontSize:11, fontWeight:600, color:'var(--gray)', letterSpacing:.5 }}>
-          ETIQUETAS ACTIVAS ({tags.length})
-        </div>
-        {tags.length === 0 && (
-          <div style={{ padding:40, textAlign:'center', color:'var(--gray)', fontSize:13 }}>
-            No hay etiquetas. Creá la primera arriba.
-          </div>
-        )}
-        {tagStats.map(t => {
-          const pct = Math.round(t.count / Math.max(participants.length, 1) * 100)
-          const c   = getTagColor(t.color)
-          return (
-            <div key={t.id} style={{ padding:'12px 14px', borderTop:'1px solid var(--cream-2)' }}>
-              {editId === t.id ? (
-                <div style={{ display:'flex', gap:10, alignItems:'center', flexWrap:'wrap' }}>
-                  <input value={editName} onChange={e => setEditName(e.target.value)}
-                    className="finput" style={{ minWidth:150, width:'auto' }}/>
-                  <ColorPicker selected={editColor} onChange={setEditColor}/>
-                  <TagPill tag={{ id:'ep', name:editName, color:editColor }}/>
-                  <div style={{ display:'flex', gap:6, marginLeft:'auto' }}>
-                    <button className="btn btn-orange btn-sm" onClick={saveEdit}>
-                      <i className="ti ti-check"/> Guardar
-                    </button>
-                    <button className="btn btn-ghost btn-sm" onClick={() => setEditId(null)}>
-                      Cancelar
-                    </button>
-                  </div>
-                </div>
-              ) : (
-                <div>
-                  <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', marginBottom:6 }}>
-                    <div style={{ display:'flex', alignItems:'center', gap:10 }}>
-                      <TagPill tag={t}/>
-                      <span className="text-sm text-muted">
-                        {t.count} participante{t.count !== 1 ? 's' : ''} ({pct}%)
-                      </span>
-                    </div>
-                    <div style={{ display:'flex', gap:6 }}>
-                      <button className="btn-icon" onClick={() => startEdit(t)}>
-                        <i className="ti ti-edit"/> Editar
-                      </button>
-                      <button className="btn-icon danger"
-                        onClick={() => onDelete(t.id)}
-                        title="Eliminar etiqueta">
-                        <i className="ti ti-trash"/>
-                      </button>
-                    </div>
-                  </div>
-                  <div className="pbar-wrap">
-                    <div style={{ width:`${pct}%`, height:5, borderRadius:20,
-                      background:c.dot, transition:'width .4s' }}/>
-                  </div>
-                </div>
-              )}
-            </div>
-          )
-        })}
+      {/* Etiquetas existentes — grilla de tarjetas */}
+      <div style={{ display:'flex', alignItems:'center', gap:8, margin:'4px 2px 12px' }}>
+        <h3 className="h3" style={{ margin:0 }}>Etiquetas existentes</h3>
+        <span style={{ fontSize:11, fontWeight:700, color:'var(--gray)',
+          background:'var(--cream-2)', borderRadius:20, padding:'2px 10px' }}>{tags.length} total</span>
       </div>
+
+      {tags.length === 0 ? (
+        <div className="card" style={{ padding:40, textAlign:'center', color:'var(--gray)', fontSize:13, marginBottom:16 }}>
+          No hay etiquetas. Creá la primera arriba.
+        </div>
+      ) : (
+        <div style={{ display:'grid', gridTemplateColumns:'repeat(auto-fill, minmax(240px, 1fr))',
+          gap:12, marginBottom:16 }}>
+          {tagStats.map(t => {
+            const pct = Math.round(t.count / Math.max(participants.length, 1) * 100)
+            const c   = getTagColor(t.color)
+            return (
+              <div key={t.id} className="card" style={{ padding:14, borderLeft:`3px solid ${c.dot}` }}>
+                {editId === t.id ? (
+                  <div style={{ display:'flex', flexDirection:'column', gap:10 }}>
+                    <input value={editName} onChange={e => setEditName(e.target.value)}
+                      className="finput" autoFocus/>
+                    <ColorPicker selected={editColor} onChange={setEditColor}/>
+                    <TagPill tag={{ id:'ep', name:editName, color:editColor }}/>
+                    <div style={{ display:'flex', gap:6 }}>
+                      <button className="btn btn-orange btn-sm" onClick={saveEdit}>
+                        <i className="ti ti-check"/> Guardar
+                      </button>
+                      <button className="btn btn-ghost btn-sm" onClick={() => setEditId(null)}>
+                        Cancelar
+                      </button>
+                    </div>
+                  </div>
+                ) : (
+                  <>
+                    <div style={{ display:'flex', alignItems:'flex-start', justifyContent:'space-between', gap:8, marginBottom:10 }}>
+                      <TagPill tag={t}/>
+                      <div style={{ display:'flex', gap:4, flexShrink:0 }}>
+                        <button className="btn-icon" onClick={() => startEdit(t)} title="Editar etiqueta"
+                          aria-label={`Editar etiqueta ${t.name}`}>
+                          <i className="ti ti-edit"/>
+                        </button>
+                        <button className="btn-icon danger" onClick={() => onDelete(t.id)}
+                          title="Eliminar etiqueta" aria-label={`Eliminar etiqueta ${t.name}`}>
+                          <i className="ti ti-trash"/>
+                        </button>
+                      </div>
+                    </div>
+                    <div style={{ fontSize:22, fontWeight:700, color:'var(--black)', lineHeight:1 }}>{t.count}</div>
+                    <div className="text-xs text-muted" style={{ marginBottom:8 }}>
+                      participante{t.count !== 1 ? 's' : ''} asociado{t.count !== 1 ? 's' : ''} ({pct}%)
+                    </div>
+                    <div className="pbar-wrap">
+                      <div style={{ width:`${pct}%`, height:5, borderRadius:20,
+                        background:c.dot, transition:'width .4s' }}/>
+                    </div>
+                  </>
+                )}
+              </div>
+            )
+          })}
+        </div>
+      )}
 
       {/* Participantes sin etiquetas */}
       {sinEtiqueta.length > 0 && (
