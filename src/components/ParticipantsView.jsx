@@ -41,14 +41,28 @@ export default function ParticipantsView({
 
   const CERT_API = 'https://plataforma-de-cursos-1-l606.onrender.com'
 
+  // ¿El número parece cédula CR o DIMEX? (solo dígitos, largo 9/10/11/12)
+  // Si no, se trata como identificación extranjera (sin API → revisión manual).
+  const isCrVerifiable = (cedula) => {
+    const norm = String(cedula).replace(/[-. ]/g, '')
+    return /^\d+$/.test(norm) && [9, 10, 11, 12].includes(norm.length)
+  }
+
   const verifyCedulas = async () => {
     const conCedula = participants.filter(p => p.cedula)
     if (!conCedula.length) { setVerifyResult({ error: 'Ningún participante tiene cédula registrada.' }); return }
+
+    // Separar nacionales/DIMEX (verificables por API) de extranjeros (manual)
+    const verificables = conCedula.filter(p => isCrVerifiable(p.cedula))
+    const extranjerosList = conCedula
+      .filter(p => !isCrVerifiable(p.cedula))
+      .map(p => ({ id: p.id, name: p.name, cedula: String(p.cedula).trim() }))
+
     setVerifying(true); setVerifyResult(null)
 
     // Consultar la API de Hacienda CR directamente desde el browser (sin pasar por el backend)
     const results = []
-    for (const p of conCedula) {
+    for (const p of verificables) {
       const ced = String(p.cedula).replace(/[-. ]/g, '')
       try {
         const res = await fetch(
@@ -70,7 +84,7 @@ export default function ParticipantsView({
     const updates = []
     const noEncontradosList = []
     for (const r of results) {
-      const p = conCedula.find(p => String(p.cedula).replace(/[-. ]/g, '') === r.cedula)
+      const p = verificables.find(p => String(p.cedula).replace(/[-. ]/g, '') === r.cedula)
       if (!r.ok) {
         if (p) noEncontradosList.push({ id: p.id, name: p.name, cedula: r.cedula })
         continue
@@ -85,6 +99,7 @@ export default function ParticipantsView({
       found: results.filter(r => r.ok).length,
       noEncontrados: noEncontradosList.length,
       noEncontradosList,
+      extranjerosList,
     })
     setVerifying(false)
   }
@@ -185,6 +200,7 @@ export default function ParticipantsView({
                 <p style={{ color:'#15803d', fontSize:13, fontWeight:600 }}>
                   <i className="ti ti-check"/> Consultados: {verifyResult.total} · Encontrados: {verifyResult.found}
                   {verifyResult.noEncontrados > 0 && <span style={{color:'#d97706'}}> · No encontrados: {verifyResult.noEncontrados}</span>}
+                  {verifyResult.extranjerosList?.length > 0 && <span style={{color:'#0369a1'}}> · Extranjeros: {verifyResult.extranjerosList.length}</span>}
                   {' · '}Diferencias: {verifyResult.updates?.length || 0}
                 </p>
                 <button onClick={() => setVerifyResult(null)} style={{ background:'none', border:'none', cursor:'pointer', color:'#6b7280', fontSize:16 }}>✕</button>
@@ -227,6 +243,36 @@ export default function ParticipantsView({
                         <button onClick={() => { setVerifyResult(null); openEdit(participants.find(p => p.id === n.id)) }}
                           style={{ marginLeft:'auto', padding:'2px 10px', borderRadius:5,
                             background:'#fff', color:'#b45309', border:'1px solid #fde68a', cursor:'pointer', fontSize:12 }}>
+                          <i className="ti ti-edit"/> Revisar
+                        </button>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {/* Extranjeros — sin API, revisión manual */}
+              {verifyResult.extranjerosList?.length > 0 && (
+                <div style={{ marginTop:10, paddingTop:10, borderTop:'1px solid #bbf7d0' }}>
+                  <p style={{ color:'#0369a1', fontSize:12, fontWeight:600, marginBottom:6 }}>
+                    <i className="ti ti-world"/> Identificación extranjera ({verifyResult.extranjerosList.length})
+                    <span style={{ fontWeight:400, color:'#3b6b85' }}> — sin registro automático, revisión manual</span>
+                  </p>
+                  <div style={{ display:'flex', flexDirection:'column', gap:6 }}>
+                    {verifyResult.extranjerosList.map(n => (
+                      <div key={n.id} style={{ display:'flex', alignItems:'center', gap:8, fontSize:13,
+                        background:'#f0f9ff', padding:'6px 10px', borderRadius:6, border:'1px solid #bae6fd' }}>
+                        <span style={{ color:'#6b7280', minWidth:90 }}>ID {n.cedula}</span>
+                        <span style={{ fontWeight:500 }}>{n.name}</span>
+                        <a href={`https://www.google.com/search?q=${encodeURIComponent(`"${n.name}" ${n.cedula}`)}`}
+                          target="_blank" rel="noopener noreferrer"
+                          style={{ marginLeft:'auto', padding:'2px 10px', borderRadius:5, textDecoration:'none',
+                            background:'#0369a1', color:'#fff', fontSize:12 }}>
+                          <i className="ti ti-external-link"/> Buscar en web
+                        </a>
+                        <button onClick={() => { setVerifyResult(null); openEdit(participants.find(p => p.id === n.id)) }}
+                          style={{ padding:'2px 10px', borderRadius:5,
+                            background:'#fff', color:'#0369a1', border:'1px solid #bae6fd', cursor:'pointer', fontSize:12 }}>
                           <i className="ti ti-edit"/> Revisar
                         </button>
                       </div>
