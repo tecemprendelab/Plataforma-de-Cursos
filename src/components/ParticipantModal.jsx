@@ -10,7 +10,7 @@ import { TagSelector }    from './TagSelector.jsx'
 import { todayISO, ACCESS_DAYS } from '../utils/time.js'
 
 const EMPTY_FORM = {
-  name:'', email:'', phone:'',
+  name:'', cedula:'', email:'', phone:'',
   status:'activo', payment:'pagado', access:true,
   fecha:todayISO(), courses:[], tags:[], notes:'',
 }
@@ -77,6 +77,12 @@ export default function ParticipantModal({ participant, courses, tags, onSave, o
           <input id="pm-name" className="finput" value={form.name} onChange={e => f('name', e.target.value)}
             aria-invalid={!!errors.name} aria-describedby={errors.name ? 'pm-name-err' : undefined}/>
           {errors.name && <span id="pm-name-err" style={{ fontSize:11, color:'var(--orange-d)' }}>{errors.name}</span>}
+        </div>
+        <div>
+          <label className="text-sm text-muted" htmlFor="pm-cedula" style={{ display:'block', marginBottom:4 }}>Cédula</label>
+          <input id="pm-cedula" className="finput" value={form.cedula || ''}
+            onChange={e => f('cedula', e.target.value)}
+            inputMode="numeric" placeholder="1-0000-0000"/>
         </div>
         <div>
           <label className="text-sm text-muted" style={{ display:'block', marginBottom:4 }}>Teléfono</label>
