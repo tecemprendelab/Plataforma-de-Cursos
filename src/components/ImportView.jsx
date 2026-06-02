@@ -101,6 +101,7 @@ export default function ImportView({ participants, courses = [], onImport, onBul
   // fecha de ingreso por fila (índice → 'YYYY-MM-DD'); default = hoy
   const [rowFechas,   setRowFechas]   = useState({})
   const [bulkFecha,   setBulkFecha]   = useState(todayISO())
+  const [tab,         setTab]         = useState('nuevos')   // nuevos | existentes | errores
 
   // Panel post-import (bulk-edit)
   const [bulkCourses,     setBulkCourses]     = useState(new Set())
@@ -165,6 +166,7 @@ export default function ImportView({ participants, courses = [], onImport, onBul
       setParseRes({ ...parsed, rows })
       const m = matchExisting(rows, participants)
       setMatchRes(m)
+      setTab('nuevos')
       setSelected(new Set(m.nuevos.map((_, i) => i)))
       const fechas = {}
       m.nuevos.forEach((_, i) => { fechas[i] = todayISO() })
@@ -180,6 +182,7 @@ export default function ImportView({ participants, courses = [], onImport, onBul
     setBulkCourses(new Set()); setBulkPayment('none'); setBulkAccess('none')
     setBulkAccessFecha(todayISO())
     setRowFechas({}); setBulkFecha(todayISO())
+    setTab('nuevos')
     if (fileRef.current) fileRef.current.value = ''
   }
 
@@ -416,16 +419,22 @@ export default function ImportView({ participants, courses = [], onImport, onBul
 
       {matchRes && (
         <div style={{ marginTop: 20 }}>
-          <div style={{ display: 'grid', gridTemplateColumns:'repeat(auto-fit, minmax(140px, 1fr))', gap: 10, marginBottom: 16 }}>
-            <Stat label="Total en CSV"      value={parseRes.rows.length}    color="var(--black)"  />
-            <Stat label="Nuevos a agregar"  value={matchRes.nuevos.length}   color="var(--orange)" />
-            <Stat label="Ya existen en DB"  value={matchRes.existentes.length} color="var(--gray)"  />
+          {/* Pestañas de resultados */}
+          <div style={{ display:'flex', gap:4, borderBottom:'1px solid var(--border)', marginBottom:16, flexWrap:'wrap' }}>
+            <TabBtn id="nuevos"     active={tab==='nuevos'}     onClick={setTab} label="Nuevos"     count={matchRes.nuevos.length}/>
+            <TabBtn id="existentes" active={tab==='existentes'} onClick={setTab} label="Ya existen" count={matchRes.existentes.length} accent="var(--gray)"/>
             {parseRes.errors.length > 0 && (
-              <Stat label="Filas con error" value={parseRes.errors.length} color="#A32D2D"/>
+              <TabBtn id="errores"  active={tab==='errores'}    onClick={setTab} label="Errores"    count={parseRes.errors.length} accent="#A32D2D"/>
             )}
           </div>
 
-          {matchRes.nuevos.length > 0 && (
+          {tab === 'nuevos' && matchRes.nuevos.length === 0 && (
+            <div className="card" style={{ padding:32, textAlign:'center', color:'var(--gray)', fontSize:13 }}>
+              No hay participantes nuevos en este CSV — todos ya existen.
+            </div>
+          )}
+
+          {tab === 'nuevos' && matchRes.nuevos.length > 0 && (
             <>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 10, flexWrap:'wrap', gap:8 }}>
                 <h3 className="h3">Nuevos participantes ({matchRes.nuevos.length})</h3>
@@ -472,12 +481,9 @@ export default function ImportView({ participants, courses = [], onImport, onBul
             </>
           )}
 
-          {matchRes.existentes.length > 0 && (
-            <details style={{ marginTop: 24 }}>
-              <summary style={{ cursor: 'pointer', fontWeight: 500, marginBottom: 10 }}>
-                Ya existen en la base de datos ({matchRes.existentes.length})
-              </summary>
-              <div style={{ background: 'var(--white)', border: '1px solid var(--border)', borderRadius: 8, overflow: 'hidden', marginTop: 8 }}>
+          {tab === 'existentes' && (
+            matchRes.existentes.length > 0 ? (
+              <div style={{ background: 'var(--white)', border: '1px solid var(--border)', borderRadius: 8, overflow: 'hidden' }}>
                 {matchRes.existentes.map((m, i) => (
                   <div key={i} style={{ padding: '10px 14px', borderBottom: i < matchRes.existentes.length - 1 ? '1px solid var(--cream-2)' : 'none', fontSize: 13 }}>
                     <span style={{ fontWeight: 500 }}>{m.db.name}</span>
@@ -485,20 +491,19 @@ export default function ImportView({ participants, courses = [], onImport, onBul
                   </div>
                 ))}
               </div>
-            </details>
+            ) : (
+              <div className="card" style={{ padding:32, textAlign:'center', color:'var(--gray)', fontSize:13 }}>
+                Ningún participante del CSV existe todavía en la base.
+              </div>
+            )
           )}
 
-          {parseRes.errors.length > 0 && (
-            <details style={{ marginTop: 16 }}>
-              <summary style={{ cursor: 'pointer', fontWeight: 500, color: '#A32D2D', marginBottom: 10 }}>
-                Filas con error ({parseRes.errors.length})
-              </summary>
-              <div style={{ background: '#FCEBEB', border: '1px solid #A32D2D33', borderRadius: 8, padding: 12, marginTop: 8, fontSize: 12, fontFamily: 'monospace' }}>
-                {parseRes.errors.map(e => (
-                  <div key={e.line}>línea {e.line}: {e.raw}</div>
-                ))}
-              </div>
-            </details>
+          {tab === 'errores' && parseRes.errors.length > 0 && (
+            <div style={{ background: '#FCEBEB', border: '1px solid #A32D2D33', borderRadius: 8, padding: 12, fontSize: 12, fontFamily: 'monospace' }}>
+              {parseRes.errors.map(e => (
+                <div key={e.line}>línea {e.line}: {e.raw}</div>
+              ))}
+            </div>
           )}
 
           <button className="btn btn-ghost btn-sm" style={{ marginTop: 16 }} onClick={reset}>
@@ -510,12 +515,21 @@ export default function ImportView({ participants, courses = [], onImport, onBul
   )
 }
 
-function Stat({ label, value, color }) {
+function TabBtn({ id, active, onClick, label, count, accent = 'var(--orange)' }) {
   return (
-    <div style={{ background: 'var(--white)', border: '1px solid var(--border)', borderRadius: 8, padding: '10px 14px', minWidth: 0 }}>
-      <div style={{ fontSize: 22, fontWeight: 600, color }}>{value}</div>
-      <div className="text-xs text-muted" style={{ marginTop: 2 }}>{label}</div>
-    </div>
+    <button onClick={() => onClick(id)}
+      aria-current={active ? 'true' : undefined}
+      style={{
+        display:'inline-flex', alignItems:'center', gap:8, padding:'10px 16px',
+        background:'none', border:'none', cursor:'pointer', fontFamily:'inherit', fontSize:13,
+        fontWeight: active ? 600 : 400, color: active ? accent : 'var(--gray)',
+        borderBottom: `2px solid ${active ? accent : 'transparent'}`, marginBottom:-1,
+      }}>
+      {label}
+      <span style={{ fontSize:11, fontWeight:700, padding:'1px 8px', borderRadius:20,
+        background: active ? accent : 'var(--cream-3)',
+        color: active ? '#fff' : 'var(--gray)' }}>{count}</span>
+    </button>
   )
 }
 
