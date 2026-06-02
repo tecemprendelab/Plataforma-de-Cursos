@@ -68,15 +68,24 @@ export default function ParticipantsView({
     }
 
     const updates = []
+    const noEncontradosList = []
     for (const r of results) {
-      if (!r.ok) continue
       const p = conCedula.find(p => String(p.cedula).replace(/[-. ]/g, '') === r.cedula)
+      if (!r.ok) {
+        if (p) noEncontradosList.push({ id: p.id, name: p.name, cedula: r.cedula })
+        continue
+      }
       if (p && r.nombre && r.nombre !== p.name.trim().toUpperCase()) {
         updates.push({ id: p.id, nombreActual: p.name, nombreTSE: r.nombre, cedula: r.cedula })
       }
     }
-    const noEncontrados = results.filter(r => !r.ok).length
-    setVerifyResult({ updates, total: conCedula.length, found: results.filter(r => r.ok).length, noEncontrados })
+    setVerifyResult({
+      updates,
+      total: conCedula.length,
+      found: results.filter(r => r.ok).length,
+      noEncontrados: noEncontradosList.length,
+      noEncontradosList,
+    })
     setVerifying(false)
   }
 
@@ -200,6 +209,30 @@ export default function ParticipantsView({
               )}
               {verifyResult.updates?.length === 0 && (
                 <p style={{ color:'#15803d', fontSize:13 }}>✓ Todos los nombres coinciden con el Registro Civil.</p>
+              )}
+
+              {/* No encontrados en el Registro Civil */}
+              {verifyResult.noEncontradosList?.length > 0 && (
+                <div style={{ marginTop:10, paddingTop:10, borderTop:'1px solid #bbf7d0' }}>
+                  <p style={{ color:'#b45309', fontSize:12, fontWeight:600, marginBottom:6 }}>
+                    <i className="ti ti-alert-triangle"/> Sin coincidencia en el Registro Civil ({verifyResult.noEncontradosList.length})
+                    <span style={{ fontWeight:400, color:'#92732b' }}> — revisá la cédula manualmente</span>
+                  </p>
+                  <div style={{ display:'flex', flexDirection:'column', gap:6 }}>
+                    {verifyResult.noEncontradosList.map(n => (
+                      <div key={n.id} style={{ display:'flex', alignItems:'center', gap:8, fontSize:13,
+                        background:'#fffbeb', padding:'6px 10px', borderRadius:6, border:'1px solid #fde68a' }}>
+                        <span style={{ color:'#6b7280', minWidth:90 }}>Céd. {n.cedula}</span>
+                        <span style={{ fontWeight:500 }}>{n.name}</span>
+                        <button onClick={() => { setVerifyResult(null); openEdit(participants.find(p => p.id === n.id)) }}
+                          style={{ marginLeft:'auto', padding:'2px 10px', borderRadius:5,
+                            background:'#fff', color:'#b45309', border:'1px solid #fde68a', cursor:'pointer', fontSize:12 }}>
+                          <i className="ti ti-edit"/> Revisar
+                        </button>
+                      </div>
+                    ))}
+                  </div>
+                </div>
               )}
             </>
           )}
