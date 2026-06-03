@@ -25,6 +25,21 @@ function StatusBadge({ status }) {
   )
 }
 
+// Heurística de país según el FORMATO del documento (no es verificación oficial).
+// Sirve para orientar la búsqueda manual de identificaciones extranjeras.
+function detectIdCountry(rawId) {
+  const id = String(rawId || '').trim().toUpperCase()
+  const c  = id.replace(/[\s.]/g, '')
+  // Nicaragua: 000-000000-0000X (termina en letra)
+  if (/^\d{3}-?\d{6}-?\d{4}[A-Z]$/.test(c)) return { country:'Nicaragua', flag:'🇳🇮' }
+  // Panamá: prefijo de provincia 1-13 o E/N/PE/AV + secciones (8-123-456, PE-12-3456, E-8-12345)
+  if (/^(PE|E|N|AV|\d{1,2})-\d{1,5}-\d{1,6}$/.test(c)) return { country:'Panamá', flag:'🇵🇦' }
+  // Guatemala (DPI) / Honduras / El Salvador: 13 dígitos
+  if (/^\d{13}$/.test(c)) return { country:'Centroamérica', flag:'🌎' }
+  // Con letras, formato no reconocido (pasaporte u otro)
+  return { country:'Extranjero', flag:'🌎' }
+}
+
 export default function ParticipantsView({
   participants, courses, tags,
   onAdd, onUpdate, onDelete, onToggleAccess, setView,
@@ -56,7 +71,10 @@ export default function ParticipantsView({
     const verificables = conCedula.filter(p => isCrVerifiable(p.cedula))
     const extranjerosList = conCedula
       .filter(p => !isCrVerifiable(p.cedula))
-      .map(p => ({ id: p.id, name: p.name, cedula: String(p.cedula).trim() }))
+      .map(p => {
+        const det = detectIdCountry(p.cedula)
+        return { id: p.id, name: p.name, cedula: String(p.cedula).trim(), country: det.country, flag: det.flag }
+      })
 
     setVerifying(true); setVerifyResult(null)
 
@@ -259,12 +277,21 @@ export default function ParticipantsView({
                     <span style={{ fontWeight:400, color:'#3b6b85' }}> — sin registro automático, revisión manual</span>
                   </p>
                   <div style={{ display:'flex', flexDirection:'column', gap:6 }}>
-                    {verifyResult.extranjerosList.map(n => (
-                      <div key={n.id} style={{ display:'flex', alignItems:'center', gap:8, fontSize:13,
+                    {verifyResult.extranjerosList.map(n => {
+                      const known = n.country && n.country !== 'Extranjero'
+                      const query = known
+                        ? `"${n.name}" cédula ${n.cedula} ${n.country}`
+                        : `"${n.name}" ${n.cedula}`
+                      return (
+                      <div key={n.id} style={{ display:'flex', alignItems:'center', gap:8, fontSize:13, flexWrap:'wrap',
                         background:'#f0f9ff', padding:'6px 10px', borderRadius:6, border:'1px solid #bae6fd' }}>
                         <span style={{ color:'#6b7280', minWidth:90 }}>ID {n.cedula}</span>
                         <span style={{ fontWeight:500 }}>{n.name}</span>
-                        <a href={`https://www.google.com/search?q=${encodeURIComponent(`"${n.name}" ${n.cedula}`)}`}
+                        <span style={{ fontSize:11, fontWeight:600, color:'#0369a1',
+                          background:'#e0f2fe', border:'1px solid #bae6fd', borderRadius:20, padding:'1px 8px' }}>
+                          {n.flag} {n.country}
+                        </span>
+                        <a href={`https://www.google.com/search?q=${encodeURIComponent(query)}`}
                           target="_blank" rel="noopener noreferrer"
                           style={{ marginLeft:'auto', padding:'2px 10px', borderRadius:5, textDecoration:'none',
                             background:'#0369a1', color:'#fff', fontSize:12 }}>
@@ -276,7 +303,8 @@ export default function ParticipantsView({
                           <i className="ti ti-edit"/> Revisar
                         </button>
                       </div>
-                    ))}
+                      )
+                    })}
                   </div>
                 </div>
               )}
