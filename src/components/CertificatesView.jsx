@@ -6,7 +6,7 @@
 import { useState, useEffect, useRef, useCallback } from 'react'
 import { useTemplates } from '../hooks/useTemplates.js'
 
-const CERT_API = 'https://plataforma-de-cursos-1-l606.onrender.com'
+import { CERT_API } from '../config.js'
 
 const TODAY_ES = (() => {
   const d = new Date()

@@ -28,8 +28,8 @@
 
 import { useState, useEffect, useCallback } from 'react'
 import { supabase, isSupabaseConfigured } from '../lib/supabase.js'
+import { CERT_API } from '../config.js'
 
-const CERT_API = 'https://plataforma-de-cursos-1-l606.onrender.com'
 const BUCKET   = 'certificate-templates'
 
 // Plantillas built-in (siempre presentes, SVG se carga desde el backend)

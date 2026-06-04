@@ -9,6 +9,7 @@
 
 import { useState, useRef } from 'react'
 import { todayISO } from '../utils/time.js'
+import { HACIENDA_API } from '../config.js'
 
 // ---------- CSV parser robusto ----------
 // El CSV puede traer filas malformadas (columnas duplicadas, comas extra
@@ -123,7 +124,7 @@ export default function ImportView({ participants, courses = [], onImport, onBul
       const ced = row.cedula.replace(/[-. ]/g, '')
       try {
         const res = await fetch(
-          `https://api.hacienda.go.cr/fe/ae?identificacion=${ced}`,
+          `${HACIENDA_API}?identificacion=${ced}`,
           { signal: AbortSignal.timeout(8000) }
         )
         if (res.ok) {

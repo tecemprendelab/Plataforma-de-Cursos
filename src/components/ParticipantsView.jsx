@@ -7,6 +7,7 @@ import { isExpired, isWarning, daysLeft, getAccessDays } from '../utils/time.js'
 import { AccessBar, Avatar }  from './UI.jsx'
 import { TagPill }      from './TagPill.jsx'
 import { getTagColor }  from '../data/tags.js'
+import { HACIENDA_API } from '../config.js'
 import ParticipantModal from './ParticipantModal.jsx'
 
 // Badge de estado del participante: punto de color + ícono + texto
@@ -54,8 +55,6 @@ export default function ParticipantsView({
   const [verifying,    setVerifying]    = useState(false)
   const [verifyResult, setVerifyResult] = useState(null)
 
-  const CERT_API = 'https://plataforma-de-cursos-1-l606.onrender.com'
-
   // ¿El número parece cédula CR o DIMEX? (solo dígitos, largo 9/10/11/12)
   // Si no, se trata como identificación extranjera (sin API → revisión manual).
   const isCrVerifiable = (cedula) => {
@@ -84,7 +83,7 @@ export default function ParticipantsView({
       const ced = String(p.cedula).replace(/[-. ]/g, '')
       try {
         const res = await fetch(
-          `https://api.hacienda.go.cr/fe/ae?identificacion=${ced}`,
+          `${HACIENDA_API}?identificacion=${ced}`,
           { signal: AbortSignal.timeout(8000) }
         )
         if (res.ok) {
