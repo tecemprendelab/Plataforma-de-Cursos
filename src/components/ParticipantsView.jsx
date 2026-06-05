@@ -5,7 +5,7 @@
 import { useState }     from 'react'
 import { isExpired, isWarning, daysLeft, getAccessDays } from '../utils/time.js'
 import { mapWithConcurrency } from '../utils/async.js'
-import { AccessBar, Avatar }  from './UI.jsx'
+import { AccessBar, Avatar, ConfirmDialog }  from './UI.jsx'
 import { TagPill }      from './TagPill.jsx'
 import { getTagColor }  from '../data/tags.js'
 import { HACIENDA_API } from '../config.js'
@@ -55,6 +55,7 @@ export default function ParticipantsView({
   const [editTarget,   setEditTarget]   = useState(null)
   const [verifying,    setVerifying]    = useState(false)
   const [verifyResult, setVerifyResult] = useState(null)
+  const [confirmTarget, setConfirmTarget] = useState(null)   // participante a eliminar
 
   // ¿El número parece cédula CR o DIMEX? (solo dígitos, largo 9/10/11/12)
   // Si no, se trata como identificación extranjera (sin API → revisión manual).
@@ -181,6 +182,16 @@ export default function ParticipantsView({
           tags={tags}
           onSave={handleSave}
           onClose={() => setModalOpen(false)}
+        />
+      )}
+
+      {confirmTarget && (
+        <ConfirmDialog
+          title="Eliminar participante"
+          message={`¿Seguro que querés eliminar a ${confirmTarget.name}? Esta acción no se puede deshacer.`}
+          confirmLabel="Eliminar"
+          onConfirm={() => onDelete(confirmTarget.id)}
+          onClose={() => setConfirmTarget(null)}
         />
       )}
 
@@ -434,7 +445,7 @@ export default function ParticipantsView({
                         <i className="ti ti-key"/>
                       </button>
                       <button className="btn-icon danger"
-                        onClick={() => { if (confirm('¿Eliminar?')) onDelete(p.id) }}>
+                        onClick={() => setConfirmTarget(p)}>
                         <i className="ti ti-trash"/>
                       </button>
                     </div>
@@ -507,7 +518,7 @@ export default function ParticipantsView({
                   <i className="ti ti-key"/> {p.access ? 'Revocar' : 'Acceso'}
                 </button>
                 <button className="btn-icon danger"
-                  onClick={() => { if (confirm('¿Eliminar?')) onDelete(p.id) }}>
+                  onClick={() => setConfirmTarget(p)}>
                   <i className="ti ti-trash"/>
                 </button>
               </div>

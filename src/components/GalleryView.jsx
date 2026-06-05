@@ -6,6 +6,7 @@
 import { useState, useEffect, useRef } from 'react'
 import { useTemplates } from '../hooks/useTemplates.js'
 import { isSupabaseConfigured } from '../lib/supabase.js'
+import { ConfirmDialog } from './UI.jsx'
 
 function ColorDot({ color }) {
   return (
@@ -269,6 +270,7 @@ export default function GalleryView({ onUseCertificate }) {
   const [previewTpl,  setPreviewTpl]  = useState(null)
   const [showUpload,  setShowUpload]  = useState(false)
   const [loadingIds,  setLoadingIds]  = useState(new Set())
+  const [confirmTpl,  setConfirmTpl]  = useState(null)   // plantilla a eliminar
 
   // Cargar SVG content cuando aparece una plantilla sin él
   useEffect(() => {
@@ -286,8 +288,13 @@ export default function GalleryView({ onUseCertificate }) {
     if (result) setShowUpload(false)
   }
 
-  const handleDelete = async (id) => {
-    if (!confirm('¿Eliminar esta plantilla? No se puede deshacer.')) return
+  // Pide confirmación; el borrado real ocurre en confirmDelete()
+  const handleDelete = (id) => {
+    const tpl = templates.find(t => t.id === id)
+    setConfirmTpl(tpl || { id, name: 'esta plantilla' })
+  }
+  const confirmDelete = async () => {
+    const id = confirmTpl.id
     await deleteTemplate(id)
     if (selectedId === id) setSelectedId(null)
   }
@@ -467,6 +474,16 @@ export default function GalleryView({ onUseCertificate }) {
           error={error}
           onClose={() => setShowUpload(false)}
           onSave={handleUpload}
+        />
+      )}
+
+      {confirmTpl && (
+        <ConfirmDialog
+          title="Eliminar plantilla"
+          message={`¿Seguro que querés eliminar "${confirmTpl.name}"? No se puede deshacer.`}
+          confirmLabel="Eliminar"
+          onConfirm={confirmDelete}
+          onClose={() => setConfirmTpl(null)}
         />
       )}
     </div>

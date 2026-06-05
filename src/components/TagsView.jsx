@@ -8,6 +8,7 @@ import { useState } from 'react'
 import { getTagColor } from '../data/tags.js'
 import { TagPill }     from './TagPill.jsx'
 import { ColorPicker } from './ColorPicker.jsx'
+import { ConfirmDialog } from './UI.jsx'
 
 export default function TagsView({ tags, participants, onAdd, onEdit, onDelete }) {
   const [newName,   setNewName]   = useState('')
@@ -15,6 +16,7 @@ export default function TagsView({ tags, participants, onAdd, onEdit, onDelete }
   const [editId,    setEditId]    = useState(null)
   const [editName,  setEditName]  = useState('')
   const [editColor, setEditColor] = useState('orange')
+  const [confirmTarget, setConfirmTarget] = useState(null)   // etiqueta a eliminar
 
   const startEdit = t => { setEditId(t.id); setEditName(t.name); setEditColor(t.color) }
   const saveEdit  = () => { onEdit(editId, editName, editColor); setEditId(null) }
@@ -27,6 +29,15 @@ export default function TagsView({ tags, participants, onAdd, onEdit, onDelete }
 
   return (
     <div>
+      {confirmTarget && (
+        <ConfirmDialog
+          title="Eliminar etiqueta"
+          message={`¿Seguro que querés eliminar la etiqueta "${confirmTarget.name}"? Se quitará de todos los participantes que la tengan.`}
+          confirmLabel="Eliminar"
+          onConfirm={() => onDelete(confirmTarget.id)}
+          onClose={() => setConfirmTarget(null)}
+        />
+      )}
       <div className="page-header">
         <div>
           <h2 className="h1">Etiquetas</h2>
@@ -128,7 +139,7 @@ export default function TagsView({ tags, participants, onAdd, onEdit, onDelete }
                           aria-label={`Editar etiqueta ${t.name}`}>
                           <i className="ti ti-edit"/>
                         </button>
-                        <button className="btn-icon danger" onClick={() => onDelete(t.id)}
+                        <button className="btn-icon danger" onClick={() => setConfirmTarget(t)}
                           title="Eliminar etiqueta" aria-label={`Eliminar etiqueta ${t.name}`}>
                           <i className="ti ti-trash"/>
                         </button>

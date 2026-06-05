@@ -10,6 +10,13 @@ import { Modal } from './UI.jsx'
 
 function EmailModal({ participant, onClose }) {
   const em = buildReminderEmail(participant)
+  const [copied, setCopied] = useState(false)
+  const handleCopy = () => {
+    copyEmailToClipboard(participant).then(() => {
+      setCopied(true)
+      setTimeout(() => setCopied(false), 2000)
+    })
+  }
   return (
     <Modal onClose={onClose} width={640}>
       <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:18}}>
@@ -23,7 +30,9 @@ function EmailModal({ participant, onClose }) {
       </div>
       <div className="modal-foot">
         <button className="btn btn-ghost" onClick={onClose}>Cerrar</button>
-        <button className="btn btn-ghost" onClick={() => copyEmailToClipboard(participant).then(() => alert('Copiado al portapapeles'))}><i className="ti ti-copy"/> Copiar</button>
+        <button className="btn btn-ghost" onClick={handleCopy} style={copied ? { color:'var(--green)', borderColor:'var(--green)' } : undefined}>
+          <i className={`ti ti-${copied ? 'check' : 'copy'}`}/> {copied ? 'Copiado' : 'Copiar'}
+        </button>
         <button className="btn btn-orange" onClick={() => { openEmailClient(participant); onClose() }}><i className="ti ti-mail-forward"/> Abrir en correo</button>
       </div>
     </Modal>

@@ -171,3 +171,37 @@ export function Modal({ onClose, children, width = 560, label = 'Diálogo' }) {
     </div>
   )
 }
+
+// ── ConfirmDialog ─────────────────────────────────────────
+/** Diálogo de confirmación accesible (reemplaza al confirm() nativo).
+ *  Uso: estado con el objetivo a confirmar; al confirmar ejecuta onConfirm. */
+export function ConfirmDialog({
+  title = 'Confirmar acción',
+  message,
+  confirmLabel = 'Eliminar',
+  cancelLabel = 'Cancelar',
+  danger = true,
+  onConfirm,
+  onClose,
+}) {
+  return (
+    <Modal onClose={onClose} width={420} label={title}>
+      <div style={{ display:'flex', alignItems:'flex-start', gap:12, marginBottom:18 }}>
+        <span className="material-symbols-outlined" aria-hidden="true"
+          style={{ fontSize:24, color: danger ? 'var(--orange-d)' : 'var(--orange)', flexShrink:0 }}>
+          {danger ? 'warning' : 'help'}
+        </span>
+        <div>
+          <h3 className="h2" style={{ marginBottom:6 }}>{title}</h3>
+          <p className="text-sm text-muted" style={{ lineHeight:1.6 }}>{message}</p>
+        </div>
+      </div>
+      <div className="modal-foot">
+        <button className="btn btn-ghost" onClick={onClose}>{cancelLabel}</button>
+        <button className="btn btn-orange" onClick={() => { onConfirm(); onClose() }}>
+          {danger && <i className="ti ti-trash"/>} {confirmLabel}
+        </button>
+      </div>
+    </Modal>
+  )
+}

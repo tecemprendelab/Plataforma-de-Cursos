@@ -6,7 +6,7 @@
 import { useState } from 'react'
 import { fmtDate }    from '../utils/time.js'
 import { fmtPrice }   from '../data/courses.js'
-import { Badge }      from './UI.jsx'
+import { Badge, ConfirmDialog } from './UI.jsx'
 import CourseModal    from './CourseModal.jsx'
 
 const VALID_TYPES = ['curso','taller','seminario','bootcamp','charla']
@@ -26,6 +26,7 @@ export default function CoursesView({ courses, participants, setView, onAdd, onU
   const [filterType, setFilterType] = useState('all')
   const [search,     setSearch]     = useState('')
   const [showInactive, setShowInactive] = useState(false)
+  const [confirmTarget, setConfirmTarget] = useState(null)   // curso a eliminar
 
   const filtered = courses.filter(c => {
     const q = search.toLowerCase()
@@ -52,6 +53,16 @@ export default function CoursesView({ courses, participants, setView, onAdd, onU
           course={editTarget}
           onSave={handleSave}
           onClose={() => setModal(false)}
+        />
+      )}
+
+      {confirmTarget && (
+        <ConfirmDialog
+          title="Eliminar programa"
+          message={`¿Seguro que querés eliminar "${confirmTarget.name}"? Esta acción no se puede deshacer.`}
+          confirmLabel="Eliminar"
+          onConfirm={() => onDelete(confirmTarget.id)}
+          onClose={() => setConfirmTarget(null)}
         />
       )}
 
@@ -180,7 +191,7 @@ export default function CoursesView({ courses, participants, setView, onAdd, onU
                     {c.active ? 'Desactivar' : 'Activar'}
                   </button>
                   <button className="btn-icon danger"
-                    onClick={() => onDelete(c.id)}
+                    onClick={() => setConfirmTarget(c)}
                     title="Eliminar programa">
                     <i className="ti ti-trash"/>
                   </button>
