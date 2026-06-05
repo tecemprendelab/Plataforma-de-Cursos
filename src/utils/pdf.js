@@ -112,7 +112,7 @@ function renderCover(doc, pageW, pageH) {
 
   doc.setFont('helvetica', 'normal')
   doc.setFontSize(9)
-  doc.text('Instituto Tecnológico de Costa Rica', pageW / 2, logoY + logoSize + 42, { align: 'center' })
+  doc.text('Gestión de cursos virtuales', pageW / 2, logoY + logoSize + 42, { align: 'center' })
 
   // Línea divisora
   doc.setDrawColor(COLOR.border)

@@ -94,7 +94,7 @@ export default function LoginView({ onSignIn }) {
 
         <div style={{ borderTop:'1px solid var(--cream-3)', marginTop:4, paddingTop:14, textAlign:'center' }}>
           <p style={{ fontSize:11, color:'var(--gray)', letterSpacing:'.3px' }}>
-            © {new Date().getFullYear()} Tecnológico de Costa Rica
+            © {new Date().getFullYear()} TEC Emprende Lab
           </p>
         </div>
       </form>
