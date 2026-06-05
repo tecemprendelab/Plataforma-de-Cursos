@@ -9,6 +9,7 @@
 
 import { useState, useRef } from 'react'
 import { todayISO } from '../utils/time.js'
+import { mapWithConcurrency } from '../utils/async.js'
 import { HACIENDA_API } from '../config.js'
 
 // ---------- CSV parser robusto ----------
@@ -118,9 +119,11 @@ export default function ImportView({ participants, courses = [], onImport, onBul
   const enrichWithTSE = async (rows) => {
     const conCedula = rows.filter(r => r.cedula)
     if (!conCedula.length) return { rows, found: 0, corrected: 0 }
-    let found = 0, corrected = 0
-    const enriched = [...rows]
-    for (const row of conCedula) {
+
+    // Consultar Hacienda en paralelo (hasta 6 a la vez). Cada tarea
+    // devuelve su resultado y luego se agrega, evitando mutar contadores
+    // compartidos durante la concurrencia.
+    const tseResults = await mapWithConcurrency(conCedula, 6, async (row) => {
       const ced = row.cedula.replace(/[-. ]/g, '')
       try {
         const res = await fetch(
@@ -130,14 +133,20 @@ export default function ImportView({ participants, courses = [], onImport, onBul
         if (res.ok) {
           const data = await res.json()
           const nombre = (data.nombre || '').trim().toUpperCase()
-          if (nombre) {
-            found++
-            const idx = enriched.indexOf(row)
-            if (nombre !== row.name.trim().toUpperCase()) corrected++
-            enriched[idx] = { ...row, name: nombre }
-          }
+          if (nombre) return { row, nombre }
         }
       } catch { /* API no disponible, dejamos el nombre del CSV */ }
+      return { row, nombre: null }
+    })
+
+    let found = 0, corrected = 0
+    const enriched = [...rows]
+    for (const { row, nombre } of tseResults) {
+      if (!nombre) continue
+      found++
+      if (nombre !== row.name.trim().toUpperCase()) corrected++
+      const idx = enriched.indexOf(row)
+      if (idx !== -1) enriched[idx] = { ...row, name: nombre }
     }
     return { rows: enriched, found, corrected }
   }

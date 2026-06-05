@@ -4,6 +4,7 @@
 
 import { useState }     from 'react'
 import { isExpired, isWarning, daysLeft, getAccessDays } from '../utils/time.js'
+import { mapWithConcurrency } from '../utils/async.js'
 import { AccessBar, Avatar }  from './UI.jsx'
 import { TagPill }      from './TagPill.jsx'
 import { getTagColor }  from '../data/tags.js'
@@ -77,9 +78,9 @@ export default function ParticipantsView({
 
     setVerifying(true); setVerifyResult(null)
 
-    // Consultar la API de Hacienda CR directamente desde el browser (sin pasar por el backend)
-    const results = []
-    for (const p of verificables) {
+    // Consultar Hacienda en paralelo (hasta 6 a la vez) para que no sea
+    // lento con muchos participantes, sin saturar la API pública.
+    const results = await mapWithConcurrency(verificables, 6, async (p) => {
       const ced = String(p.cedula).replace(/[-. ]/g, '')
       try {
         const res = await fetch(
@@ -89,14 +90,13 @@ export default function ParticipantsView({
         if (res.ok) {
           const data = await res.json()
           const nombre = (data.nombre || '').trim().toUpperCase()
-          results.push({ cedula: ced, nombre: nombre || null, ok: !!nombre })
-        } else {
-          results.push({ cedula: ced, nombre: null, ok: false })
+          return { cedula: ced, nombre: nombre || null, ok: !!nombre }
         }
+        return { cedula: ced, nombre: null, ok: false }
       } catch {
-        results.push({ cedula: ced, nombre: null, ok: false })
+        return { cedula: ced, nombre: null, ok: false }
       }
-    }
+    })
 
     const updates = []
     const noEncontradosList = []
