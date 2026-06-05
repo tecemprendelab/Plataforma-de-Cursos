@@ -45,7 +45,7 @@ function BadgeIcon({ name }) {
 export function TimerBadge({ fecha, access, days = ACCESS_DAYS }) {
   if (!access)                  return <Badge type="gray"><BadgeIcon name="lock"/>Sin acceso</Badge>
   if (isExpired(fecha, days))   return <Badge type="red"><BadgeIcon name="cancel"/>Expirado</Badge>
-  if (isWarning(fecha, days))   return <Badge type="orange"><BadgeIcon name="schedule"/>{daysLeft(fecha, days)}d restantes</Badge>
+  if (isWarning(fecha, days))   return <Badge type="amber"><BadgeIcon name="schedule"/>{daysLeft(fecha, days)}d restantes</Badge>
   return <Badge type="black"><BadgeIcon name="check_circle"/>{daysLeft(fecha, days)}d restantes</Badge>
 }
 
@@ -63,8 +63,8 @@ export function AccessBar({ fecha, compact = false, days = ACCESS_DAYS }) {
   const warn  = isWarning(fecha, days)
 
   const barClass = exp ? 'pbar pbar-exp' : warn ? 'pbar pbar-warn' : 'pbar pbar-green'
-  const bgColor  = exp ? '#FBE8E3' : warn ? '#FEF3EB' : 'var(--green-l)'
-  const txtColor = exp ? 'var(--orange-d)' : warn ? 'var(--orange)' : 'var(--green)'
+  const bgColor  = exp ? '#FBE8E3' : warn ? 'var(--amber-l)' : 'var(--green-l)'
+  const txtColor = exp ? 'var(--orange-d)' : warn ? 'var(--amber-d)' : 'var(--green)'
   const label    = exp ? 'Expirado' : warn ? `Expira en ${left}d` : `${left} días restantes`
   const icon     = exp ? 'cancel' : warn ? 'schedule' : 'check_circle'
 

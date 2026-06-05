@@ -31,7 +31,7 @@ export default function Dashboard({ participants, courses, setView }) {
         <StatCard num={participants.length} label="Total participantes"/>
         <StatCard num={activos}  label="Activos"/>
         <StatCard num={conAcc}   label="Con acceso"/>
-        <StatCard num={warning}  label="Expiran ≤7 días"   accent="var(--orange)"/>
+        <StatCard num={warning}  label="Expiran ≤7 días"   accent="var(--amber)"/>
         <StatCard num={expired}  label="Accesos expirados" accent="var(--orange-d)"/>
       </div>
 

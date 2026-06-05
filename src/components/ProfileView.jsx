@@ -54,7 +54,7 @@ export default function ProfileView({ id, participants, courses, tags, onToggleA
           <div style={{ marginTop:8, display:'flex', flexWrap:'wrap', alignItems:'center', gap:4 }}>
             {ptags.map(t => <TagPill key={t.id} tag={t}/>)}
             <Badge type={p.status === 'activo' ? 'green' : 'gray'}>{p.status}</Badge>
-            <Badge type={p.payment === 'pagado' ? 'green' : 'orange'}>{p.payment}</Badge>
+            <Badge type={p.payment === 'pagado' ? 'green' : 'amber'}>{p.payment}</Badge>
             <TimerBadge fecha={p.fecha} access={p.access} days={days}/>
           </div>
         </div>
@@ -93,7 +93,7 @@ export default function ProfileView({ id, participants, courses, tags, onToggleA
             <div><span style={{ color:'var(--gray)' }}>Ingreso:</span> <b>{fmtDate(p.fecha)}</b></div>
             <div>
               <span style={{ color:'var(--gray)' }}>Expiración:</span>{' '}
-              <b style={{ color: exp ? 'var(--orange-d)' : warn ? 'var(--orange)' : 'var(--black)' }}>
+              <b style={{ color: exp ? 'var(--orange-d)' : warn ? 'var(--amber-d)' : 'var(--black)' }}>
                 {expiryDate(p.fecha, days)}
               </b>
             </div>

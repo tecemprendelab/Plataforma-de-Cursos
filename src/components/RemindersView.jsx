@@ -65,12 +65,12 @@ export default function RemindersView({ participants, courses = [], setView }) {
                 {/* Vencimiento */}
                 <div style={{ display:'flex', alignItems:'center', gap:6, fontSize:13 }}>
                   <span className="material-symbols-outlined" aria-hidden="true"
-                    style={{ fontSize:16, color: left <= 1 ? 'var(--orange-d)' : 'var(--orange)' }}>
+                    style={{ fontSize:16, color: left <= 1 ? 'var(--orange-d)' : 'var(--amber)' }}>
                     {left <= 1 ? 'warning' : 'event'}
                   </span>
-                  <span>Acceso expira: <b style={{ color:'var(--orange-d)' }}>{expiryDate(p.fecha, days)}</b></span>
+                  <span>Acceso expira: <b style={{ color: left <= 1 ? 'var(--orange-d)' : 'var(--amber-d)' }}>{expiryDate(p.fecha, days)}</b></span>
                 </div>
-                <div className="text-xs" style={{ color: left <= 3 ? 'var(--orange-d)' : 'var(--gray)', fontWeight: left <= 3 ? 600 : 400, marginTop:-4 }}>
+                <div className="text-xs" style={{ color: left <= 1 ? 'var(--orange-d)' : left <= 3 ? 'var(--amber-d)' : 'var(--gray)', fontWeight: left <= 3 ? 600 : 400, marginTop:-4 }}>
                   {urgencia} · prueba antes del {examDeadlineDate(p.fecha, days)}
                 </div>
 

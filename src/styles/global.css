@@ -39,9 +39,12 @@
   --cream:       #FAF5EC;   /* fondo principal — blanco arenoso */
   --cream-2:     #F2E8D0;   /* filas alternas / hover */
   --cream-3:     #E8D8B4;   /* profundidad / separadores */
-  --orange:      #E8521A;   /* naranja-rojo oficial */
+  --orange:      #E8521A;   /* naranja-rojo oficial — SOLO acción/seleccionado */
   --orange-l:    #F07040;   /* naranja claro */
-  --orange-d:    #A84020;   /* siena (naranja oscuro) */
+  --orange-d:    #A84020;   /* siena (naranja oscuro) — error / expirado */
+  --amber:       #A06800;   /* ámbar — ADVERTENCIA (por vencer), AA sobre crema */
+  --amber-l:     #FBEFD6;   /* ámbar claro — fondo de advertencia */
+  --amber-d:     #7A4F00;   /* ámbar oscuro — texto/título de advertencia */
   --black:       #1A1612;
   --black-2:     #2E2820;
   --white:       #FFFFFF;
@@ -97,6 +100,11 @@
   --orange:      #ED7B4F;
   --orange-l:    #F49A75;
   --orange-d:    #D9612F;
+
+  /* Ámbar de advertencia en modo oscuro */
+  --amber:       #E2A93E;
+  --amber-l:     #352712;
+  --amber-d:     #F0C46A;
 
   /* Logo en blanco en modo oscuro */
   --logo-color:  #FFFFFF;
@@ -269,6 +277,7 @@ textarea:focus-visible {
 }
 .badge-black  { background:var(--black);    color:var(--cream) }
 .badge-orange { background:var(--orange);   color:#fff }
+.badge-amber  { background:var(--amber-l);  color:var(--amber-d); border:1px solid var(--amber) }
 .badge-gray   { background:var(--cream-3);  color:var(--gray) }
 .badge-red    { background:var(--orange-d); color:#fff }
 .badge-green  { background:var(--green-l);  color:var(--green) }
@@ -320,17 +329,17 @@ textarea:focus-visible {
 .pbar-wrap  { background:var(--cream-3); border-radius:20px; height:6px; overflow:hidden }
 .pbar       { height:6px; border-radius:20px; transition:width .4s }
 .pbar-green { background:var(--green) }
-.pbar-warn  { background:var(--orange) }
+.pbar-warn  { background:var(--amber) }
 .pbar-exp   { background:var(--orange-d) }
 
 /* ── Alertas ─────────────────────────────────────────────── */
 .alert { border-radius:var(--radius-lg); padding:14px 18px; margin-bottom:16px }
 .alert-red    { background:var(--white);          border:2px solid var(--orange-d) }
-.alert-orange { background:var(--alert-warm-bg);  border:2px solid var(--orange) }
+.alert-orange { background:var(--amber-l);         border:2px solid var(--amber) }
 .alert-green  { background:var(--green-l);  border:1px solid var(--green); color:var(--green) }
 .alert-title  { font-weight:600; font-size:13px; margin-bottom:8px; display:flex; align-items:center; gap:6px }
 .alert-red    .alert-title { color:var(--orange-d) }
-.alert-orange .alert-title { color:var(--orange-d) }
+.alert-orange .alert-title { color:var(--amber-d) }
 
 /* ── Modal ───────────────────────────────────────────────── */
 .overlay {

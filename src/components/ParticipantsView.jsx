@@ -525,7 +525,7 @@ export default function ParticipantsView({
         {[
           { icon:'group',    label:'Total activos',   value: totalActivos, color:'var(--orange)' },
           { icon:'key',      label:'Con acceso',      value: conAcceso,    color:'var(--green)' },
-          { icon:'schedule', label:'Expiran ≤7 días', value: porVencer,    color:'var(--orange-d)' },
+          { icon:'schedule', label:'Expiran ≤7 días', value: porVencer,    color:'var(--amber)' },
         ].map(s => (
           <div key={s.label} className="card" style={{ padding:'14px 16px', display:'flex', alignItems:'center', gap:12 }}>
             <div style={{ width:40, height:40, borderRadius:'var(--radius-md)', flexShrink:0,

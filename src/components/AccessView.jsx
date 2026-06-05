@@ -19,7 +19,7 @@ export default function AccessView({ participants, courses = [], onToggleAccess,
       <div className="stats-grid">
         <StatCard num={conAcceso.length} label="Activos" />
         <StatCard num={sinAcceso.length} label="Pendientes" accent="var(--orange)" />
-        <StatCard num={warning.length}   label="Expiran ≤7 días" accent="var(--orange)" />
+        <StatCard num={warning.length}   label="Expiran ≤7 días" accent="var(--amber)" />
         <StatCard num={expired.length}   label="Expirados" accent="var(--orange-d)" />
       </div>
 
@@ -50,7 +50,7 @@ export default function AccessView({ participants, courses = [], onToggleAccess,
             return (
               <div key={p.id} style={{display:'flex',alignItems:'center',justifyContent:'space-between',padding:'8px 0',borderBottom:'1px solid var(--cream-2)',flexWrap:'wrap',gap:8}}>
                 <div style={{flex:1,minWidth:0}}>
-                  <div style={{fontWeight:500,fontSize:13}}>{p.name} <span style={{fontSize:11,color:'var(--orange)'}}>· {daysLeft(p.fecha, days)}d</span></div>
+                  <div style={{fontWeight:500,fontSize:13}}>{p.name} <span style={{fontSize:11,color:'var(--amber-d)'}}>· {daysLeft(p.fecha, days)}d</span></div>
                   <div style={{maxWidth:280,marginTop:4}}><AccessBar fecha={p.fecha} days={days}/></div>
                 </div>
                 <button className="btn btn-orange btn-sm" style={{marginLeft:'auto'}} onClick={() => openEmailClient(p)}><i className="ti ti-mail"/> Recordatorio</button>
