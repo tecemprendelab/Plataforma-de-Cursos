@@ -6,6 +6,7 @@
 import { isExpired, isWarning, daysLeft, daysElapsed, fmtDate, expiryDate, examDeadlineDate, needsExamReminder, getAccessDays } from '../utils/time.js'
 
 import { AccessBar, TimerBadge, Badge } from './UI.jsx'
+import DiagnosticPanel from './DiagnosticPanel.jsx'
 import { TagPill }          from './TagPill.jsx'
 import { TagSelector }      from './TagSelector.jsx'
 import { openEmailClient }  from '../utils/email.js'
@@ -189,6 +190,9 @@ export default function ProfileView({ id, participants, courses, tags, onToggleA
           </button>
         </div>
       )}
+
+      {/* Diagnóstico de Emprendimiento */}
+      <DiagnosticPanel cedula={p.cedula} />
 
       {/* Notas */}
       {p.notes && (
