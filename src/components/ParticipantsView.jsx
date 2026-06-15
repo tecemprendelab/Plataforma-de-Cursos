@@ -85,7 +85,7 @@ export default function ParticipantsView({
       const ced = String(p.cedula).replace(/[-. ]/g, '')
       try {
         const res = await fetch(
-          `${HACIENDA_API}?identificacion=${ced}`,
+          `${HACIENDA_API}/${ced}`,
           { signal: AbortSignal.timeout(8000) }
         )
         if (res.ok) {
