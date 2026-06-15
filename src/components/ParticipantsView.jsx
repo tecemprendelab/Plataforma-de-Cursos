@@ -90,7 +90,8 @@ export default function ParticipantsView({
         )
         if (res.ok) {
           const data = await res.json()
-          const nombre = (data.nombre || '').trim().toUpperCase()
+          const r = data.results?.[0]
+          const nombre = r ? (r.firstname + " " + r.lastname).trim().toUpperCase() : (data.nombre || "").trim().toUpperCase()
           return { cedula: ced, nombre: nombre || null, ok: !!nombre }
         }
         return { cedula: ced, nombre: null, ok: false }
