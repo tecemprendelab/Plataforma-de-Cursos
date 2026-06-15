@@ -59,6 +59,8 @@ export default function ParticipantsView({
 
   // ¿El número parece cédula CR o DIMEX? (solo dígitos, largo 9/10/11/12)
   // Si no, se trata como identificación extranjera (sin API → revisión manual).
+  const normalizeName = (s) => String(s).normalize("NFD").replace(/[̀-ͯ]/g, "").replace(/ñ/gi, "n").trim().toUpperCase()
+
   const isCrVerifiable = (cedula) => {
     const norm = String(cedula).replace(/[-. ]/g, '')
     return /^\d+$/.test(norm) && [9, 10, 11, 12].includes(norm.length)
@@ -108,7 +110,7 @@ export default function ParticipantsView({
         if (p) noEncontradosList.push({ id: p.id, name: p.name, cedula: r.cedula })
         continue
       }
-      if (p && r.nombre && r.nombre !== p.name.trim().toUpperCase()) {
+      if (p && r.nombre && normalizeName(r.nombre) !== normalizeName(p.name)) {
         updates.push({ id: p.id, nombreActual: p.name, nombreTSE: r.nombre, cedula: r.cedula })
       }
     }
