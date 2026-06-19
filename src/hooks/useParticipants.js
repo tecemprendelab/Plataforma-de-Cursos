@@ -16,6 +16,7 @@
 import { useState, useEffect, useCallback } from 'react'
 import { STORAGE_KEY, DEFAULT_PARTICIPANTS } from '../data/constants.js'
 import { isExpired, todayISO } from '../utils/time.js'
+import { normalizeCedula } from '../utils/cedula.js'
 import { supabase, isSupabaseConfigured } from '../lib/supabase.js'
 
 const PARTICIPANT_SELECT =
@@ -43,7 +44,7 @@ function fromDb(row) {
 function baseFromForm(form) {
   return {
     name:    form.name ?? null,
-    cedula:  form.cedula || null,
+    cedula:  normalizeCedula(form.cedula) || null,
     email:   form.email ?? null,
     phone:   form.phone ?? null,
     status:  form.status  ?? 'activo',
@@ -223,7 +224,7 @@ export function useParticipants() {
     for (const imp of list) {
       const base = {
         name:    imp.name || 'Sin nombre',
-        cedula:  imp.cedula || null,
+        cedula:  normalizeCedula(imp.cedula) || null,
         email:   imp.email || null,
         phone:   imp.phone || null,
         status:  'activo',

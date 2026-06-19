@@ -5,6 +5,7 @@
 import { useState }     from 'react'
 import { isExpired, isWarning, daysLeft, getAccessDays } from '../utils/time.js'
 import { mapWithConcurrency } from '../utils/async.js'
+import { normalizeCedula } from '../utils/cedula.js'
 import { AccessBar, Avatar, ConfirmDialog }  from './UI.jsx'
 import { TagPill }      from './TagPill.jsx'
 import { getTagColor }  from '../data/tags.js'
@@ -84,7 +85,7 @@ export default function ParticipantsView({
     // Consultar Hacienda en paralelo (hasta 6 a la vez) para que no sea
     // lento con muchos participantes, sin saturar la API pública.
     const results = await mapWithConcurrency(verificables, 6, async (p) => {
-      const ced = String(p.cedula).replace(/[-. ]/g, '')
+      const ced = normalizeCedula(p.cedula)
       try {
         const res = await fetch(
           `${HACIENDA_API}/${ced}`,
@@ -105,7 +106,7 @@ export default function ParticipantsView({
     const updates = []
     const noEncontradosList = []
     for (const r of results) {
-      const p = verificables.find(p => String(p.cedula).replace(/[-. ]/g, '') === r.cedula)
+      const p = verificables.find(p => normalizeCedula(p.cedula) === r.cedula)
       if (!r.ok) {
         if (p) noEncontradosList.push({ id: p.id, name: p.name, cedula: r.cedula })
         continue

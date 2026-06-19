@@ -82,7 +82,10 @@ export default function ParticipantModal({ participant, courses, tags, onSave, o
           <label className="text-sm text-muted" htmlFor="pm-cedula" style={{ display:'block', marginBottom:4 }}>Cédula</label>
           <input id="pm-cedula" className="finput" value={form.cedula || ''}
             onChange={e => f('cedula', e.target.value)}
-            inputMode="numeric" placeholder="1-0000-0000"/>
+            inputMode="numeric" placeholder="1-0234-0567"/>
+          <p className="text-xs text-muted" style={{ marginTop:4 }}>
+            Escríbela completa, <strong>con todos los ceros</strong> (ej: 1-0234-0567).
+          </p>
         </div>
         <div>
           <label className="text-sm text-muted" style={{ display:'block', marginBottom:4 }}>Teléfono</label>

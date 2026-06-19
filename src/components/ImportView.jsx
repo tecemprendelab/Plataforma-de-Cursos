@@ -9,6 +9,7 @@
 
 import { useState, useRef } from 'react'
 import { todayISO } from '../utils/time.js'
+import { normalizeCedula } from '../utils/cedula.js'
 import { mapWithConcurrency } from '../utils/async.js'
 import { HACIENDA_API } from '../config.js'
 
@@ -77,14 +78,14 @@ function matchExisting(rows, participants) {
   const byCedula = new Map()
   for (const p of participants) {
     if (p.email)  byEmail.set(p.email.toLowerCase(), p)
-    if (p.cedula) byCedula.set(p.cedula, p)
+    if (p.cedula) byCedula.set(normalizeCedula(p.cedula), p)
   }
   const nuevos = []
   const existentes = []
   for (const r of rows) {
     const existing =
       (r.email  && byEmail.get(r.email.toLowerCase())) ||
-      (r.cedula && byCedula.get(r.cedula))
+      (r.cedula && byCedula.get(normalizeCedula(r.cedula)))
     if (existing) existentes.push({ csv: r, db: existing })
     else          nuevos.push(r)
   }
@@ -124,7 +125,7 @@ export default function ImportView({ participants, courses = [], onImport, onBul
     // devuelve su resultado y luego se agrega, evitando mutar contadores
     // compartidos durante la concurrencia.
     const tseResults = await mapWithConcurrency(conCedula, 6, async (row) => {
-      const ced = row.cedula.replace(/[-. ]/g, '')
+      const ced = normalizeCedula(row.cedula)
       try {
         const res = await fetch(
           `${HACIENDA_API}?identificacion=${ced}`,
